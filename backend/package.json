@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
+    "seed": "ts-node --transpile-only src/seed.ts",
     "test": "jest --coverage",
     "test:watch": "jest --watchAll",
     "lint": "eslint src/**/*.ts --fix",
