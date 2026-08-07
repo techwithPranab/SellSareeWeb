@@ -1,0 +1,125 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ['class'],
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#fff5f2',
+          100: '#ffe8e0',
+          200: '#ffc9b3',
+          300: '#ffa07a',
+          400: '#ff7849',
+          500: '#b5451b',
+          600: '#a03118',
+          700: '#8b2500',
+          800: '#6b1a00',
+          900: '#4a1000',
+          DEFAULT: '#b5451b',
+          foreground: '#ffffff',
+        },
+        secondary: {
+          50: '#fdf6ef',
+          100: '#f9e8d3',
+          200: '#f0d0a8',
+          300: '#e6b87d',
+          400: '#d4994a',
+          500: '#c8813a',
+          600: '#a86830',
+          700: '#885028',
+          800: '#663a1e',
+          900: '#452516',
+          DEFAULT: '#c8813a',
+          foreground: '#ffffff',
+        },
+        saree: {
+          silk: '#d4a853',
+          cotton: '#8b7355',
+          tant: '#3d6b4f',
+          banarasi: '#8b1a1a',
+          kanjivaram: '#6b2fa0',
+          bridal: '#c41e3a',
+        },
+        background: '#fdf6ef',
+        foreground: '#3d2b1f',
+        surface: '#f9f0e6',
+        muted: '#f5e6d8',
+        'muted-foreground': '#8b6a52',
+        border: '#e8d5c4',
+        ring: '#b5451b',
+      },
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        display: ['var(--font-playfair)', 'Georgia', 'serif'],
+        playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
+        bengali: ['Hind Siliguri', 'sans-serif'],
+      },
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+      },
+      spacing: {
+        18: '4.5rem',
+        22: '5.5rem',
+        88: '22rem',
+        100: '25rem',
+        120: '30rem',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        'saree': '0 4px 24px rgba(181, 69, 27, 0.15)',
+        'saree-lg': '0 8px 48px rgba(181, 69, 27, 0.2)',
+        'card': '0 2px 12px rgba(61, 43, 31, 0.08)',
+        'card-hover': '0 8px 32px rgba(61, 43, 31, 0.16)',
+      },
+      animation: {
+        'fade-in': 'fade-in 0.5s ease-in-out',
+        'slide-up': 'slide-up 0.4s ease-out',
+        'slide-down': 'slide-down 0.4s ease-out',
+        'pulse-soft': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'shimmer': 'shimmer 1.5s infinite',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'slide-down': {
+          '0%': { transform: 'translateY(-20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+      },
+      backgroundImage: {
+        'silk-pattern': 'url("/images/patterns/silk-pattern.png")',
+        'gradient-saree': 'linear-gradient(135deg, #b5451b, #8b2500)',
+        'gradient-gold': 'linear-gradient(135deg, #d4a853, #a0702a)',
+        'shimmer-gradient': 'linear-gradient(90deg, #f0e8de 25%, #faf4ef 50%, #f0e8de 75%)',
+      },
+      screens: {
+        xs: '375px',
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/aspect-ratio'),
+  ],
+};
