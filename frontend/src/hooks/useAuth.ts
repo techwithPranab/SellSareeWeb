@@ -39,7 +39,7 @@ export const useAuth = () => {
     }) => {
       const result = await dispatch(registerUser(data));
       if (registerUser.fulfilled.match(result)) {
-        toast.success(`Welcome to Rupkatha Sarees, ${result.payload.user.name}! 🎉`);
+        toast.success(`Welcome to PP’s Aura, ${result.payload.user.name}! 🎉`);
         return { success: true };
       } else {
         toast.error(result.payload as string || 'Registration failed');

@@ -22,7 +22,7 @@ export class EmailService {
 
     await sendEmail({
       to: email,
-      subject: `Order Confirmed #${orderNumber} — Rupkatha Sarees 🥻`,
+      subject: `Order Confirmed #${orderNumber} — PP’s Aura 🥻`,
       html: getOrderConfirmationTemplate(name, orderNumber, itemsHtml, totalAmount),
     });
   }
@@ -57,7 +57,7 @@ export class EmailService {
   async sendPasswordResetEmail(email: string, name: string, resetUrl: string): Promise<void> {
     await sendEmail({
       to: email,
-      subject: 'Reset Your Password — Rupkatha Sarees',
+      subject: 'Reset Your Password — PP’s Aura',
       html: getPasswordResetEmailTemplate(name, resetUrl),
     });
   }
@@ -65,7 +65,7 @@ export class EmailService {
   async sendNewsletterWelcome(email: string): Promise<void> {
     await sendEmail({
       to: email,
-      subject: 'Welcome to Rupkatha Sarees Newsletter! 🥻',
+      subject: 'Welcome to PP’s Aura Newsletter! 🥻',
       html: getNewsletterWelcomeTemplate(),
     });
   }
@@ -77,7 +77,7 @@ export class EmailService {
     try {
       await sendEmail({
         to: adminEmail,
-        subject: '⚠️ Low Stock Alert — Rupkatha Sarees',
+        subject: '⚠️ Low Stock Alert — PP’s Aura',
         html: getLowStockAlertTemplate(products),
       });
     } catch (error) {
@@ -99,14 +99,14 @@ const baseStyles = `
 
 const headerHtml = `
   <div style="background: linear-gradient(135deg, #b5451b, #8b2500); padding: 30px; text-align: center;">
-    <h1 style="color: #fdf6ef; margin: 0; font-size: 28px; letter-spacing: 2px;">🥻 Rupkatha Sarees</h1>
+    <h1 style="color: #fdf6ef; margin: 0; font-size: 28px; letter-spacing: 2px;">🥻 PP’s Aura</h1>
     <p style="color: #f5c8a0; margin: 5px 0 0 0; font-size: 13px; letter-spacing: 1px;">Where Every Thread Tells a Story</p>
   </div>
 `;
 
 const footerHtml = `
   <div style="background: #3d2b1f; padding: 20px; text-align: center; margin-top: 30px;">
-    <p style="color: #c8a882; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} Rupkatha Sarees. All rights reserved.</p>
+    <p style="color: #c8a882; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} PP’s Aura. All rights reserved.</p>
     <p style="color: #c8a882; margin: 5px 0 0 0; font-size: 12px;">
       <a href="#" style="color: #f5c8a0; text-decoration: none;">Privacy Policy</a> &nbsp;|&nbsp;
       <a href="#" style="color: #f5c8a0; text-decoration: none;">Contact Us</a> &nbsp;|&nbsp;
@@ -124,7 +124,7 @@ export const getWelcomeEmailTemplate = (name: string, bonusPoints: number): stri
         ${headerHtml}
         <div style="padding: 40px 30px;">
           <h2 style="color: #b5451b;">Welcome, ${name}! 🎉</h2>
-          <p>Thank you for joining <strong>Rupkatha Sarees</strong> — India's most curated online saree destination.</p>
+          <p>Thank you for joining <strong>PP’s Aura</strong> — India's most curated online saree destination.</p>
           <p>As a welcome gift, we've added <strong style="color: #b5451b;">${bonusPoints} Loyalty Points</strong> to your account!</p>
           <div style="background: #fdf6ef; border-left: 4px solid #b5451b; padding: 20px; margin: 20px 0; border-radius: 4px;">
             <h3 style="margin-top:0; color: #b5451b;">What's waiting for you:</h3>
@@ -264,7 +264,7 @@ export const getNewsletterWelcomeTemplate = (): string => `
         ${headerHtml}
         <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: #b5451b;">You're In! 🥻</h2>
-          <p>Thank you for subscribing to the Rupkatha Sarees newsletter. Stay tuned for exclusive offers, new arrivals & festival collections!</p>
+          <p>Thank you for subscribing to the PP’s Aura newsletter. Stay tuned for exclusive offers, new arrivals & festival collections!</p>
         </div>
         ${footerHtml}
       </div>

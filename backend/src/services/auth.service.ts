@@ -68,7 +68,7 @@ export class AuthService {
     // Send welcome email (non-blocking)
     sendEmail({
       to: user.email,
-      subject: `Welcome to Rupkatha Sarees, ${user.name}! 🥻`,
+      subject: `Welcome to PP’s Aura, ${user.name}! 🥻`,
       html: getWelcomeEmailTemplate(user.name, LOYALTY.WELCOME_BONUS),
     }).catch(console.error);
 
@@ -147,7 +147,7 @@ export class AuthService {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
     await sendEmail({
       to: user.email,
-      subject: 'Reset Your Password — Rupkatha Sarees',
+      subject: 'Reset Your Password — PP’s Aura',
       html: getPasswordResetEmailTemplate(user.name, resetUrl),
     });
   }

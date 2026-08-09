@@ -1,7 +1,7 @@
 {
   "name": "rupkatha-sarees-backend",
   "version": "1.0.0",
-  "description": "Production-ready REST API for Rupkatha Sarees E-Commerce Platform",
+  "description": "Production-ready REST API for PP’s Aura E-Commerce Platform",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --exit-child src/server.ts",

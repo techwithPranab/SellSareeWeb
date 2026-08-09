@@ -61,9 +61,13 @@ export default function ProductCard({
       transition={{ duration: 0.3 }}
       className={cn('group relative', className)}
     >
-      <Link href={`/products/${product.slug}`} className="block">
-        {/* Image Container */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-surface">
+      {/* Image Container */}
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-surface">
+        <Link
+          href={`/products/${product.slug}`}
+          className="absolute inset-0 block"
+          aria-label={`View ${product.name}`}
+        >
           {/* Main Image */}
           <Image
             src={primaryImage}
@@ -100,50 +104,52 @@ export default function ProductCard({
               <span className="badge-sold-out">Sold Out</span>
             )}
           </div>
+        </Link>
 
-          {/* Wishlist Button */}
-          <button
-            onClick={handleWishlist}
-            className={cn(
-              'absolute top-2 right-2 z-10 p-2 rounded-full transition-all duration-200 shadow-sm',
-              isWishlisted
-                ? 'bg-primary text-white scale-110'
-                : 'bg-white/90 text-foreground hover:bg-primary hover:text-white opacity-0 group-hover:opacity-100'
-            )}
-            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          >
-            <Heart className={cn('w-4 h-4', isWishlisted && 'fill-current')} />
-          </button>
-
-          {/* Quick Actions */}
-          {showQuickAdd && (
-            <div className="absolute bottom-3 left-3 right-3 z-10 flex gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md',
-                  inCart
-                    ? 'bg-green-600 text-white'
-                    : product.stock === 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-primary text-white hover:bg-primary-dark'
-                )}
-              >
-                <ShoppingBag className="w-3.5 h-3.5" />
-                {inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </button>
-              <Link
-                href={`/products/${product.slug}`}
-                className="p-2 bg-white/90 rounded-lg hover:bg-white shadow-md transition-colors"
-                aria-label="View product details"
-              >
-                <Eye className="w-4 h-4 text-foreground" />
-              </Link>
-            </div>
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlist}
+          className={cn(
+            'absolute top-2 right-2 z-10 p-2 rounded-full transition-all duration-200 shadow-sm',
+            isWishlisted
+              ? 'bg-primary text-white scale-110'
+              : 'bg-white/90 text-foreground hover:bg-primary hover:text-white opacity-0 group-hover:opacity-100'
           )}
-        </div>
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <Heart className={cn('w-4 h-4', isWishlisted && 'fill-current')} />
+        </button>
 
+        {/* Quick Actions */}
+        {showQuickAdd && (
+          <div className="absolute bottom-3 left-3 right-3 z-10 flex gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md',
+                inCart
+                  ? 'bg-green-600 text-white'
+                  : product.stock === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              )}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              {inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </button>
+            <Link
+              href={`/products/${product.slug}`}
+              className="p-2 bg-white/90 rounded-lg hover:bg-white shadow-md transition-colors"
+              aria-label="View product details"
+            >
+              <Eye className="w-4 h-4 text-foreground" />
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <Link href={`/products/${product.slug}`} className="block">
         {/* Product Info */}
         <div className="mt-3 space-y-1.5 px-1">
           {/* Category tag */}

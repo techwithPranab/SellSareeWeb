@@ -235,7 +235,7 @@ export const generateProductSchema = (product: Product) => ({
   image: product.images.map((img) => img.url),
   description: product.description,
   sku: product.sku,
-  brand: { '@type': 'Brand', name: 'Rupkatha Sarees' },
+  brand: { '@type': 'Brand', name: 'PP’s Aura' },
   offers: {
     '@type': 'Offer',
     url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}`,

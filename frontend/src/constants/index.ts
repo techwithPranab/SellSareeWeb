@@ -1,8 +1,8 @@
 // =============================================
-// RUPKATHA SAREES — FRONTEND CONSTANTS
+// PP’S AURA — FRONTEND CONSTANTS
 // =============================================
 
-export const APP_NAME = 'Rupkatha Sarees';
+export const APP_NAME = 'PP’s Aura';
 export const APP_TAGLINE = 'Where Every Thread Tells a Story';
 export const APP_DESCRIPTION =
   'Discover the finest collection of handcrafted sarees from across India — silk, cotton, tant, banarasi, kanjivaram, and more.';

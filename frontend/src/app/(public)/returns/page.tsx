@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Returns & Exchanges',
-  description: 'Rupkatha Sarees return and exchange policy — hassle-free 7-day returns on eligible products.',
+  description: 'PP’s Aura return and exchange policy — hassle-free 7-day returns on eligible products.',
 };
 
 export default function ReturnsPage() {

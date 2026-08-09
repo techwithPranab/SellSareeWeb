@@ -42,7 +42,7 @@ export default function CheckoutSuccessPage() {
         Order Placed Successfully!
       </h1>
       <p className="text-muted-foreground mb-8">
-        Thank you for shopping with Rupkatha Sarees. We&apos;ll send you a confirmation email shortly.
+        Thank you for shopping with PP’s Aura. We&apos;ll send you a confirmation email shortly.
       </p>
 
       {order && (

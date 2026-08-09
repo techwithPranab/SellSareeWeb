@@ -1,5 +1,5 @@
 // =============================================
-// RUPKATHA SAREES — FRONTEND TYPES
+// PP’S AURA — FRONTEND TYPES
 // =============================================
 
 export type UserRole = 'customer' | 'admin' | 'super_admin' | 'vendor';

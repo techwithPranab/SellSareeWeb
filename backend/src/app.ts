@@ -19,6 +19,7 @@ import orderRoutes from './routes/order.routes';
 import categoryRoutes from './routes/category.routes';
 import userRoutes from './routes/user.routes';
 import bannerRoutes from './routes/banner.routes';
+import launchRoutes from './routes/launch.routes';
 
 // Load environment variables
 dotenv.config();
@@ -46,18 +47,46 @@ app.use(
 );
 
 // CORS
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:3000',
-  process.env.ADMIN_URL || 'http://localhost:3000',
-];
+const toOrigin = (url: string): string => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return url.replace(/\/$/, '');
+  }
+};
+
+const allowedOrigins = new Set(
+  [
+    process.env.CLIENT_URL || 'http://localhost:3000',
+    process.env.ADMIN_URL || 'http://localhost:3000',
+  ].map(toOrigin)
+);
+
+const isAllowedOrigin = (origin?: string): boolean => {
+  if (!origin || allowedOrigins.has(origin)) return true;
+
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const { protocol, hostname } = new URL(origin);
+      return (
+        (protocol === 'http:' || protocol === 'https:') &&
+        (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1')
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+};
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
     credentials: true,
@@ -122,7 +151,7 @@ app.use(requestLogger);
 app.get('/health', (_req, res) => {
   res.status(200).json({
     success: true,
-    message: '🥻 Rupkatha Sarees API is running',
+    message: '🥻 PP’s Aura API is running',
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -147,6 +176,7 @@ app.use(`${API_PREFIX}/orders`, orderRoutes);
 app.use(`${API_PREFIX}/categories`, categoryRoutes);
 app.use(`${API_PREFIX}/users`, userRoutes);
 app.use(`${API_PREFIX}/banners`, bannerRoutes);
+app.use(`${API_PREFIX}/launch`, launchRoutes);
 
 // ============================================================
 // ERROR HANDLING

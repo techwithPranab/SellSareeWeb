@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Size Guide',
-  description: 'Saree length, blouse measurements, and sizing guide for Rupkatha Sarees.',
+  description: 'Saree length, blouse measurements, and sizing guide for PP’s Aura.',
 };
 
 export default function SizeGuidePage() {

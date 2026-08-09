@@ -18,7 +18,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   res.cookie('accessToken', tokens.accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
   res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
 
-  ApiResponse.created(res, 'Registration successful. Welcome to Rupkatha Sarees!', {
+  ApiResponse.created(res, 'Registration successful. Welcome to PP’s Aura!', {
     user,
     tokens,
   });

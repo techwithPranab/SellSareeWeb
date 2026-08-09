@@ -121,7 +121,7 @@ export default function CheckoutPage() {
         key: paymentData.key || RAZORPAY_KEY_ID,
         amount: paymentData.amount,
         currency: paymentData.currency,
-        name: 'Rupkatha Sarees',
+        name: 'PP’s Aura',
         description: `Order #${order.orderNumber}`,
         order_id: paymentData.razorpayOrderId,
         handler: async (response: {

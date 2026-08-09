@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * RUPKATHA SAREES — DATABASE SEED SCRIPT
+ * PP’S AURA — DATABASE SEED SCRIPT
  * ============================================================
  * Run: npx ts-node src/seed.ts
  * ============================================================
@@ -174,7 +174,7 @@ async function seedCategories() {
       sortOrder: 1,
       isActive: true,
       productCount: 0,
-      metaTitle: 'Buy Silk Sarees Online | Rupkatha Sarees',
+      metaTitle: 'Buy Silk Sarees Online | PP’s Aura',
       metaDescription: 'Shop the finest collection of pure silk sarees — Kanjivaram, Banarasi, Mysore Silk and more.',
     },
     {
@@ -1113,7 +1113,7 @@ async function seedOrdersAndReviews(
       order: orders[0]._id,
       rating: 5,
       title: 'Absolutely stunning — worth every rupee!',
-      comment: 'I wore this for my sister\'s wedding and received so many compliments. The zari work is incredibly detailed and the colour is exactly as shown. The quality of silk is premium. Packing was also very careful. Highly recommend Rupkatha Sarees!',
+      comment: 'I wore this for my sister\'s wedding and received so many compliments. The zari work is incredibly detailed and the colour is exactly as shown. The quality of silk is premium. Packing was also very careful. Highly recommend PP’s Aura!',
       isVerifiedPurchase: true,
       isApproved: true,
       helpfulCount: 18,
@@ -1182,7 +1182,7 @@ async function seedOrdersAndReviews(
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('\n🌱 Rupkatha Sarees — Database Seed');
+  console.log('\n🌱 PP’s Aura — Database Seed');
   console.log('====================================\n');
 
   try {

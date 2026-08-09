@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'How Rupkatha Sarees collects, uses, and protects your personal information.',
+  description: 'How PP’s Aura collects, uses, and protects your personal information.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       subtitle="Last updated: January 2025"
     >
       <p>
-        Rupkatha Sarees (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) is committed to protecting your privacy.
+        PP’s Aura (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) is committed to protecting your privacy.
         This policy explains how we collect, use, and safeguard your information when you use our website.
       </p>
 

@@ -14,7 +14,7 @@ const startServer = async (): Promise<void> => {
     // Start HTTP server
     const server = app.listen(PORT, () => {
       logger.info(`\n🥻 ===================================`);
-      logger.info(`   RUPKATHA SAREES API SERVER`);
+      logger.info(`   PP’S AURA API SERVER`);
       logger.info(`===================================`);
       logger.info(`🚀 Server running on port: ${PORT}`);
       logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);

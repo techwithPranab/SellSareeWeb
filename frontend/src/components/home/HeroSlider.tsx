@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,7 +12,7 @@ interface Slide {
   title: string;
   subtitle: string;
   cta: string;
-  href: string;
+  href: Route;
   image: string;
   badge?: string;
   accentColor: string;
@@ -20,33 +21,53 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     id: 1,
-    title: 'Banarasi Bridal Collection',
-    subtitle: 'Hand-woven silk sarees that carry centuries of artisan craftsmanship for your most cherished moments.',
-    cta: 'Explore Collection',
-    href: '/products?category=banarasi&occasion=wedding',
-    image: '/images/hero/banarasi-bridal.jpg',
-    badge: 'New Arrivals',
+    title: 'The Art of Jamdani',
+    subtitle: 'Delicate motifs appear to float across the weave, shaped patiently by skilled artisan hands.',
+    cta: 'Discover Jamdani',
+    href: '/products?search=jamdani',
+    image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1800&q=85&auto=format&fit=crop',
+    badge: 'Upcoming Collection',
     accentColor: '#b5451b',
   },
   {
     id: 2,
-    title: 'Kanjivaram Elegance',
-    subtitle: 'Temple-inspired South Indian silk with rich zari borders that speak of royal heritage.',
-    cta: 'Shop Kanjivaram',
-    href: '/products?category=kanjivaram',
-    image: '/images/hero/kanjivaram.jpg',
-    badge: 'Best Sellers',
+    title: 'Authentic Handloom Stories',
+    subtitle: 'Sarees woven slowly and thoughtfully, celebrating the character of true handmade craft.',
+    cta: 'Explore Handloom',
+    href: '/products?category=handloom',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1800&q=85&auto=format&fit=crop',
+    badge: 'Artisan Made',
     accentColor: '#c8813a',
   },
   {
     id: 3,
-    title: 'Bengal\'s Finest Tant',
-    subtitle: 'Breathable handloom cotton sarees — the timeless pride of Bengal\'s master weavers.',
-    cta: 'Discover Tant',
-    href: '/products?category=tant',
-    image: '/images/hero/tant.jpg',
-    badge: 'Heritage Weaves',
+    title: 'Bangladeshi Jamdani Heritage',
+    subtitle: 'A graceful expression of Bengal’s weaving legacy, rich with rhythmic motifs and timeless detail.',
+    cta: 'View the Collection',
+    href: '/products?search=bangladeshi%20jamdani',
+    image: 'https://images.unsplash.com/photo-1618901185975-d59f7091bcfe?w=1800&q=85&auto=format&fit=crop',
+    badge: 'Heritage Weave',
     accentColor: '#1e3a5f',
+  },
+  {
+    id: 4,
+    title: 'Kardana Jamdani Silk',
+    subtitle: 'Lustrous silk, Jamdani artistry, and delicate kardana work come together for a festive statement.',
+    cta: 'Preview the Edit',
+    href: '/products?search=kardana%20jamdani%20silk',
+    image: 'https://images.unsplash.com/photo-1621184455862-c163dfb30e0f?w=1800&q=85&auto=format&fit=crop',
+    badge: 'Festive Highlight',
+    accentColor: '#7c3f58',
+  },
+  {
+    id: 5,
+    title: 'Naturally Elegant Tasar',
+    subtitle: 'Earthy texture and a subtle natural sheen make Tasar an enduring choice for effortless elegance.',
+    cta: 'Explore Tasar',
+    href: '/products?search=tasar',
+    image: 'https://images.unsplash.com/photo-1610189012906-4c0aa9b9781e?w=1800&q=85&auto=format&fit=crop',
+    badge: 'Natural Silk',
+    accentColor: '#8b6a3f',
   },
 ];
 

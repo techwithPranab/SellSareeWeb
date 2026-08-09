@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Careers',
-  description: 'Join the Rupkatha Sarees team and help bring authentic Indian sarees to customers worldwide.',
+  description: 'Join the PP’s Aura team and help bring authentic Indian sarees to customers worldwide.',
 };
 
 const OPENINGS = [
@@ -16,12 +16,12 @@ const OPENINGS = [
 export default function CareersPage() {
   return (
     <ContentPage
-      title="Careers at Rupkatha"
+      title="Careers at PP’s Aura"
       subtitle="Join us in celebrating Indian craftsmanship and building the future of ethnic e-commerce."
     >
       <h2>Why Work With Us</h2>
       <p>
-        At Rupkatha Sarees, you&apos;ll be part of a passionate team that bridges the gap between
+        At PP’s Aura, you&apos;ll be part of a passionate team that bridges the gap between
         master weavers and saree lovers across India and the world. We offer competitive salaries,
         flexible work arrangements, and the satisfaction of supporting artisan communities.
       </p>

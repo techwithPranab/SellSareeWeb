@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Our Story',
-  description: 'Learn about Rupkatha Sarees — our mission to bring authentic handcrafted sarees from master weavers across India.',
+  description: 'Learn about PP’s Aura — our mission to bring authentic handcrafted sarees from master weavers across India.',
 };
 
 export default function AboutPage() {
@@ -14,7 +14,7 @@ export default function AboutPage() {
     >
       <h2>A Heritage of Handcraft</h2>
       <p>
-        Rupkatha Sarees was born from a simple belief: every woman deserves access to authentic,
+        PP’s Aura was born from a simple belief: every woman deserves access to authentic,
         beautifully crafted sarees without compromising on quality or fair pricing for artisans.
         Founded in Kolkata in 2020, we began by partnering with a handful of weaver families in
         Varanasi, Kanchipuram, and rural Bengal.

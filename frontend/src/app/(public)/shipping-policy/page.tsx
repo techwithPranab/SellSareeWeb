@@ -4,7 +4,7 @@ import { SHIPPING } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'Shipping Policy',
-  description: 'Shipping rates, delivery timelines, and coverage areas for Rupkatha Sarees orders across India.',
+  description: 'Shipping rates, delivery timelines, and coverage areas for PP’s Aura orders across India.',
 };
 
 export default function ShippingPolicyPage() {

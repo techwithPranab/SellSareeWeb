@@ -1,7 +1,7 @@
 {
   "name": "rupkatha-sarees-frontend",
   "version": "1.0.0",
-  "description": "Next.js 15 frontend for Rupkatha Sarees E-Commerce Platform",
+  "description": "Next.js 15 frontend for PP’s Aura E-Commerce Platform",
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",

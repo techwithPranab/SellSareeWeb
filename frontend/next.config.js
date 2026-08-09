@@ -17,6 +17,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -60,7 +66,7 @@ const nextConfig = {
 
   // Environment variables that should be available on the client
   env: {
-    APP_NAME: 'Rupkatha Sarees',
+    APP_NAME: 'PP’s Aura',
     APP_VERSION: '1.0.0',
   },
 };

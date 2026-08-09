@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions',
-  description: 'Terms and conditions for using the Rupkatha Sarees website and purchasing products.',
+  description: 'Terms and conditions for using the PP’s Aura website and purchasing products.',
 };
 
 export default function TermsPage() {
@@ -14,7 +14,7 @@ export default function TermsPage() {
     >
       <h2>Acceptance of Terms</h2>
       <p>
-        By accessing or using the Rupkatha Sarees website, you agree to be bound by these Terms
+        By accessing or using the PP’s Aura website, you agree to be bound by these Terms
         and Conditions. If you do not agree, please do not use our services.
       </p>
 
@@ -36,12 +36,12 @@ export default function TermsPage() {
       <h2>Intellectual Property</h2>
       <p>
         All content on this website — including text, images, logos, and designs — is the property
-        of Rupkatha Sarees and protected by copyright laws. Reproduction without written permission is prohibited.
+        of PP’s Aura and protected by copyright laws. Reproduction without written permission is prohibited.
       </p>
 
       <h2>Limitation of Liability</h2>
       <p>
-        Rupkatha Sarees shall not be liable for any indirect, incidental, or consequential damages
+        PP’s Aura shall not be liable for any indirect, incidental, or consequential damages
         arising from the use of our website or products, beyond the value of the purchased item.
       </p>
 

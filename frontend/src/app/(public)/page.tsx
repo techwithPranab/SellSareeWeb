@@ -1,17 +1,29 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import Link from 'next/link';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, ShieldCheck, RotateCcw, Headphones, Star, ArrowRight } from 'lucide-react';
+import {
+  BadgePercent,
+  BellRing,
+  CalendarDays,
+  CheckCircle2,
+  Gift,
+  Headphones,
+  Loader2,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Truck,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 import HeroSlider from '@/components/home/HeroSlider';
-import CategoryGrid from '@/components/home/CategoryGrid';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
+import { launchService } from '@/services/launch.service';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import {
   fetchFeaturedProducts,
   fetchNewArrivals,
-  fetchBestSellers,
 } from '@/features/products/productsSlice';
 
 const TRUST_BADGES = [
@@ -43,7 +55,7 @@ const TESTIMONIALS = [
     name: 'Priya Sharma',
     location: 'Delhi',
     rating: 5,
-    review: 'The Banarasi silk saree I ordered for my wedding was absolutely stunning. The zari work is incredible and the quality exceeded my expectations. Rupkatha delivered exactly what they promised!',
+    review: 'The Banarasi silk saree I ordered for my wedding was absolutely stunning. The zari work is incredible and the quality exceeded my expectations. PP’s Aura delivered exactly what they promised!',
     avatar: '/images/testimonials/t1.jpg',
     product: 'Bridal Banarasi Silk',
   },
@@ -61,23 +73,92 @@ const TESTIMONIALS = [
     name: 'Ruma Chatterjee',
     location: 'Kolkata',
     rating: 5,
-    review: 'As a Bengali, I\'m very particular about Tant sarees. The quality from Rupkatha is outstanding — exactly like buying from a weaver\'s home. The packaging was also beautiful!',
+    review: 'As a Bengali, I\'m very particular about Tant sarees. The quality from PP’s Aura is outstanding — exactly like buying from a weaver\'s home. The packaging was also beautiful!',
     avatar: '/images/testimonials/t3.jpg',
     product: 'Handloom Tant Cotton',
   },
 ];
 
+const UPCOMING_SAREES = [
+  {
+    name: 'Jamdani',
+    description: 'Airy, elegant weaves distinguished by intricate motifs created directly on the loom.',
+    accent: 'from-rose-100 to-orange-50',
+  },
+  {
+    name: 'Handloom',
+    description: 'Artisan-made sarees where every variation celebrates the beauty of work done by hand.',
+    accent: 'from-amber-100 to-yellow-50',
+  },
+  {
+    name: 'Bangladeshi Jamdani',
+    description: 'Heritage-inspired Jamdani featuring delicate, rhythmic motifs and a graceful drape.',
+    accent: 'from-emerald-100 to-teal-50',
+  },
+  {
+    name: 'Kardana Jamdani Silk',
+    description: 'A festive blend of Jamdani artistry, lustrous silk, and refined kardana embellishment.',
+    accent: 'from-violet-100 to-fuchsia-50',
+  },
+  {
+    name: 'Tasar',
+    description: 'Naturally textured silk with an earthy sheen, timeless character, and effortless elegance.',
+    accent: 'from-stone-200 to-amber-50',
+  },
+];
+
+const LAUNCH_BENEFITS = [
+  {
+    icon: BadgePercent,
+    title: 'Launch Day Discount',
+    description: 'Receive an exclusive special discount reserved for registered customers.',
+  },
+  {
+    icon: BellRing,
+    title: 'First to Know',
+    description: 'Get the launch announcement and collection updates directly in your inbox.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Early Collection Access',
+    description: 'Explore our first curated sarees before the wider launch-day rush.',
+  },
+  {
+    icon: Gift,
+    title: 'A Special Welcome',
+    description: 'Enjoy launch-only surprises created for the first PP’s Aura community members.',
+  },
+];
+
 export default function HomePage() {
   const dispatch = useAppDispatch();
-  const { featuredProducts, newArrivals, bestSellers, isLoading } = useAppSelector(
+  const [registration, setRegistration] = useState({ name: '', email: '', phone: '' });
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const { featuredProducts, newArrivals, isLoading } = useAppSelector(
     (s) => s.products
   );
 
   useEffect(() => {
     dispatch(fetchFeaturedProducts());
     dispatch(fetchNewArrivals());
-    dispatch(fetchBestSellers());
   }, [dispatch]);
+
+  const handleLaunchRegistration = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsRegistering(true);
+
+    try {
+      const response = await launchService.register(registration);
+      setIsRegistered(true);
+      setRegistration({ name: '', email: '', phone: '' });
+      toast.success(response.message);
+    } catch {
+      toast.error('We could not complete your registration. Please check your details and try again.');
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
   return (
     <>
@@ -108,8 +189,206 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Category Grid */}
-      <CategoryGrid />
+      {/* Upcoming Launch Registration */}
+      <section className="section-padding bg-[#3d2b1f] relative overflow-hidden">
+        <div className="absolute -top-32 -right-28 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-primary/30 blur-3xl" />
+        <div className="container-custom relative z-10 grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary">
+              <CalendarDays className="h-4 w-4" />
+              Upcoming Launch Date
+            </div>
+            <h2 className="font-playfair text-4xl font-bold text-white md:text-5xl">
+              Something beautiful is being woven.
+            </h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
+              Our first PP’s Aura collection is coming soon. Register now to receive the launch date,
+              an early reminder, and your launch-day special discount.
+            </p>
+            <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-[#3d2b1f]">
+                <CalendarDays className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Launch date</p>
+                <p className="font-playfair text-xl font-semibold text-white">
+                  {process.env.NEXT_PUBLIC_LAUNCH_DATE || 'Date to be announced'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="rounded-3xl border border-white/15 bg-white p-6 shadow-2xl sm:p-8"
+          >
+            {isRegistered ? (
+              <div className="flex min-h-[340px] flex-col items-center justify-center text-center">
+                <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircle2 className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="font-playfair text-3xl font-bold text-foreground">You’re on the list!</h3>
+                <p className="mt-3 max-w-sm text-muted-foreground">
+                  We’ll send your launch update and special discount details as soon as they are ready.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsRegistered(false)}
+                  className="btn-outline mt-7"
+                >
+                  Register another person
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reserve your offer</p>
+                <h3 className="mt-2 font-playfair text-3xl font-bold text-foreground">
+                  Register for a launch-day special discount
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Enter your details and we’ll keep your launch benefit ready.
+                </p>
+                <form onSubmit={handleLaunchRegistration} className="mt-6 space-y-4">
+                  <div>
+                    <label htmlFor="launch-name" className="label">Name</label>
+                    <input
+                      id="launch-name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      maxLength={100}
+                      value={registration.name}
+                      onChange={(event) => setRegistration({ ...registration, name: event.target.value })}
+                      placeholder="Your full name"
+                      className="input-field"
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="launch-email" className="label">Email</label>
+                      <input
+                        id="launch-email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={registration.email}
+                        onChange={(event) => setRegistration({ ...registration, email: event.target.value })}
+                        placeholder="you@example.com"
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="launch-phone" className="label">Phone number</label>
+                      <input
+                        id="launch-phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        required
+                        minLength={8}
+                        maxLength={20}
+                        value={registration.phone}
+                        onChange={(event) => setRegistration({ ...registration, phone: event.target.value })}
+                        placeholder="+91 98765 43210"
+                        className="input-field"
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={isRegistering} className="btn-primary w-full">
+                    {isRegistering ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering…</>
+                    ) : (
+                      'Register for launch benefits'
+                    )}
+                  </button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    By registering, you agree to receive launch updates from PP’s Aura.
+                  </p>
+                </form>
+              </>
+            )}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Upcoming Sarees */}
+      <section className="section-padding bg-background">
+        <div className="container-custom">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">The debut edit</p>
+            <h2 className="section-title">Upcoming Sarees</h2>
+            <p className="section-subtitle">
+              Our launch collection is intentionally focused on five timeless saree traditions.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            {UPCOMING_SAREES.map((saree, index) => (
+              <motion.article
+                key={saree.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: index * 0.06 }}
+                className="group overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-card-hover"
+              >
+                <div className={`flex h-32 items-center justify-center bg-gradient-to-br ${saree.accent}`}>
+                  <div className="flex h-16 w-16 rotate-45 items-center justify-center rounded-2xl border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm transition-transform group-hover:rotate-[55deg]">
+                    <Sparkles className="h-7 w-7 -rotate-45 text-primary transition-transform group-hover:-rotate-[55deg]" />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                    Coming soon
+                  </p>
+                  <h3 className="font-playfair text-xl font-bold text-foreground">{saree.name}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{saree.description}</p>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Launch Benefits */}
+      <section className="section-padding bg-surface">
+        <div className="container-custom">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">Made for our first community</p>
+            <h2 className="section-title">Launch Benefits</h2>
+            <p className="section-subtitle">Register once and be part of PP’s Aura from the very beginning.</p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {LAUNCH_BENEFITS.map((benefit, index) => {
+              const Icon = benefit.icon;
+              return (
+                <motion.div
+                  key={benefit.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: index * 0.07 }}
+                  className="rounded-2xl border border-border bg-white p-6 shadow-sm"
+                >
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-playfair text-xl font-bold text-foreground">{benefit.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{benefit.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* Featured Products */}
       <FeaturedProducts
@@ -132,58 +411,6 @@ export default function HomePage() {
           isLoading={isLoading}
         />
       </section>
-
-      {/* Banner CTA */}
-      <section className="relative overflow-hidden bg-[#3d2b1f] py-20">
-        <div
-          className="absolute inset-0 opacity-10 bg-repeat"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-        <div className="container-custom relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-secondary font-semibold tracking-widest text-sm uppercase mb-3">
-              Limited Time Offer
-            </p>
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-4">
-              Bridal Season Sale
-            </h2>
-            <p className="text-white/70 max-w-xl mx-auto mb-8 text-lg">
-              Get up to 30% off on our premium bridal collection. Crafted for your most cherished moments.
-            </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Link
-                href="/products?category=bridal&onSale=true"
-                className="btn-primary btn-lg"
-              >
-                Shop Bridal Collection
-              </Link>
-              <Link
-                href="/products?onSale=true"
-                className="btn-outline-white btn-lg"
-              >
-                View All Sale Items
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Best Sellers */}
-      <FeaturedProducts
-        title="Best Sellers"
-        subtitle="Our most-loved sarees — trusted by thousands of customers"
-        seeAllHref="/products?sort=bestselling"
-        seeAllLabel="See All Best Sellers"
-        products={bestSellers}
-        isLoading={isLoading}
-      />
 
       {/* Testimonials */}
       <section className="section-padding bg-surface">
@@ -239,7 +466,7 @@ export default function HomePage() {
         <div className="container-custom">
           <div className="max-w-xl mx-auto text-center">
             <h2 className="font-playfair text-3xl font-bold text-white mb-3">
-              Join the Rupkatha Family
+              Join the PP’s Aura Family
             </h2>
             <p className="text-white/80 mb-6">
               Subscribe to get exclusive offers, new arrival alerts, and styling tips. Get ₹100 off your first order!
