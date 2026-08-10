@@ -195,6 +195,45 @@ export const toggleUserStatus = asyncHandler(async (req: Request, res: Response)
   );
 });
 
+export const updateCustomerByAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const user = await userRepository.findById(req.params.id);
+  if (!user) return ApiResponse.notFound(res, 'User not found');
+
+  const name = String(req.body.name || '').trim();
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const phone = req.body.phone ? String(req.body.phone).replace(/\D/g, '') : undefined;
+  const importantDates = Array.isArray(req.body.importantDates) ? req.body.importantDates : [];
+
+  if (name.length < 2 || name.length > 50 || !/^\S+@\S+\.\S+$/.test(email)) {
+    return ApiResponse.badRequest(res, 'Valid customer name and email are required');
+  }
+  if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+    return ApiResponse.badRequest(res, 'Please enter a valid Indian phone number');
+  }
+  if (importantDates.length > 20) {
+    return ApiResponse.badRequest(res, 'A maximum of 20 important dates is allowed');
+  }
+
+  const normalizedDates: Array<{ label: string; date: Date; notes: string }> = importantDates.map((entry: { label?: unknown; date?: unknown; notes?: unknown }) => ({
+    label: String(entry.label || '').trim(),
+    date: new Date(String(entry.date || '')),
+    notes: String(entry.notes || '').trim(),
+  }));
+
+  if (normalizedDates.some((entry) => !entry.label || Number.isNaN(entry.date.getTime()))) {
+    return ApiResponse.badRequest(res, 'Every important date needs a valid label and date');
+  }
+
+  const updated = await userRepository.updateById(req.params.id, {
+    name,
+    email,
+    phone,
+    importantDates: normalizedDates,
+  });
+
+  return ApiResponse.success(res, 'Customer details updated', { user: updated });
+});
+
 export const getAllReviews = asyncHandler(async (req: Request, res: Response) => {
   const { page = 1, limit = 20, isApproved } = req.query;
   const skip = (Number(page) - 1) * Number(limit);

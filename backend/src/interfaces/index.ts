@@ -19,6 +19,13 @@ export interface IAddress {
   type: 'home' | 'work' | 'other';
 }
 
+export interface IImportantDate {
+  _id?: Types.ObjectId;
+  label: string;
+  date: Date;
+  notes?: string;
+}
+
 export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -44,6 +51,7 @@ export interface IUser extends Document {
   preferredLanguage: string;
   preferredCurrency: string;
   lastLogin?: Date;
+  importantDates: IImportantDate[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;

@@ -39,6 +39,13 @@ export interface Address {
   type: 'home' | 'work' | 'other';
 }
 
+export interface ImportantDate {
+  _id?: string;
+  label: string;
+  date: string;
+  notes?: string;
+}
+
 export interface User {
   _id: string;
   name: string;
@@ -58,6 +65,7 @@ export interface User {
   preferredLanguage: string;
   preferredCurrency: string;
   lastLogin?: string;
+  importantDates: ImportantDate[];
   createdAt: string;
   updatedAt: string;
 }

@@ -20,6 +20,20 @@ const AddressSchema = new Schema(
   { _id: true }
 );
 
+const ImportantDateSchema = new Schema(
+  {
+    label: {
+      type: String,
+      required: [true, 'Important date label is required'],
+      trim: true,
+      maxlength: [50, 'Important date label cannot exceed 50 characters'],
+    },
+    date: { type: Date, required: [true, 'Important date is required'] },
+    notes: { type: String, trim: true, maxlength: [250, 'Notes cannot exceed 250 characters'] },
+  },
+  { _id: true }
+);
+
 const UserSchema = new Schema<IUser>(
   {
     name: {
@@ -70,6 +84,7 @@ const UserSchema = new Schema<IUser>(
     preferredLanguage: { type: String, default: 'en' },
     preferredCurrency: { type: String, default: 'INR' },
     lastLogin: { type: Date },
+    importantDates: { type: [ImportantDateSchema], default: [] },
   },
   {
     timestamps: true,

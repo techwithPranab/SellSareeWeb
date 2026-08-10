@@ -17,6 +17,7 @@ import {
   getAllUsers,
   getUserById,
   toggleUserStatus,
+  updateCustomerByAdmin,
   getAllReviews,
   approveReview,
   rejectReview,
@@ -71,6 +72,7 @@ router.use(requireAdmin);
 // User management
 router.get('/admin/users', getAllUsers);
 router.get('/admin/users/:id', getUserById);
+router.put('/admin/users/:id', updateCustomerByAdmin);
 router.put('/admin/users/:id/toggle-status', toggleUserStatus);
 
 // Review moderation

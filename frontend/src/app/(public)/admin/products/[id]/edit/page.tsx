@@ -30,7 +30,7 @@ export default function EditProductPage() {
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && !(typeof value === 'number' && !Number.isFinite(value))) {
           if (key === 'occasion') {
             const occasions = (value as string).split(',').map((o) => o.trim()).filter(Boolean);
             occasions.forEach((o) => formData.append('occasion', o));
@@ -47,8 +47,9 @@ export default function EditProductPage() {
       const { product: updated } = await adminService.updateProduct(id, formData);
       setProduct(updated);
       toast.success('Product updated successfully');
-    } catch {
-      toast.error('Failed to update product');
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Failed to update product');
     } finally {
       setIsSubmitting(false);
     }

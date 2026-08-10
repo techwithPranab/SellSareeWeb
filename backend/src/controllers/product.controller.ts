@@ -3,6 +3,31 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { productService } from '../services/product.service';
 import { HTTP_STATUS } from '../constants';
+import { CustomError } from '../middlewares/error.middleware';
+import type { IProduct } from '../interfaces';
+
+const normalizeProductNumbers = (body: Record<string, unknown>): Partial<IProduct> => {
+  const normalized = { ...body };
+
+  for (const field of ['price', 'stock', 'salePrice'] as const) {
+    const rawValue = normalized[field];
+
+    if (field === 'salePrice' && (rawValue === undefined || rawValue === null || rawValue === '' || rawValue === 'NaN')) {
+      delete normalized.salePrice;
+      continue;
+    }
+
+    if (rawValue !== undefined) {
+      const numericValue = Number(rawValue);
+      if (!Number.isFinite(numericValue)) {
+        throw new CustomError(`${field} must be a valid number`, HTTP_STATUS.BAD_REQUEST);
+      }
+      normalized[field] = numericValue;
+    }
+  }
+
+  return normalized as Partial<IProduct>;
+};
 
 export const getAllProducts = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -80,13 +105,13 @@ export const getRelatedProducts = asyncHandler(async (req: Request, res: Respons
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const imageFiles = (req.files as Express.Multer.File[]) || [];
-  const product = await productService.createProduct(req.body, imageFiles);
+  const product = await productService.createProduct(normalizeProductNumbers(req.body), imageFiles);
   ApiResponse.created(res, 'Product created successfully', { product });
 });
 
 export const updateProduct = asyncHandler(async (req: Request, res: Response) => {
   const imageFiles = (req.files as Express.Multer.File[]) || [];
-  const product = await productService.updateProduct(req.params.id, req.body, imageFiles);
+  const product = await productService.updateProduct(req.params.id, normalizeProductNumbers(req.body), imageFiles);
   ApiResponse.success(res, 'Product updated successfully', { product });
 });
 

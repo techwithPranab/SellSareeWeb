@@ -12,9 +12,10 @@ interface CategoryFormState {
   name: string;
   description: string;
   sortOrder: string;
+  isActive: boolean;
 }
 
-const EMPTY_FORM: CategoryFormState = { name: '', description: '', sortOrder: '0' };
+const EMPTY_FORM: CategoryFormState = { name: '', description: '', sortOrder: '0', isActive: true };
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -26,6 +27,7 @@ export default function AdminCategoriesPage() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
@@ -57,6 +59,7 @@ export default function AdminCategoriesPage() {
       name: cat.name,
       description: cat.description ?? '',
       sortOrder: String(cat.sortOrder),
+      isActive: cat.isActive,
     });
     setImageFile(null);
     setImagePreview(cat.image ?? '');
@@ -82,6 +85,7 @@ export default function AdminCategoriesPage() {
       fd.append('name', form.name.trim());
       fd.append('description', form.description.trim());
       fd.append('sortOrder', form.sortOrder);
+      fd.append('isActive', String(form.isActive));
       if (imageFile) fd.append('image', imageFile);
 
       if (editing) {
@@ -97,6 +101,19 @@ export default function AdminCategoriesPage() {
       toast.error(editing ? 'Failed to update category' : 'Failed to create category');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleStatusChange = async (cat: Category) => {
+    setStatusUpdatingId(cat._id);
+    try {
+      const { category } = await adminService.updateCategoryStatus(cat._id, !cat.isActive);
+      setCategories((current) => current.map((item) => item._id === cat._id ? category : item));
+      toast.success(`${cat.name} is now ${category.isActive ? 'active' : 'inactive'}`);
+    } catch {
+      toast.error('Failed to update category status');
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -150,6 +167,7 @@ export default function AdminCategoriesPage() {
                   <th className="text-left px-5 py-3 text-muted-foreground font-medium hidden md:table-cell">Description</th>
                   <th className="text-center px-5 py-3 text-muted-foreground font-medium">Products</th>
                   <th className="text-center px-5 py-3 text-muted-foreground font-medium hidden sm:table-cell">Sort</th>
+                  <th className="text-center px-5 py-3 text-muted-foreground font-medium">Status</th>
                   <th className="text-center px-5 py-3 text-muted-foreground font-medium">Actions</th>
                 </tr>
               </thead>
@@ -181,6 +199,21 @@ export default function AdminCategoriesPage() {
                     </td>
                     <td className="px-5 py-4 text-center text-muted-foreground hidden sm:table-cell">
                       {cat.sortOrder}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(cat)}
+                        disabled={statusUpdatingId === cat._id}
+                        className={`inline-flex min-w-[78px] items-center justify-center rounded-full px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                          cat.isActive
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        title={`Mark ${cat.name} as ${cat.isActive ? 'inactive' : 'active'}`}
+                      >
+                        {statusUpdatingId === cat._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : cat.isActive ? 'Active' : 'Inactive'}
+                      </button>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -262,6 +295,21 @@ export default function AdminCategoriesPage() {
                   onChange={(e) => setForm((f) => ({ ...f, sortOrder: e.target.value }))}
                   className="input-field"
                 />
+              </div>
+
+              <div>
+                <label className="label">Status</label>
+                <select
+                  value={form.isActive ? 'active' : 'inactive'}
+                  onChange={(e) => setForm((current) => ({ ...current, isActive: e.target.value === 'active' }))}
+                  className="input-field"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Inactive categories remain available in Admin but are hidden from public pages.
+                </p>
               </div>
 
               <div>

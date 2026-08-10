@@ -103,7 +103,14 @@ export default function ProductForm({ product, onSubmit, isSubmitting }: Product
         </div>
         <div>
           <label className="label">Sale Price (₹)</label>
-          <input type="number" {...register('salePrice', { min: 0, valueAsNumber: true })} className="input-field" />
+          <input
+            type="number"
+            {...register('salePrice', {
+              min: 0,
+              setValueAs: (value) => value === '' ? undefined : Number(value),
+            })}
+            className="input-field"
+          />
         </div>
         <div>
           <label className="label">Stock *</label>

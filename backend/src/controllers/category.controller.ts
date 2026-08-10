@@ -7,14 +7,24 @@ import { cloudinary } from '../config/cloudinary';
 
 export const getAllCategories = asyncHandler(async (_req: Request, res: Response) => {
   const categories = await Category.find({ isActive: true })
-    .populate('children')
+    .populate({ path: 'children', match: { isActive: true } })
     .sort({ sortOrder: 1, name: 1 });
 
   ApiResponse.success(res, 'Categories retrieved', { categories });
 });
 
+export const getAllCategoriesForAdmin = asyncHandler(async (_req: Request, res: Response) => {
+  const categories = await Category.find()
+    .populate('children')
+    .sort({ sortOrder: 1, name: 1 });
+
+  return ApiResponse.success(res, 'All categories retrieved', { categories });
+});
+
 export const getCategoryById = asyncHandler(async (req: Request, res: Response) => {
-  const category = await Category.findById(req.params.id).populate('parent').populate('children');
+  const category = await Category.findOne({ _id: req.params.id, isActive: true })
+    .populate({ path: 'parent', match: { isActive: true } })
+    .populate({ path: 'children', match: { isActive: true } });
   if (!category) {
     return ApiResponse.notFound(res, 'Category not found');
   }
@@ -23,8 +33,8 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response) 
 
 export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response) => {
   const category = await Category.findOne({ slug: req.params.slug, isActive: true })
-    .populate('parent')
-    .populate('children');
+    .populate({ path: 'parent', match: { isActive: true } })
+    .populate({ path: 'children', match: { isActive: true } });
   if (!category) {
     return ApiResponse.notFound(res, 'Category not found');
   }
@@ -32,7 +42,7 @@ export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response
 });
 
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, parent, sortOrder } = req.body;
+  const { name, description, parent, sortOrder, isActive } = req.body;
   const imageFile = req.file;
 
   let imageData: { image?: string; imagePublicId?: string } = {};
@@ -60,10 +70,31 @@ export const createCategory = asyncHandler(async (req: Request, res: Response) =
     parent: parent || null,
     level,
     sortOrder: sortOrder || 0,
+    isActive: isActive === undefined ? true : isActive === true || isActive === 'true',
     ...imageData,
   });
 
   ApiResponse.created(res, 'Category created', { category });
+});
+
+export const updateCategoryStatus = asyncHandler(async (req: Request, res: Response) => {
+  const category = await Category.findById(req.params.id);
+  if (!category) {
+    return ApiResponse.notFound(res, 'Category not found');
+  }
+
+  if (typeof req.body.isActive !== 'boolean') {
+    return ApiResponse.badRequest(res, 'isActive must be a boolean');
+  }
+
+  category.isActive = req.body.isActive;
+  await category.save();
+
+  return ApiResponse.success(
+    res,
+    `Category marked as ${category.isActive ? 'active' : 'inactive'}`,
+    { category }
+  );
 });
 
 export const updateCategory = asyncHandler(async (req: Request, res: Response) => {

@@ -141,6 +141,16 @@ export const adminService = {
     return response.data.data as { user: User };
   },
 
+  async updateCustomer(userId: string, data: {
+    name: string;
+    email: string;
+    phone?: string;
+    importantDates: Array<{ label: string; date: string; notes?: string }>;
+  }) {
+    const response = await api.put(`/users/admin/users/${userId}`, data);
+    return response.data.data as { user: User };
+  },
+
   // ── Coupons ────────────────────────────────────────────────────────────────
   async getCoupons(params?: { page?: number; limit?: number; isActive?: boolean }) {
     const response = await api.get('/users/admin/coupons', { params });
@@ -207,7 +217,7 @@ export const adminService = {
 
   // ── Categories ─────────────────────────────────────────────────────────────
   async getCategories() {
-    const response = await api.get('/categories');
+    const response = await api.get('/categories/admin/all');
     return response.data.data as { categories: import('@/types').Category[] };
   },
 
@@ -227,6 +237,11 @@ export const adminService = {
 
   async deleteCategory(id: string) {
     await api.delete(`/categories/${id}`);
+  },
+
+  async updateCategoryStatus(id: string, isActive: boolean) {
+    const response = await api.patch(`/categories/${id}/status`, { isActive });
+    return response.data.data as { category: import('@/types').Category };
   },
 };
 

@@ -21,7 +21,7 @@ export default function NewProductPage() {
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && !(typeof value === 'number' && !Number.isFinite(value))) {
           if (key === 'occasion') {
             const occasions = (value as string).split(',').map((o) => o.trim()).filter(Boolean);
             occasions.forEach((o) => formData.append('occasion', o));
@@ -38,8 +38,9 @@ export default function NewProductPage() {
       const { product } = await adminService.createProduct(formData);
       toast.success('Product created successfully');
       router.push(asRoute(`/admin/products/${product._id}/edit`));
-    } catch {
-      toast.error('Failed to create product');
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Failed to create product');
     } finally {
       setIsSubmitting(false);
     }
