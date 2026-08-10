@@ -76,7 +76,7 @@ export default function SizeGuidePage() {
       <p>
         Unsure about sizing? Our team is happy to help. WhatsApp us at{' '}
         <a href="tel:+919876543210">+91 98765 43210</a> or email{' '}
-        <a href="mailto:support@rupkathasarees.com">support@rupkathasarees.com</a>.
+        <a href="mailto:support@ppaura.in">support@ppaura.in</a>.
       </p>
     </ContentPage>
   );

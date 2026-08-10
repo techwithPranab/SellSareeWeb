@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
-import { OrderStatus } from '../constants';
+import { OrderStatus, PaymentMethod, UserRole } from '../constants';
 import Order from '../models/Order';
 import User from '../models/User';
 
@@ -136,4 +136,66 @@ export const initiateRefund = asyncHandler(async (req: Request, res: Response) =
   const { amount } = req.body;
   await paymentService.initiateRefund(req.params.id, amount);
   ApiResponse.success(res, 'Refund initiated successfully');
+});
+
+export const createOrderForCustomer = asyncHandler(async (req: Request, res: Response) => {
+  const { customerId, customer, items, shippingAddress, paymentMethod, notes } = req.body;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return ApiResponse.badRequest(res, 'At least one product is required');
+  }
+
+  if (items.some((item) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1)) {
+    return ApiResponse.badRequest(res, 'Each order item must have a product and valid quantity');
+  }
+
+  const requiredAddressFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
+  if (
+    !shippingAddress ||
+    requiredAddressFields.some((field) => !String(shippingAddress[field] || '').trim()) ||
+    !/^[1-9]\d{5}$/.test(String(shippingAddress.pincode))
+  ) {
+    return ApiResponse.badRequest(res, 'A complete delivery address with valid pincode is required');
+  }
+
+  if (![PaymentMethod.COD, PaymentMethod.UPI].includes(paymentMethod)) {
+    return ApiResponse.badRequest(res, 'Payment method must be Cash on Delivery or UPI');
+  }
+
+  let orderCustomer = customerId ? await User.findById(customerId) : null;
+
+  if (!orderCustomer) {
+    const name = String(customer?.name || '').trim();
+    const email = String(customer?.email || '').trim().toLowerCase();
+    const phone = String(customer?.phone || '').replace(/\D/g, '');
+
+    if (name.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || !/^[6-9]\d{9}$/.test(phone)) {
+      return ApiResponse.badRequest(res, 'Valid customer name, email, and Indian phone number are required');
+    }
+
+    orderCustomer = await User.findOne({ $or: [{ email }, { phone }] });
+    if (!orderCustomer) {
+      orderCustomer = await User.create({
+        name,
+        email,
+        phone,
+        role: UserRole.CUSTOMER,
+        isActive: true,
+        addresses: [{ ...shippingAddress, isDefault: true, type: 'home' }],
+      });
+    }
+  }
+
+  if (!orderCustomer.isActive) {
+    return ApiResponse.badRequest(res, 'The selected customer account is inactive');
+  }
+
+  const order = await orderService.createOrder(orderCustomer._id.toString(), {
+    items,
+    shippingAddress,
+    paymentMethod,
+    notes: [notes, `WhatsApp order entered by admin ${req.user!.email}`].filter(Boolean).join(' — '),
+  });
+
+  return ApiResponse.created(res, 'Customer order created successfully', { order });
 });

@@ -17,6 +17,7 @@ import Order from './models/Order';
 import Review from './models/Review';
 import Coupon from './models/Coupon';
 import Banner from './models/Banner';
+import { CAROUSEL_SLIDES } from './data/carouselSlides';
 
 import { UserRole, OrderStatus, PaymentStatus, PaymentMethod, CouponType, ProductStatus } from './constants';
 
@@ -38,7 +39,7 @@ async function seedUsers() {
   const users = await User.insertMany([
     {
       name: 'Pranab Paul',
-      email: 'admin@rupkathasarees.com',
+      email: 'admin@ppaura.in',
       password: passwordHash,
       phone: '9876543210',
       role: UserRole.ADMIN,
@@ -629,54 +630,9 @@ async function seedProducts(categories: mongoose.Document[]) {
 }
 
 async function seedBanners() {
-  console.log('🖼️  Seeding banners...');
+  console.log('🖼️  Seeding homepage carousel...');
 
-  const HERO_IMG = 'https://images.unsplash.com/photo-1583391733975-5408a4e53e90?w=1600&q=85';
-  const MID_IMG = 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&q=85';
-
-  const banners = await Banner.insertMany([
-    {
-      title: 'New Arrivals — Monsoon Collection 2026',
-      subtitle: 'Discover the finest handloom sarees this season. Free shipping above ₹999.',
-      image: HERO_IMG,
-      imagePublicId: 'banners/hero-monsoon-2026',
-      link: '/products?isNewArrival=true',
-      position: 'hero',
-      sortOrder: 1,
-      isActive: true,
-    },
-    {
-      title: 'Bridal Splendour — Grand Kanjivaram Collection',
-      subtitle: 'The wedding of your dreams deserves the most exquisite saree.',
-      image: HERO_IMG,
-      imagePublicId: 'banners/hero-bridal-2026',
-      link: '/products?isBridal=true',
-      position: 'hero',
-      sortOrder: 2,
-      isActive: true,
-    },
-    {
-      title: 'Silk Sale — Up to 20% Off',
-      subtitle: 'Limited time offer on our premium silk collection.',
-      image: MID_IMG,
-      imagePublicId: 'banners/mid-silk-sale',
-      link: '/products?fabric=silk&sale=true',
-      position: 'middle',
-      sortOrder: 1,
-      isActive: true,
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    },
-    {
-      title: 'Free Shipping on Orders Above ₹999',
-      subtitle: 'Across India. All saree styles.',
-      image: MID_IMG,
-      imagePublicId: 'banners/bottom-freeship',
-      link: '/products',
-      position: 'bottom',
-      sortOrder: 1,
-      isActive: true,
-    },
-  ]);
+  const banners = await Banner.insertMany(CAROUSEL_SLIDES);
 
   console.log(`   ✅ Created ${banners.length} banners`);
   return banners;
@@ -1230,7 +1186,7 @@ async function main() {
     console.log(`   📦 Orders:     ${await Order.countDocuments()}`);
     console.log(`   ⭐ Reviews:    ${await Review.countDocuments()}`);
     console.log('\n🔑 Login credentials:');
-    console.log('   Admin:    admin@rupkathasarees.com  / Admin@123');
+    console.log('   Admin:    admin@ppaura.in  / Admin@123');
     console.log('   Customer: riya@example.com         / Customer@123');
     console.log('   Customer: ananya@example.com       / Customer@123');
     console.log('   Customer: priya@example.com        / Customer@123');

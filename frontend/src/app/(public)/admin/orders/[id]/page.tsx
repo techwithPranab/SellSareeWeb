@@ -75,7 +75,7 @@ export default function AdminOrderDetailPage() {
     setUpdating(true);
     try {
       const trackingInfo =
-        ['shipped', 'out_for_delivery'].includes(newStatus) && trackingNumber
+        ['shipped', 'out_for_delivery'].includes(newStatus) && (trackingNumber || courier)
           ? { courier, trackingNumber, trackingUrl: '' }
           : undefined;
       const { order: updated } = await adminService.updateOrderStatus(id, newStatus, trackingInfo);

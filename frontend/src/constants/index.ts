@@ -47,10 +47,6 @@ export const NAV_LINKS: Array<{
   { label: 'Silk Sarees', href: '/products?fabric=silk' },
   { label: 'Cotton Sarees', href: '/products?fabric=cotton' },
   { label: 'Tant Sarees', href: '/products?fabric=tant' },
-  { label: 'Banarasi', href: '/products?fabric=banarasi' },
-  { label: 'Kanjivaram', href: '/products?fabric=kanjivaram' },
-  { label: 'Bridal', href: '/products?isBridal=true' },
-  { label: 'Sale', href: '/products?sale=true' },
 ];
 
 // Categories

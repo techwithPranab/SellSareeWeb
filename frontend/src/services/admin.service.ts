@@ -109,6 +109,27 @@ export const adminService = {
     return response.data.data as { success: boolean };
   },
 
+  async createOrderForCustomer(data: {
+    customerId?: string;
+    customer?: { name: string; email: string; phone: string };
+    items: Array<{ productId: string; quantity: number }>;
+    shippingAddress: {
+      fullName: string;
+      phone: string;
+      addressLine1: string;
+      addressLine2?: string;
+      city: string;
+      state: string;
+      pincode: string;
+      country: string;
+    };
+    paymentMethod: 'cod' | 'upi';
+    notes?: string;
+  }) {
+    const response = await api.post('/orders/admin/create-for-customer', data);
+    return response.data.data as { order: Order };
+  },
+
   // ── Customers ──────────────────────────────────────────────────────────────
   async getCustomers(params?: { page?: number; limit?: number; search?: string; role?: string }) {
     const response = await api.get('/users/admin/users', { params });

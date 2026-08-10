@@ -24,7 +24,7 @@ const NAV_ITEMS = [
   { href: '/admin/orders', label: 'Orders', icon: Package },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
-  { href: '/admin/banners', label: 'Banners', icon: Image },
+  { href: '/admin/banners', label: 'Homepage Carousel', icon: Image },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

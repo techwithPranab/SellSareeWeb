@@ -20,15 +20,15 @@ export default function AdminBannersPage() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [link, setLink] = useState('');
-  const [position, setPosition] = useState<Banner['position']>('hero');
   const [sortOrder, setSortOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [mobileImageFile, setMobileImageFile] = useState<File | null>(null);
 
   const loadBanners = async () => {
     setLoading(true);
     try {
-      const res = await adminService.getBanners();
+      const res = await adminService.getBanners({ position: 'hero' });
       setBanners(res.banners);
     } catch {
       toast.error('Failed to load banners');
@@ -40,8 +40,8 @@ export default function AdminBannersPage() {
   useEffect(() => { loadBanners(); }, []);
 
   const resetForm = () => {
-    setTitle(''); setSubtitle(''); setLink(''); setPosition('hero');
-    setSortOrder(0); setIsActive(true); setImageFile(null);
+    setTitle(''); setSubtitle(''); setLink('');
+    setSortOrder(0); setIsActive(true); setImageFile(null); setMobileImageFile(null);
   };
 
   const openCreate = () => {
@@ -55,10 +55,10 @@ export default function AdminBannersPage() {
     setTitle(banner.title);
     setSubtitle(banner.subtitle ?? '');
     setLink(banner.link ?? '');
-    setPosition(banner.position);
     setSortOrder(banner.sortOrder);
     setIsActive(banner.isActive);
     setImageFile(null);
+    setMobileImageFile(null);
     setModalOpen(true);
   };
 
@@ -72,10 +72,11 @@ export default function AdminBannersPage() {
       formData.append('title', title);
       if (subtitle) formData.append('subtitle', subtitle);
       if (link) formData.append('link', link);
-      formData.append('position', position);
+      formData.append('position', 'hero');
       formData.append('sortOrder', String(sortOrder));
       formData.append('isActive', String(isActive));
       if (imageFile) formData.append('image', imageFile);
+      if (mobileImageFile) formData.append('mobileImage', mobileImageFile);
 
       if (editing) {
         await adminService.updateBanner(editing._id, formData);
@@ -107,11 +108,11 @@ export default function AdminBannersPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Banners"
-        description="Manage homepage and promotional banners"
+        title="Homepage Carousel"
+        description="Create, order, activate, and update slides shown in the public homepage carousel"
         action={
           <button onClick={openCreate} className="btn-primary btn-sm flex items-center gap-1.5">
-            <Plus className="w-4 h-4" /> Add Banner
+            <Plus className="w-4 h-4" /> Add Carousel Slide
           </button>
         }
       />
@@ -120,7 +121,7 @@ export default function AdminBannersPage() {
         <LoadingSpinner label="Loading banners…" />
       ) : banners.length === 0 ? (
         <div className="bg-white rounded-2xl border border-border p-12 text-center text-muted-foreground text-sm">
-          No banners yet. Add your first promotional banner.
+          No carousel slides yet. Add one here, or the homepage will continue using its fallback slides.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +135,7 @@ export default function AdminBannersPage() {
                   <div>
                     <p className="font-semibold text-foreground">{banner.title}</p>
                     {banner.subtitle && <p className="text-sm text-muted-foreground">{banner.subtitle}</p>}
-                    <p className="text-xs text-muted-foreground mt-1 capitalize">{banner.position} · Order: {banner.sortOrder}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Display order: {banner.sortOrder}</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${banner.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                     {banner.isActive ? 'Active' : 'Inactive'}
@@ -154,7 +155,7 @@ export default function AdminBannersPage() {
         </div>
       )}
 
-      <AdminModal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Banner' : 'Add Banner'} size="lg">
+      <AdminModal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Carousel Slide' : 'Add Carousel Slide'} size="lg">
         <div className="space-y-4">
           <div>
             <label className="label">Title *</label>
@@ -166,19 +167,9 @@ export default function AdminBannersPage() {
           </div>
           <div>
             <label className="label">Link URL</label>
-            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/products?sale=true" className="input-field" />
+            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/products?search=jamdani" className="input-field" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label">Position</label>
-              <select value={position} onChange={(e) => setPosition(e.target.value as Banner['position'])} className="input-field">
-                <option value="hero">Hero</option>
-                <option value="middle">Middle</option>
-                <option value="bottom">Bottom</option>
-                <option value="popup">Popup</option>
-                <option value="sidebar">Sidebar</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Sort Order</label>
               <input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} className="input-field" />
@@ -187,6 +178,12 @@ export default function AdminBannersPage() {
           <div>
             <label className="label">{editing ? 'Replace Image (optional)' : 'Banner Image *'}</label>
             <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} className="input-field py-2" />
+            <p className="mt-1 text-xs text-muted-foreground">Recommended desktop ratio: 21:9, at least 1600px wide.</p>
+          </div>
+          <div>
+            <label className="label">Mobile Image (optional)</label>
+            <input type="file" accept="image/*" onChange={(e) => setMobileImageFile(e.target.files?.[0] ?? null)} className="input-field py-2" />
+            <p className="mt-1 text-xs text-muted-foreground">Recommended mobile ratio: 4:5.</p>
           </div>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="accent-primary" />

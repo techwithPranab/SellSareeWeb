@@ -23,7 +23,7 @@ export default function AdminSettingsPage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Support Email</dt>
-              <dd className="font-medium">support@rupkathasarees.com</dd>
+              <dd className="font-medium">support@ppaura.in</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Free Shipping Threshold</dt>

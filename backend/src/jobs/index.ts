@@ -53,7 +53,7 @@ export const inventoryAlertJob = cron.schedule(
 
       if (lowStockProducts.length > 0) {
         logger.warn(`[CRON] ${lowStockProducts.length} products have low stock`);
-        const adminEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
+        const adminEmail = process.env.SUPPORT_EMAIL || 'admin@ppaura.in';
         if (adminEmail) {
           await emailService.sendLowStockAlert(
             adminEmail,

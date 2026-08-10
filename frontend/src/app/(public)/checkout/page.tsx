@@ -83,6 +83,14 @@ export default function CheckoutPage() {
   const onSubmit = async (data: CheckoutFormData) => {
     setIsPlacing(true);
     try {
+      const razorpayConfigured =
+        Boolean(RAZORPAY_KEY_ID) && !/your_|change[_-]?me|x{6,}/i.test(RAZORPAY_KEY_ID);
+
+      if (data.paymentMethod !== 'cod' && !razorpayConfigured) {
+        toast.error('Online payment is not configured yet. Please select Cash on Delivery.');
+        return;
+      }
+
       const orderData = {
         items: items.map((item) => ({
           productId: item.product._id,
@@ -149,8 +157,9 @@ export default function CheckoutPage() {
         theme: { color: '#b5451b' },
       });
       rzp.open();
-    } catch {
-      toast.error('Something went wrong. Please try again.');
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsPlacing(false);
     }

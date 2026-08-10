@@ -14,6 +14,7 @@ import {
   getOrderDashboardStats,
   initiateRefund,
   trackOrderGuest,
+  createOrderForCustomer,
 } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -40,6 +41,7 @@ router.post('/payment/verify', verifyPayment);
 
 // Admin routes
 router.use(requireAdmin);
+router.post('/admin/create-for-customer', createOrderForCustomer);
 router.get('/', getAllOrders);
 router.get('/admin/stats', getOrderDashboardStats);
 router.get('/admin/:id', getAdminOrderById);

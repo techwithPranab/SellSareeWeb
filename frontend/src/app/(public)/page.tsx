@@ -10,7 +10,6 @@ import {
   Gift,
   Headphones,
   Loader2,
-  RotateCcw,
   ShieldCheck,
   Sparkles,
   Star,
@@ -36,11 +35,6 @@ const TRUST_BADGES = [
     icon: <ShieldCheck className="w-6 h-6 text-primary" />,
     title: '100% Authentic',
     desc: 'Genuine handcrafted sarees',
-  },
-  {
-    icon: <RotateCcw className="w-6 h-6 text-primary" />,
-    title: '7-Day Returns',
-    desc: 'Hassle-free return policy',
   },
   {
     icon: <Headphones className="w-6 h-6 text-primary" />,
@@ -167,7 +161,7 @@ export default function HomePage() {
 
       {/* Trust Badges */}
       <section className="border-b border-border bg-white">
-        <div className="container-custom py-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="container-custom py-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
           {TRUST_BADGES.map((badge) => (
             <motion.div
               key={badge.title}

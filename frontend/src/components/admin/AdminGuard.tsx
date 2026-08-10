@@ -11,7 +11,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace('/login?redirect=/admin');
+      router.replace('/admin-login');
     } else if (!isAdmin) {
       router.replace('/dashboard');
     }

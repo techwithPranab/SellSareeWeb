@@ -46,7 +46,7 @@ export default function PrivacyPolicyPage() {
       <p>
         You have the right to access, correct, or delete your personal data. You may also opt out
         of marketing communications at any time. Contact us at{' '}
-        <a href="mailto:privacy@rupkathasarees.com">privacy@rupkathasarees.com</a>.
+        <a href="mailto:privacy@ppaura.in">privacy@ppaura.in</a>.
       </p>
 
       <h2>Cookies</h2>

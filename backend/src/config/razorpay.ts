@@ -1,12 +1,23 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { HTTP_STATUS } from '../constants';
+import { CustomError } from '../middlewares/error.middleware';
 
 let razorpayInstance: Razorpay;
 
+const isPlaceholder = (value?: string): boolean =>
+  !value || /your_|change[_-]?me|x{6,}/i.test(value);
+
 export const getRazorpayInstance = (): Razorpay => {
   if (!razorpayInstance) {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      throw new Error('Razorpay credentials are not configured');
+    if (
+      isPlaceholder(process.env.RAZORPAY_KEY_ID) ||
+      isPlaceholder(process.env.RAZORPAY_KEY_SECRET)
+    ) {
+      throw new CustomError(
+        'Online payment is not configured. Please use Cash on Delivery.',
+        HTTP_STATUS.SERVICE_UNAVAILABLE
+      );
     }
 
     razorpayInstance = new Razorpay({
@@ -38,15 +49,23 @@ export const createRazorpayOrder = async (
   receipt: string,
   notes?: Record<string, string>
 ) => {
-  const razorpay = getRazorpayInstance();
+  try {
+    const razorpay = getRazorpayInstance();
 
-  return razorpay.orders.create({
-    amount: amount * 100, // Amount in paise
-    currency,
-    receipt,
-    notes,
-    payment_capture: true,
-  });
+    return await razorpay.orders.create({
+      amount: amount * 100, // Amount in paise
+      currency,
+      receipt,
+      notes,
+      payment_capture: true,
+    });
+  } catch (error) {
+    if (error instanceof CustomError) throw error;
+    throw new CustomError(
+      'Online payment service is currently unavailable. Please use Cash on Delivery or try again later.',
+      HTTP_STATUS.SERVICE_UNAVAILABLE
+    );
+  }
 };
 
 export const fetchRazorpayPayment = async (paymentId: string) => {

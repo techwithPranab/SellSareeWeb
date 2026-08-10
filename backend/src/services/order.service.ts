@@ -7,6 +7,8 @@ import { HTTP_STATUS, OrderStatus, PaymentMethod, PaymentStatus, SHIPPING, LOYAL
 import { IOrder, IOrderItem } from '../interfaces';
 import { PaginationOptions } from '../utils/pagination';
 import Coupon from '../models/Coupon';
+import { getReferenceId } from '../utils/getReferenceId';
+import { logger } from '../middlewares/logger.middleware';
 
 export interface CreateOrderData {
   items: Array<{
@@ -297,16 +299,20 @@ export class OrderService {
     const updated = await orderRepository.updateById(orderId, updates);
 
     // Send email notifications
-    const user = await userRepository.findById(order.user.toString());
+    const user = await userRepository.findById(getReferenceId(order.user));
     if (user) {
-      if (status === OrderStatus.SHIPPED && trackingInfo) {
-        const ti = trackingInfo as { courier: string; trackingNumber: string; trackingUrl?: string };
-        emailService.sendShippingUpdate(
+      if (status === OrderStatus.SHIPPED) {
+        const ti = trackingInfo as { courier?: string; trackingNumber?: string; trackingUrl?: string } | undefined;
+        await emailService.sendShippingUpdate(
           user.email, user.name, order.orderNumber,
-          ti.trackingNumber, ti.courier, ti.trackingUrl
-        ).catch(console.error);
+          ti?.trackingNumber, ti?.courier, ti?.trackingUrl
+        ).catch((error) => {
+          logger.error(`Shipping email failed for order ${order.orderNumber}`, error);
+        });
       } else if (status === OrderStatus.DELIVERED) {
-        emailService.sendDeliveryConfirmation(user.email, user.name, order.orderNumber).catch(console.error);
+        await emailService.sendDeliveryConfirmation(user.email, user.name, order.orderNumber).catch((error) => {
+          logger.error(`Delivery email failed for order ${order.orderNumber}`, error);
+        });
         // Award loyalty points
         await userRepository.updateLoyaltyPoints(user._id.toString(), order.loyaltyPointsEarned);
       }

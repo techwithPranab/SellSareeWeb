@@ -80,12 +80,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top announcement bar */}
-      <div className="bg-primary text-white text-center text-xs py-2 px-4 hidden sm:block">
-        🎁 Free shipping on orders above ₹1,500 &nbsp;|&nbsp; Use code{' '}
-        <span className="font-semibold">WELCOME100</span> for ₹100 off on first order
-      </div>
-
       <header
         className={cn(
           'sticky top-0 z-50 w-full transition-all duration-300',
@@ -368,7 +362,7 @@ export default function Navbar() {
                 </button>
               </form>
               <div className="px-4 pb-4 text-xs text-muted">
-                Try: &quot;Banarasi silk&quot;, &quot;Wedding saree under 5000&quot;, &quot;Red cotton tant&quot;
+                Try: &quot;Jamdani&quot;, &quot;Handloom saree&quot;, &quot;Tasar silk&quot;
               </div>
             </motion.div>
           </motion.div>

@@ -34,7 +34,7 @@ export default function CareersPage() {
               <p className="font-semibold text-foreground">{job.title}</p>
               <p className="text-sm text-muted-foreground">{job.location} · {job.type}</p>
             </div>
-            <a href="mailto:careers@rupkathasarees.com" className="btn-outline btn-sm">
+            <a href="mailto:careers@ppaura.in" className="btn-outline btn-sm">
               Apply Now
             </a>
           </div>
@@ -44,7 +44,7 @@ export default function CareersPage() {
       <h2>How to Apply</h2>
       <p>
         Send your resume and a brief cover letter to{' '}
-        <a href="mailto:careers@rupkathasarees.com">careers@rupkathasarees.com</a>.
+        <a href="mailto:careers@ppaura.in">careers@ppaura.in</a>.
         We review applications on a rolling basis and will get back to you within 5 business days.
       </p>
     </ContentPage>

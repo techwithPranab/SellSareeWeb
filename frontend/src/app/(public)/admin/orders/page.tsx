@@ -10,6 +10,7 @@ import { formatPrice, formatDate, asRoute } from '@/utils/helpers';
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import type { Order, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
 
 const STATUS_FILTERS: Array<{ label: string; value: string }> = [
   { label: 'All', value: '' },
@@ -46,7 +47,15 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Orders" description="View and manage all customer orders" />
+      <AdminPageHeader
+        title="Orders"
+        description="View and manage all customer orders"
+        action={
+          <Link href={asRoute('/admin/orders/new')} className="btn-primary btn-sm flex items-center gap-1.5">
+            <Plus className="w-4 h-4" /> Create WhatsApp Order
+          </Link>
+        }
+      />
 
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
         <div className="p-4 border-b border-border flex flex-wrap gap-2">

@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { APP_NAME, SOCIAL_LINKS, NAV_LINKS, SAREE_CATEGORIES } from '@/constants';
 import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 
-const FOOTER_CATEGORIES = SAREE_CATEGORIES.slice(0, 6);
+const HIDDEN_FOOTER_CATEGORIES = new Set(['banarasi', 'kanjivaram', 'bridal']);
+const FOOTER_CATEGORIES = SAREE_CATEGORIES
+  .filter((category) => !HIDDEN_FOOTER_CATEGORIES.has(category.slug))
+  .slice(0, 6);
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -126,7 +129,6 @@ export default function Footer() {
           <ul className="space-y-2.5 mb-6">
             {[
               { label: 'Track Your Order', href: '/track-order' },
-              { label: 'Returns & Exchanges', href: '/returns' },
               { label: 'Shipping Policy', href: '/shipping-policy' },
               { label: 'Privacy Policy', href: '/privacy-policy' },
               { label: 'Terms & Conditions', href: '/terms' },
@@ -153,11 +155,11 @@ export default function Footer() {
               +91 98765 43210
             </a>
             <a
-              href="mailto:support@rupkathasarees.com"
+              href="mailto:support@ppaura.in"
               className="flex items-center gap-2 text-sm text-[#b09070] hover:text-primary transition-colors"
             >
               <Mail className="w-4 h-4 shrink-0" />
-              support@rupkathasarees.com
+              support@ppaura.in
             </a>
             <p className="flex items-start gap-2 text-sm text-[#b09070]">
               <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
@@ -174,7 +176,6 @@ export default function Footer() {
             {[
               { icon: '🔒', label: 'Secure Payments' },
               { icon: '🚚', label: 'Free Shipping ₹1500+' },
-              { icon: '↩️', label: '7-Day Returns' },
               { icon: '✅', label: '100% Authentic' },
               { icon: '🌿', label: 'Eco-Friendly' },
             ].map((badge) => (

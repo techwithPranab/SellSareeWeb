@@ -31,8 +31,8 @@ export class EmailService {
     email: string,
     name: string,
     orderNumber: string,
-    trackingNumber: string,
-    courier: string,
+    trackingNumber?: string,
+    courier?: string,
     trackingUrl?: string
   ): Promise<void> {
     await sendEmail({
@@ -132,7 +132,6 @@ export const getWelcomeEmailTemplate = (name: string, bonusPoints: number): stri
               <li>Handpicked silk, cotton, tant, banarasi & more</li>
               <li>Exclusive festival and bridal collections</li>
               <li>Free shipping on orders above ₹999</li>
-              <li>Easy 7-day returns</li>
             </ul>
           </div>
           <div style="text-align: center; margin: 30px 0;">
@@ -209,8 +208,8 @@ export const getOrderConfirmationTemplate = (
 export const getShippingEmailTemplate = (
   name: string,
   orderNumber: string,
-  trackingNumber: string,
-  courier: string,
+  trackingNumber?: string,
+  courier?: string,
   trackingUrl?: string
 ): string => `
   <!DOCTYPE html>
@@ -222,11 +221,13 @@ export const getShippingEmailTemplate = (
         <div style="padding: 40px 30px;">
           <h2 style="color: #b5451b;">Your Order Has Been Shipped! 🚚</h2>
           <p>Dear ${name}, your order <strong>#${orderNumber}</strong> is on its way!</p>
-          <div style="background: #fdf6ef; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>Courier:</strong> ${courier}</p>
-            <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
-            ${trackingUrl ? `<a href="${trackingUrl}" style="color: #b5451b;">Track Your Shipment →</a>` : ''}
-          </div>
+          ${courier || trackingNumber ? `
+            <div style="background: #fdf6ef; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              ${courier ? `<p><strong>Courier:</strong> ${courier}</p>` : ''}
+              ${trackingNumber ? `<p><strong>Tracking Number:</strong> ${trackingNumber}</p>` : ''}
+              ${trackingUrl ? `<a href="${trackingUrl}" style="color: #b5451b;">Track Your Shipment →</a>` : ''}
+            </div>
+          ` : '<p>Tracking details will be shared with you as soon as they are available.</p>'}
         </div>
         ${footerHtml}
       </div>

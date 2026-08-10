@@ -2,6 +2,7 @@ import { createRazorpayOrder, verifyRazorpaySignature, fetchRazorpayPayment, ref
 import { orderRepository } from '../repositories/order.repository';
 import { CustomError } from '../middlewares/error.middleware';
 import { HTTP_STATUS, PaymentStatus, OrderStatus } from '../constants';
+import { getReferenceId } from '../utils/getReferenceId';
 
 export class PaymentService {
   async initiatePayment(orderId: string, amount: number, userId: string) {
@@ -47,7 +48,7 @@ export class PaymentService {
       throw new CustomError('Order not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    if (order.user.toString() !== userId) {
+    if (getReferenceId(order.user) !== userId) {
       throw new CustomError('Unauthorized', HTTP_STATUS.FORBIDDEN);
     }
 

@@ -5,20 +5,23 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Star } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { bannerService } from '@/services/banner.service';
+import { asRoute } from '@/utils/helpers';
 
 interface Slide {
-  id: number;
+  id: number | string;
   title: string;
   subtitle: string;
   cta: string;
   href: Route;
   image: string;
+  mobileImage?: string;
   badge?: string;
   accentColor: string;
 }
 
-const SLIDES: Slide[] = [
+const FALLBACK_SLIDES: Slide[] = [
   {
     id: 1,
     title: 'The Art of Jamdani',
@@ -72,16 +75,49 @@ const SLIDES: Slide[] = [
 ];
 
 export default function HeroSlider() {
+  const [slides, setSlides] = useState<Slide[]>(FALLBACK_SLIDES);
   const [current, setCurrent] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    bannerService
+      .getActiveCarouselSlides()
+      .then(({ banners }) => {
+        if (!isMounted || banners.length === 0) return;
+
+        setSlides(
+          banners.map((banner) => ({
+            id: banner._id,
+            title: banner.title,
+            subtitle: banner.subtitle || 'Discover the latest from PP’s Aura.',
+            cta: 'Explore Collection',
+            href: asRoute(banner.link || '/products'),
+            image: banner.image,
+            mobileImage: banner.mobileImage,
+            badge: 'Featured Collection',
+            accentColor: '#b5451b',
+          }))
+        );
+        setCurrent(0);
+      })
+      .catch(() => {
+        // Keep the curated fallback slides if the API is unavailable.
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % SLIDES.length);
+      setCurrent((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, slides.length]);
 
   const goTo = (index: number) => {
     setCurrent(index);
@@ -89,10 +125,10 @@ export default function HeroSlider() {
     setTimeout(() => setIsAutoPlaying(true), 8000);
   };
 
-  const prev = () => goTo((current - 1 + SLIDES.length) % SLIDES.length);
-  const next = () => goTo((current + 1) % SLIDES.length);
+  const prev = () => goTo((current - 1 + slides.length) % slides.length);
+  const next = () => goTo((current + 1) % slides.length);
 
-  const slide = SLIDES[current];
+  const slide = slides[current];
 
   return (
     <section className="relative h-[70vh] min-h-[520px] max-h-[800px] overflow-hidden bg-[#1a0f0a]">
@@ -111,9 +147,19 @@ export default function HeroSlider() {
             alt={slide.title}
             fill
             priority
-            className="object-cover object-center"
+            className={slide.mobileImage ? 'hidden object-cover object-center sm:block' : 'object-cover object-center'}
             sizes="100vw"
           />
+          {slide.mobileImage && (
+            <Image
+              src={slide.mobileImage}
+              alt={slide.title}
+              fill
+              priority
+              className="object-cover object-center sm:hidden"
+              sizes="100vw"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
         </motion.div>
       </AnimatePresence>
@@ -164,29 +210,6 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      {/* Social proof strip */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/40 backdrop-blur-sm border-t border-white/10">
-        <div className="container-custom py-3 flex items-center gap-6 overflow-x-auto scrollbar-hide">
-          {[
-            { icon: <Star className="w-3.5 h-3.5 fill-secondary text-secondary" />, label: '4.9/5 Rating' },
-            { icon: '🛡️', label: '100% Authentic' },
-            { icon: '🚚', label: 'Free Shipping ₹1500+' },
-            { icon: '↩️', label: '7-Day Returns' },
-            { icon: '👩‍🎨', label: '500+ Artisan Weavers' },
-            { icon: '📦', label: '10,000+ Orders Delivered' },
-          ].map((item) => (
-            <div key={typeof item.label === 'string' ? item.label : ''} className="flex items-center gap-1.5 text-white/80 text-xs whitespace-nowrap">
-              {typeof item.icon === 'string' ? (
-                <span>{item.icon}</span>
-              ) : (
-                item.icon
-              )}
-              {item.label}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Navigation Arrows */}
       <button
         onClick={prev}
@@ -204,8 +227,8 @@ export default function HeroSlider() {
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        {SLIDES.map((s, i) => (
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {slides.map((s, i) => (
           <button
             key={s.id}
             onClick={() => goTo(i)}

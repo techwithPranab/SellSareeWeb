@@ -3,7 +3,7 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Returns & Exchanges',
-  description: 'PP’s Aura return and exchange policy — hassle-free 7-day returns on eligible products.',
+  description: 'Information about return and exchange eligibility for PP’s Aura orders.',
 };
 
 export default function ReturnsPage() {
@@ -12,10 +12,10 @@ export default function ReturnsPage() {
       title="Returns & Exchanges"
       subtitle="We want you to love your saree. If something isn't right, we're here to help."
     >
-      <h2>7-Day Return Policy</h2>
+      <h2>Return Eligibility</h2>
       <p>
-        You may return most unused sarees within 7 days of delivery for a full refund or exchange.
-        The saree must be in its original condition with all tags attached and packaging intact.
+        Return requests are reviewed according to the eligibility conditions below. The saree must
+        be in its original condition with all tags attached and packaging intact.
       </p>
 
       <h2>Eligible for Return</h2>
@@ -47,7 +47,7 @@ export default function ReturnsPage() {
       <p>
         Exchanges are subject to availability. If your preferred replacement is unavailable,
         we&apos;ll issue a full refund instead. Contact us at{' '}
-        <a href="mailto:support@rupkathasarees.com">support@rupkathasarees.com</a> for assistance.
+        <a href="mailto:support@ppaura.in">support@ppaura.in</a> for assistance.
       </p>
     </ContentPage>
   );

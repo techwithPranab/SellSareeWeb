@@ -10,7 +10,6 @@ import {
   Star,
   Truck,
   ShieldCheck,
-  RotateCcw,
   ChevronRight,
   Minus,
   Plus,
@@ -286,11 +285,10 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border">
+          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
             {[
               { icon: Truck, label: 'Free Shipping', sub: 'Orders ₹999+' },
               { icon: ShieldCheck, label: 'Authentic', sub: '100% Genuine' },
-              { icon: RotateCcw, label: '7-Day Returns', sub: 'Easy returns' },
             ].map((badge) => (
               <div key={badge.label} className="text-center p-3 bg-surface rounded-xl">
                 <badge.icon className="w-5 h-5 text-primary mx-auto mb-1" />
