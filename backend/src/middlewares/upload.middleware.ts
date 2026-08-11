@@ -89,6 +89,15 @@ export const uploadAvatar = multer({
   },
 }).single('avatar');
 
+export const uploadPaymentScreenshot = multer({
+  storage: memoryStorage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1,
+  },
+}).single('paymentScreenshot');
+
 export const uploadBannerImage = multer({
   storage: memoryStorage,
   fileFilter: imageFileFilter,

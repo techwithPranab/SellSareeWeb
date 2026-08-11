@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { Loader2, RotateCcw, CreditCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Loader2, RotateCcw, CreditCard, AlertTriangle, CheckCircle2, Printer } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -37,6 +37,21 @@ const RETURN_STATUSES: OrderStatus[] = [
 
 // Statuses where admin can trigger a Razorpay refund
 const REFUNDABLE_STATUSES: OrderStatus[] = ['return_requested', 'returned', 'refund_initiated'];
+
+const LABEL_STATUSES: OrderStatus[] = [
+  'confirmed',
+  'processing',
+  'shipped',
+  'out_for_delivery',
+  'delivered',
+];
+
+const escapeHtml = (value: unknown) => String(value ?? '')
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#039;');
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -120,6 +135,98 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handlePrintLabel = () => {
+    if (!order) return;
+
+    const labelWindow = window.open('', '_blank', 'width=850,height=1100');
+    if (!labelWindow) {
+      toast.error('Please allow pop-ups to print the dispatch label');
+      return;
+    }
+    labelWindow.opener = null;
+
+    const address = order.shippingAddress;
+    const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
+    const itemRows = order.items.map((item) => `
+      <tr>
+        <td>${escapeHtml(item.name)}${item.color ? `<br><small>Colour: ${escapeHtml(item.color)}</small>` : ''}</td>
+        <td>${escapeHtml(item.sku)}</td>
+        <td class="center">${item.quantity}</td>
+      </tr>
+    `).join('');
+    const isCod = order.paymentInfo.method === 'cod';
+
+    labelWindow.document.write(`<!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Dispatch Label - ${escapeHtml(order.orderNumber)}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 20px; color: #111; font-family: Arial, sans-serif; }
+            .label { width: 100%; max-width: 760px; margin: 0 auto; border: 2px solid #111; }
+            .row { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #111; }
+            .cell { padding: 14px; }
+            .cell + .cell { border-left: 1px solid #111; }
+            .brand { font-size: 24px; font-weight: 700; }
+            .muted { color: #444; font-size: 12px; }
+            .title { margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+            .recipient { padding: 18px; border-bottom: 1px solid #111; font-size: 16px; line-height: 1.55; }
+            .recipient strong { font-size: 22px; }
+            .phone { margin-top: 8px; font-size: 18px; font-weight: 700; }
+            .payment { padding: 12px 18px; border-bottom: 1px solid #111; font-size: 18px; font-weight: 700; text-align: center; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { padding: 9px 12px; border-bottom: 1px solid #bbb; text-align: left; }
+            th { background: #f2f2f2; }
+            .center { text-align: center; }
+            .footer { padding: 10px 18px; font-size: 11px; color: #444; }
+            @page { size: A4; margin: 10mm; }
+            @media print { body { padding: 0; } .label { max-width: none; } }
+          </style>
+        </head>
+        <body>
+          <main class="label">
+            <div class="row">
+              <div class="cell">
+                <div class="brand">PP’s Aura</div>
+                <div class="muted">12 Silk Street, Kolkata 700001<br>West Bengal · support@ppaura.in</div>
+              </div>
+              <div class="cell">
+                <div class="title">Order</div>
+                <strong>#${escapeHtml(order.orderNumber)}</strong><br>
+                <span class="muted">Placed: ${escapeHtml(formatDate(order.createdAt))}<br>Packages: 1 · Items: ${itemCount}</span>
+              </div>
+            </div>
+            <section class="recipient">
+              <div class="title">Deliver To</div>
+              <strong>${escapeHtml(address.fullName)}</strong><br>
+              ${escapeHtml(address.addressLine1)}${address.addressLine2 ? `<br>${escapeHtml(address.addressLine2)}` : ''}<br>
+              ${escapeHtml(address.city)}, ${escapeHtml(address.state)} - <strong>${escapeHtml(address.pincode)}</strong><br>
+              ${escapeHtml(address.country || 'India')}
+              <div class="phone">Phone: ${escapeHtml(address.phone)}</div>
+            </section>
+            <div class="payment">
+              ${isCod ? `CASH ON DELIVERY · Collect ${escapeHtml(formatPrice(order.totalAmount))}` : `PREPAID · ${escapeHtml(order.paymentInfo.status.toUpperCase())}`}
+            </div>
+            ${(order.trackingInfo?.courier || order.trackingInfo?.trackingNumber) ? `
+              <div class="row">
+                <div class="cell"><div class="title">Courier</div>${escapeHtml(order.trackingInfo?.courier || '—')}</div>
+                <div class="cell"><div class="title">Tracking Number</div>${escapeHtml(order.trackingInfo?.trackingNumber || '—')}</div>
+              </div>
+            ` : ''}
+            <table>
+              <thead><tr><th>Item</th><th>SKU</th><th class="center">Qty</th></tr></thead>
+              <tbody>${itemRows}</tbody>
+            </table>
+            ${order.notes ? `<div class="footer"><strong>Dispatch note:</strong> ${escapeHtml(order.notes)}</div>` : ''}
+          </main>
+        </body>
+      </html>`);
+    labelWindow.document.close();
+    labelWindow.focus();
+    labelWindow.print();
+  };
+
   if (loading) return <LoadingSpinner label="Loading order…" />;
   if (!order) return <p className="text-muted-foreground">Order not found.</p>;
 
@@ -135,6 +242,12 @@ export default function AdminOrderDetailPage() {
         title={`Order #${order.orderNumber}`}
         backHref="/admin/orders"
         description={`Placed on ${formatDate(order.createdAt)}`}
+        action={LABEL_STATUSES.includes(order.status) ? (
+          <button onClick={handlePrintLabel} className="btn-primary btn-sm inline-flex items-center gap-2">
+            <Printer className="w-4 h-4" />
+            Print / Download Label
+          </button>
+        ) : undefined}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -347,6 +460,20 @@ export default function AdminOrderDetailPage() {
                   {order.paymentInfo.status}
                 </span>
               </p>
+              {order.paymentInfo.manualTransactionId && (
+                <div className="pt-2">
+                  <p className="text-xs text-muted-foreground">Transaction ID / UTR</p>
+                  <p className="break-all font-mono text-sm font-semibold">{order.paymentInfo.manualTransactionId}</p>
+                </div>
+              )}
+              {order.paymentInfo.paymentScreenshot && (
+                <div className="pt-2">
+                  <p className="mb-2 text-xs text-muted-foreground">Payment Screenshot</p>
+                  <a href={order.paymentInfo.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border border-border">
+                    <Image src={order.paymentInfo.paymentScreenshot} alt={`Payment proof for order ${order.orderNumber}`} width={420} height={260} className="h-auto w-full object-contain" />
+                  </a>
+                </div>
+              )}
               {order.loyaltyPointsEarned > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Loyalty points earned: <span className="font-semibold text-primary">{order.loyaltyPointsEarned} pts</span>

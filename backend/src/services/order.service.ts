@@ -9,6 +9,9 @@ import { PaginationOptions } from '../utils/pagination';
 import Coupon from '../models/Coupon';
 import { getReferenceId } from '../utils/getReferenceId';
 import { logger } from '../middlewares/logger.middleware';
+import StoreSetting from '../models/StoreSetting';
+import Order from '../models/Order';
+import User from '../models/User';
 
 export interface CreateOrderData {
   items: Array<{
@@ -74,9 +77,16 @@ export class OrderService {
       } as IOrderItem);
     }
 
+    // Settings are database-backed so admin changes apply to newly created orders.
+    const storeSettings = await StoreSetting.findOne({ key: 'store' }).lean();
+    const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? SHIPPING.FREE_SHIPPING_THRESHOLD;
+    const standardShippingRate = storeSettings?.standardShippingRate ?? SHIPPING.STANDARD_RATE;
+    const codChargeRate = storeSettings?.codCharges ?? SHIPPING.COD_CHARGES;
+    const loyaltyPointsRate = storeSettings?.loyaltyPointsRate ?? LOYALTY.POINTS_PER_RUPEE;
+
     // Calculate shipping
-    const shippingCharge = subtotal >= SHIPPING.FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING.STANDARD_RATE;
-    const codCharges = paymentMethod === PaymentMethod.COD ? SHIPPING.COD_CHARGES : 0;
+    const shippingCharge = subtotal >= freeShippingThreshold ? 0 : standardShippingRate;
+    const codCharges = paymentMethod === PaymentMethod.COD ? codChargeRate : 0;
 
     // Apply coupon
     let couponDiscount = 0;
@@ -149,7 +159,7 @@ export class OrderService {
     const totalAmount = Math.max(0, subtotal + shippingCharge + codCharges + taxAmount - totalDiscount);
 
     // Loyalty points earned (1 point per rupee)
-    const loyaltyPointsEarned = Math.floor(totalAmount * LOYALTY.POINTS_PER_RUPEE);
+    const loyaltyPointsEarned = Math.floor(totalAmount * loyaltyPointsRate);
 
     // Create order
     const order = await orderRepository.create({
@@ -323,24 +333,65 @@ export class OrderService {
 
   async getDashboardStats() {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+    const indiaDateParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(now).reduce<Record<string, string>>((parts, part) => {
+      if (part.type !== 'literal') parts[part.type] = part.value;
+      return parts;
+    }, {});
+    const startOfToday = new Date(`${indiaDateParts.year}-${indiaDateParts.month}-${indiaDateParts.day}T00:00:00+05:30`);
+    const startOfMonth = new Date(`${indiaDateParts.year}-${indiaDateParts.month}-01T00:00:00+05:30`);
 
-    const [totalOrders, monthlyStats, todayStats, statusDistribution] = await Promise.all([
+    const last30Days = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
+    last30Days.setHours(0, 0, 0, 0);
+
+    const [
+      totalOrders,
+      monthlyStats,
+      todayStats,
+      statusDistribution,
+      monthlyOrders,
+      todayOrders,
+      dailyRevenue,
+      totalCustomers,
+      topProducts,
+      paymentDistribution,
+    ] = await Promise.all([
       orderRepository.countDocuments(),
       orderRepository.getRevenueStats(startOfMonth, new Date()),
       orderRepository.getRevenueStats(startOfToday, new Date()),
       orderRepository.getStatusDistribution(),
+      orderRepository.countDocuments({ createdAt: { $gte: startOfMonth }, status: { $ne: OrderStatus.CANCELLED } }),
+      orderRepository.countDocuments({ createdAt: { $gte: startOfToday }, status: { $ne: OrderStatus.CANCELLED } }),
+      orderRepository.getDailyRevenue(30),
+      User.countDocuments({ role: 'customer' }),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: last30Days }, status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] } } },
+        { $unwind: '$items' },
+        { $group: { _id: '$items.product', name: { $first: '$items.name' }, quantity: { $sum: '$items.quantity' }, revenue: { $sum: '$items.subtotal' } } },
+        { $sort: { quantity: -1 } },
+        { $limit: 5 },
+      ]),
+      Order.aggregate([
+        { $match: { status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] } } },
+        { $group: { _id: '$paymentInfo.method', count: { $sum: 1 }, amount: { $sum: '$totalAmount' } } },
+        { $sort: { count: -1 } },
+      ]),
     ]);
 
     return {
       totalOrders,
       monthlyRevenue: monthlyStats[0]?.totalRevenue || 0,
-      monthlyOrders: monthlyStats[0]?.totalOrders || 0,
+      monthlyOrders,
       todayRevenue: todayStats[0]?.totalRevenue || 0,
-      todayOrders: todayStats[0]?.totalOrders || 0,
+      todayOrders,
       averageOrderValue: monthlyStats[0]?.averageOrderValue || 0,
       statusDistribution,
+      dailyRevenue,
+      totalCustomers,
+      topProducts,
+      paymentDistribution,
+      lastUpdated: new Date().toISOString(),
     };
   }
 }

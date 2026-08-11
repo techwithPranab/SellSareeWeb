@@ -2,7 +2,7 @@ import Order from '../models/Order';
 import { IOrder } from '../interfaces';
 import { parsePagination, buildPaginationMeta, PaginationOptions } from '../utils/pagination';
 import { FilterQuery, Types } from 'mongoose';
-import { OrderStatus, PaymentStatus } from '../constants';
+import { OrderStatus, PaymentMethod, PaymentStatus } from '../constants';
 
 export class OrderRepository {
   async findById(id: string): Promise<IOrder | null> {
@@ -94,7 +94,10 @@ export class OrderRepository {
       {
         $match: {
           createdAt: { $gte: startDate, $lte: endDate },
-          'paymentInfo.status': PaymentStatus.COMPLETED,
+          $or: [
+            { 'paymentInfo.status': PaymentStatus.COMPLETED },
+            { 'paymentInfo.method': PaymentMethod.COD, status: OrderStatus.DELIVERED },
+          ],
         },
       },
       {
@@ -116,12 +119,15 @@ export class OrderRepository {
       {
         $match: {
           createdAt: { $gte: startDate },
-          'paymentInfo.status': PaymentStatus.COMPLETED,
+          $or: [
+            { 'paymentInfo.status': PaymentStatus.COMPLETED },
+            { 'paymentInfo.method': PaymentMethod.COD, status: OrderStatus.DELIVERED },
+          ],
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Asia/Kolkata' } },
           revenue: { $sum: '$totalAmount' },
           orders: { $sum: 1 },
         },

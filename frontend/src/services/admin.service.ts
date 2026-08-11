@@ -36,7 +36,29 @@ export interface ProductStats {
   lowStockCount: number;
 }
 
+export interface StoreSettings {
+  _id?: string;
+  storeName: string;
+  supportEmail: string;
+  storeAddress: string;
+  freeShippingThreshold: number;
+  standardShippingRate: number;
+  codCharges: number;
+  loyaltyPointsRate: number;
+  socialLinks: Record<string, string>;
+}
+
 export const adminService = {
+  async getStoreSettings() {
+    const response = await api.get('/settings');
+    return response.data.data as { settings: StoreSettings };
+  },
+
+  async updateStoreSettings(data: StoreSettings) {
+    const response = await api.put('/settings', data);
+    return response.data.data as { settings: StoreSettings };
+  },
+
   // ── Dashboard ──────────────────────────────────────────────────────────────
   async getOrderStats() {
     const response = await api.get('/orders/admin/stats');
@@ -125,8 +147,21 @@ export const adminService = {
     };
     paymentMethod: 'cod' | 'upi';
     notes?: string;
+    transactionId?: string;
+    paymentScreenshot?: File;
   }) {
-    const response = await api.post('/orders/admin/create-for-customer', data);
+    const formData = new FormData();
+    if (data.customerId) formData.append('customerId', data.customerId);
+    if (data.customer) formData.append('customer', JSON.stringify(data.customer));
+    formData.append('items', JSON.stringify(data.items));
+    formData.append('shippingAddress', JSON.stringify(data.shippingAddress));
+    formData.append('paymentMethod', data.paymentMethod);
+    if (data.notes) formData.append('notes', data.notes);
+    if (data.transactionId) formData.append('transactionId', data.transactionId);
+    if (data.paymentScreenshot) formData.append('paymentScreenshot', data.paymentScreenshot);
+    const response = await api.post('/orders/admin/create-for-customer', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data.data as { order: Order };
   },
 

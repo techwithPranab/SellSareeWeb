@@ -3,41 +3,50 @@ import ContentPage from '@/components/common/ContentPage';
 
 export const metadata: Metadata = {
   title: 'Our Story',
-  description: 'Learn about PP’s Aura — our mission to bring authentic handcrafted sarees from master weavers across India.',
+  description: 'Discover PP’s Aura — distinctive, thoughtfully selected and affordable sarees for every woman and every occasion.',
 };
 
 export default function AboutPage() {
   return (
     <ContentPage
       title="Our Story"
-      subtitle="Where every thread tells a story — connecting artisans with saree lovers since 2020."
+      subtitle="Every Saree Has a Story. Find Your Aura. ✨"
     >
-      <h2>A Heritage of Handcraft</h2>
-      <p>
-        PP’s Aura was born from a simple belief: every woman deserves access to authentic,
-        beautifully crafted sarees without compromising on quality or fair pricing for artisans.
-        Founded in Kolkata in 2020, we began by partnering with a handful of weaver families in
-        Varanasi, Kanchipuram, and rural Bengal.
-      </p>
-      <p>
-        Today, we work directly with over 200 artisan families across 12 states, ensuring that
-        every saree in our collection is genuinely handcrafted — not mass-produced imitations.
+      <p className="lead">
+        At <strong>PP’s Aura</strong>, we believe every woman deserves a saree that feels as unique
+        and special as she is.
       </p>
 
       <h2>Our Mission</h2>
       <p>
-        To preserve India&apos;s rich textile heritage while empowering weavers with fair wages,
-        direct market access, and sustainable livelihoods. Every purchase you make supports an
-        artisan family and keeps centuries-old weaving traditions alive.
+        Our mission is simple — to bring you a thoughtfully curated collection of
+        <strong> beautiful, distinctive and affordable sarees</strong> for every occasion.
+        Whether it&apos;s a festival, wedding, celebration, office event or a simple day when you
+        want to feel special, we want you to find your perfect saree at PP’s Aura.
       </p>
 
-      <h2>What Makes Us Different</h2>
+      <h2>❤️ What Makes PP’s Aura Special?</h2>
       <ul>
-        <li><strong>Direct from Weavers:</strong> No middlemen — we source directly from artisan cooperatives.</li>
-        <li><strong>Authenticity Guaranteed:</strong> Every saree comes with a certificate of authenticity.</li>
-        <li><strong>Curated Collections:</strong> Our expert team hand-picks each piece for quality and design.</li>
-        <li><strong>Sustainable Packaging:</strong> Eco-friendly, reusable packaging for every order.</li>
+        <li>✨ Unique and carefully selected saree collections</li>
+        <li>✨ Styles for every occasion</li>
+        <li>✨ Beautiful choices at affordable prices</li>
+        <li>✨ Simple and hassle-free ordering</li>
+        <li>✨ Friendly and responsive customer service</li>
+        <li>✨ Your feedback helps us serve you better</li>
       </ul>
+
+      <p>
+        For us, it&apos;s not just about selling a saree. It&apos;s about helping you find something
+        you&apos;ll love wearing and feel confident in.
+      </p>
+
+      <blockquote>
+        <p><strong>Every Saree Has a Story. Find Your Aura. ✨</strong></p>
+      </blockquote>
+
+      <p>
+        📩 <strong>DM us to order or know more about our collections.</strong>
+      </p>
     </ContentPage>
   );
 }

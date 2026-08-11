@@ -2,7 +2,7 @@
 
 import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Minus, Plus, Search, ShoppingBag, Trash2, UserPlus } from 'lucide-react';
+import { FileImage, Loader2, Minus, Plus, Search, ShoppingBag, Trash2, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -39,6 +39,8 @@ export default function CreateWhatsAppOrderPage() {
   const [productId, setProductId] = useState('');
   const [address, setAddress] = useState(EMPTY_ADDRESS);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi'>('cod');
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [notes, setNotes] = useState('Order received through WhatsApp');
 
   useEffect(() => {
@@ -124,6 +126,10 @@ export default function CreateWhatsAppOrderPage() {
       toast.error('Complete the delivery address with a valid pincode');
       return;
     }
+    if (paymentScreenshot && paymentScreenshot.size > 5 * 1024 * 1024) {
+      toast.error('Payment screenshot must be 5 MB or smaller');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -133,6 +139,10 @@ export default function CreateWhatsAppOrderPage() {
         shippingAddress: address,
         paymentMethod,
         notes,
+        ...(paymentMethod === 'upi' && {
+          transactionId: transactionId.trim() || undefined,
+          paymentScreenshot: paymentScreenshot || undefined,
+        }),
       });
       toast.success(`Order #${order.orderNumber} created`);
       router.push(asRoute(`/admin/orders/${order._id}`));
@@ -248,6 +258,28 @@ export default function CreateWhatsAppOrderPage() {
           <div className="flex justify-between py-4 font-bold"><span>Estimated total</span><span className="text-primary">{formatPrice(estimatedTotal)}</span></div>
           <div className="space-y-4 border-t border-border pt-4">
             <div><label className="label">Payment method</label><select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as 'cod' | 'upi')} className="input-field"><option value="cod">Cash on Delivery</option><option value="upi">UPI / manually collected</option></select></div>
+            {paymentMethod === 'upi' && (
+              <div className="space-y-4 rounded-xl border border-border bg-surface/50 p-4">
+                <div>
+                  <label className="label">Transaction ID / UTR</label>
+                  <input value={transactionId} onChange={(event) => setTransactionId(event.target.value)} maxLength={150} className="input-field bg-white" placeholder="Enter payment reference" />
+                </div>
+                <div>
+                  <label className="label">Payment screenshot</label>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-primary/40 bg-white p-3 text-sm text-muted-foreground hover:bg-primary/5">
+                    <FileImage className="h-5 w-5 shrink-0 text-primary" />
+                    <span className="min-w-0 truncate">{paymentScreenshot?.name || 'Choose payment screenshot'}</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="sr-only"
+                      onChange={(event) => setPaymentScreenshot(event.target.files?.[0] || null)}
+                    />
+                  </label>
+                  <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or GIF up to 5 MB.</p>
+                </div>
+              </div>
+            )}
             <div><label className="label">Internal notes</label><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} className="input-field resize-none" /></div>
             <button type="submit" disabled={saving} className="btn-primary w-full gap-2">{saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : <><UserPlus className="h-4 w-4" /> Create customer order</>}</button>
           </div>

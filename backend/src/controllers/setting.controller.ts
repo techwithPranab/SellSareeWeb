@@ -1,0 +1,59 @@
+import { Request, Response } from 'express';
+import StoreSetting from '../models/StoreSetting';
+import { ApiResponse } from '../utils/apiResponse';
+import { asyncHandler } from '../utils/asyncHandler';
+
+const defaults = {
+  key: 'store',
+  storeName: 'PP’s Aura',
+  supportEmail: 'support@ppaura.in',
+  storeAddress: '12 Silk Street, Kolkata — 700001, West Bengal',
+  freeShippingThreshold: 999,
+  standardShippingRate: 99,
+  codCharges: 49,
+  loyaltyPointsRate: 1,
+  socialLinks: {
+    instagram: 'https://instagram.com/ppaura',
+    facebook: 'https://facebook.com/ppaura',
+    twitter: 'https://twitter.com/ppaura',
+    youtube: 'https://youtube.com/@ppaura',
+    pinterest: 'https://pinterest.com/ppaura',
+    whatsapp: '',
+  },
+};
+
+export const getStoreSettings = asyncHandler(async (_req: Request, res: Response) => {
+  const settings = await StoreSetting.findOneAndUpdate(
+    { key: 'store' },
+    { $setOnInsert: defaults },
+    { new: true, upsert: true, runValidators: true }
+  );
+  return ApiResponse.success(res, 'Store settings retrieved', { settings });
+});
+
+export const updateStoreSettings = asyncHandler(async (req: Request, res: Response) => {
+  const stringFields = ['storeName', 'supportEmail', 'storeAddress'] as const;
+  const numberFields = ['freeShippingThreshold', 'standardShippingRate', 'codCharges', 'loyaltyPointsRate'] as const;
+  const update: Record<string, unknown> = {};
+
+  stringFields.forEach((field) => { update[field] = String(req.body[field] ?? '').trim(); });
+  numberFields.forEach((field) => { update[field] = Number(req.body[field]); });
+
+  if (!update.storeName || !/^\S+@\S+\.\S+$/.test(String(update.supportEmail))) {
+    return ApiResponse.badRequest(res, 'A store name and valid support email are required');
+  }
+  if (numberFields.some((field) => !Number.isFinite(update[field]) || Number(update[field]) < 0)) {
+    return ApiResponse.badRequest(res, 'Shipping and loyalty values must be valid positive numbers');
+  }
+
+  const socialLinks = req.body.socialLinks && typeof req.body.socialLinks === 'object'
+    ? Object.fromEntries(Object.entries(req.body.socialLinks).map(([key, value]) => [key, String(value ?? '').trim()]))
+    : {};
+
+  const settings = await StoreSetting.findOneAndUpdate(
+    { key: 'store' },
+    { $set: { ...update, socialLinks }, $setOnInsert: { key: 'store' } },
+    { new: true, upsert: true, runValidators: true }
+  );
+  return ApiResponse.success(res, 'Store settings updated', { settings });
+});

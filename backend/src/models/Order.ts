@@ -49,6 +49,9 @@ const PaymentInfoSchema = new Schema(
     },
     paidAt: { type: Date },
     failureReason: { type: String },
+    manualTransactionId: { type: String, trim: true, maxlength: 150 },
+    paymentScreenshot: { type: String },
+    paymentScreenshotPublicId: { type: String },
   },
   { _id: false }
 );

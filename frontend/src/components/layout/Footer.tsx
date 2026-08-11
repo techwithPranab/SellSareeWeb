@@ -175,7 +175,7 @@ export default function Footer() {
           <div className="flex gap-6 flex-wrap justify-center">
             {[
               { icon: '🔒', label: 'Secure Payments' },
-              { icon: '🚚', label: 'Free Shipping ₹1500+' },
+              { icon: '🚚', label: 'Free Shipping' },
               { icon: '✅', label: '100% Authentic' },
               { icon: '🌿', label: 'Eco-Friendly' },
             ].map((badge) => (
@@ -185,24 +185,19 @@ export default function Footer() {
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-3">
-            <img src="/images/payments/razorpay.svg" alt="Razorpay" className="h-6 opacity-70" />
+          <div className="container-custom py-4 flex flex-col sm:flex-row gap-2 justify-between items-center text-xs text-[#b09070]">
+             <p>© {currentYear} {APP_NAME}. All rights reserved.</p>
+            {/* <img src="/images/payments/razorpay.svg" alt="Razorpay" className="h-6 opacity-70" />
             <img src="/images/payments/upi.svg" alt="UPI" className="h-5 opacity-70" />
             <img src="/images/payments/visa.svg" alt="Visa" className="h-5 opacity-70" />
             <img src="/images/payments/mastercard.svg" alt="Mastercard" className="h-5 opacity-70" />
-          </div>
+           */}
+           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10">
-        <div className="container-custom py-4 flex flex-col sm:flex-row gap-2 justify-between items-center text-xs text-[#b09070]">
-          <p>© {currentYear} {APP_NAME}. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Made with ❤️ in India &nbsp;|&nbsp; Crafted for Indian Artisans
-          </p>
-        </div>
-      </div>
+     
     </footer>
   );
 }

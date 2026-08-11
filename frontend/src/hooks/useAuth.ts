@@ -7,6 +7,7 @@ import { clearCart } from '@/features/cart/cartSlice';
 import { clearWishlist } from '@/features/wishlist/wishlistSlice';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { asRoute } from '@/utils/helpers';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -49,12 +50,12 @@ export const useAuth = () => {
     [dispatch]
   );
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (redirectTo = '/') => {
     await dispatch(logoutUser());
     dispatch(clearCart());
     dispatch(clearWishlist());
     toast.success('Logged out successfully');
-    router.push('/');
+    router.replace(asRoute(redirectTo));
   }, [dispatch, router]);
 
   const fetchCurrentUser = useCallback(async () => {

@@ -166,6 +166,9 @@ export interface IPaymentInfo {
   status: PaymentStatus;
   paidAt?: Date;
   failureReason?: string;
+  manualTransactionId?: string;
+  paymentScreenshot?: string;
+  paymentScreenshotPublicId?: string;
 }
 
 export interface ITrackingInfo {

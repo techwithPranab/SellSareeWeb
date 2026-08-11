@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -14,8 +14,11 @@ import {
   Settings,
   Star,
   FolderOpen,
+  Loader2,
+  LogOut,
 } from 'lucide-react';
 import { cn, asRoute } from '@/utils/helpers';
+import { useAuth } from '@/hooks/useAuth';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -32,6 +35,18 @@ const NAV_ITEMS = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout('/admin-login');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <aside className="w-full lg:w-60 shrink-0">
@@ -60,6 +75,17 @@ export default function AdminSidebar() {
             );
           })}
         </nav>
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/15 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loggingOut ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <LogOut className="h-4 w-4 shrink-0" />}
+            {loggingOut ? 'Logging out…' : 'Logout'}
+          </button>
+        </div>
       </div>
     </aside>
   );

@@ -3,9 +3,10 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
-import { OrderStatus, PaymentMethod, UserRole } from '../constants';
+import { OrderStatus, PaymentMethod, PaymentStatus, UserRole } from '../constants';
 import Order from '../models/Order';
 import User from '../models/User';
+import { cloudinary } from '../config/cloudinary';
 
 // ========================= PUBLIC =========================
 
@@ -139,7 +140,17 @@ export const initiateRefund = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const createOrderForCustomer = asyncHandler(async (req: Request, res: Response) => {
-  const { customerId, customer, items, shippingAddress, paymentMethod, notes } = req.body;
+  const parseJsonField = (value: unknown) => {
+    if (typeof value !== 'string') return value;
+    try { return JSON.parse(value); } catch { return undefined; }
+  };
+  const customerId = req.body.customerId;
+  const customer = parseJsonField(req.body.customer) as Record<string, unknown> | undefined;
+  const items = parseJsonField(req.body.items) as Array<{ productId: string; quantity: number }>;
+  const shippingAddress = parseJsonField(req.body.shippingAddress) as Record<string, string>;
+  const paymentMethod = req.body.paymentMethod as PaymentMethod;
+  const notes = req.body.notes;
+  const transactionId = String(req.body.transactionId || '').trim();
 
   if (!Array.isArray(items) || items.length === 0) {
     return ApiResponse.badRequest(res, 'At least one product is required');
@@ -160,6 +171,12 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
 
   if (![PaymentMethod.COD, PaymentMethod.UPI].includes(paymentMethod)) {
     return ApiResponse.badRequest(res, 'Payment method must be Cash on Delivery or UPI');
+  }
+  if (transactionId.length > 150) {
+    return ApiResponse.badRequest(res, 'Transaction ID cannot exceed 150 characters');
+  }
+  if (paymentMethod === PaymentMethod.COD && (transactionId || req.file)) {
+    return ApiResponse.badRequest(res, 'Payment proof can only be added to manually collected UPI payments');
   }
 
   let orderCustomer = customerId ? await User.findById(customerId) : null;
@@ -190,12 +207,43 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
     return ApiResponse.badRequest(res, 'The selected customer account is inactive');
   }
 
-  const order = await orderService.createOrder(orderCustomer._id.toString(), {
-    items,
-    shippingAddress,
-    paymentMethod,
-    notes: [notes, `WhatsApp order entered by admin ${req.user!.email}`].filter(Boolean).join(' — '),
-  });
+  let uploadedProof: { url: string; publicId: string } | undefined;
+  if (req.file) {
+    const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'pp-aura/payment-proofs',
+      resource_type: 'image',
+      transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+    });
+    uploadedProof = { url: result.secure_url, publicId: result.public_id };
+  }
+
+  let order;
+  try {
+    order = await orderService.createOrder(orderCustomer._id.toString(), {
+      items,
+      shippingAddress: shippingAddress as unknown as Parameters<typeof orderService.createOrder>[1]['shippingAddress'],
+      paymentMethod,
+      notes: [notes, `WhatsApp order entered by admin ${req.user!.email}`].filter(Boolean).join(' — '),
+    });
+  } catch (error) {
+    if (uploadedProof) await cloudinary.uploader.destroy(uploadedProof.publicId).catch(() => undefined);
+    throw error;
+  }
+
+  if (paymentMethod === PaymentMethod.UPI && (transactionId || uploadedProof)) {
+    order = await Order.findByIdAndUpdate(order._id, {
+      $set: {
+        'paymentInfo.status': PaymentStatus.COMPLETED,
+        'paymentInfo.paidAt': new Date(),
+        ...(transactionId && { 'paymentInfo.manualTransactionId': transactionId }),
+        ...(uploadedProof && {
+          'paymentInfo.paymentScreenshot': uploadedProof.url,
+          'paymentInfo.paymentScreenshotPublicId': uploadedProof.publicId,
+        }),
+      },
+    }, { new: true }) || order;
+  }
 
   return ApiResponse.created(res, 'Customer order created successfully', { order });
 });

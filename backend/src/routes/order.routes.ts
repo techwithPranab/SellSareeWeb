@@ -18,6 +18,7 @@ import {
 } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
+import { uploadPaymentScreenshot } from '../middlewares/upload.middleware';
 
 const router = Router();
 
@@ -41,7 +42,7 @@ router.post('/payment/verify', verifyPayment);
 
 // Admin routes
 router.use(requireAdmin);
-router.post('/admin/create-for-customer', createOrderForCustomer);
+router.post('/admin/create-for-customer', uploadPaymentScreenshot, createOrderForCustomer);
 router.get('/', getAllOrders);
 router.get('/admin/stats', getOrderDashboardStats);
 router.get('/admin/:id', getAdminOrderById);

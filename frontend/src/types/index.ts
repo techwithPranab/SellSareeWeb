@@ -262,6 +262,8 @@ export interface PaymentInfo {
   status: PaymentStatus;
   paidAt?: string;
   failureReason?: string;
+  manualTransactionId?: string;
+  paymentScreenshot?: string;
 }
 
 export interface TrackingInfo {
@@ -447,6 +449,10 @@ export interface DashboardStats {
   activeProducts: number;
   totalCustomers: number;
   statusDistribution: Array<{ _id: OrderStatus; count: number }>;
+  dailyRevenue: Array<{ _id: string; revenue: number; orders: number }>;
+  topProducts: Array<{ _id: string; name: string; quantity: number; revenue: number }>;
+  paymentDistribution: Array<{ _id: PaymentMethod; count: number; amount: number }>;
+  lastUpdated: string;
 }
 
 // =============================================
