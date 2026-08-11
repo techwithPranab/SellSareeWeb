@@ -10,7 +10,6 @@ import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch } from '@/hooks/useStore';
 import { createOrder } from '@/features/orders/ordersSlice';
-import { clearCart } from '@/features/cart/cartSlice';
 import { checkoutSchema, type CheckoutFormData } from '@/validations/checkout.schema';
 import { INDIAN_STATES, PAYMENT_METHODS } from '@/constants';
 import { formatPrice } from '@/utils/helpers';

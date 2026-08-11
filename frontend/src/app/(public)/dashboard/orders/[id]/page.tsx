@@ -10,6 +10,7 @@ import { fetchOrderById, cancelOrder, requestReturnOrder } from '@/features/orde
 import {
   formatPrice,
   formatDate,
+  formatPaymentMethod,
   getOrderTrackingSteps,
   generateWhatsAppOrderMessage,
 } from '@/utils/helpers';
@@ -202,7 +203,7 @@ export default function OrderDetailPage() {
               <span>Total</span><span className="text-primary">{formatPrice(order.totalAmount)}</span>
             </div>
             <p className="text-xs text-muted-foreground pt-1">
-              Paid via {order.paymentInfo.method.toUpperCase()}
+              Paid via {formatPaymentMethod(order.paymentInfo.method)}
             </p>
           </div>
         </div>

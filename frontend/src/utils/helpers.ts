@@ -34,6 +34,15 @@ export const formatPrice = (price: number): string => {
   return `₹${price.toLocaleString('en-IN')}`;
 };
 
+export const formatPaymentMethod = (method: string): string => {
+  const labels: Record<string, string> = {
+    razorpay: 'Online Payment',
+    upi: 'UPI',
+    wallet: 'Wallet',
+  };
+  return labels[method] ?? 'Offline Payment';
+};
+
 export const formatDiscount = (originalPrice: number, salePrice: number): number => {
   return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
 };

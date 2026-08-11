@@ -370,7 +370,10 @@ export class OrderService {
         { $limit: 5 },
       ]),
       Order.aggregate([
-        { $match: { status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] } } },
+        { $match: {
+          status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] },
+          'paymentInfo.method': { $in: Object.values(PaymentMethod) },
+        } },
         { $group: { _id: '$paymentInfo.method', count: { $sum: 1 }, amount: { $sum: '$totalAmount' } } },
         { $sort: { count: -1 } },
       ]),

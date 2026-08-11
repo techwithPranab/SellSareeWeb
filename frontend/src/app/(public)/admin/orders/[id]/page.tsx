@@ -7,7 +7,7 @@ import { Loader2, RotateCcw, CreditCard, AlertTriangle, CheckCircle2, Printer } 
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { formatPrice, formatDate } from '@/utils/helpers';
+import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import type { Order, OrderStatus } from '@/types';
 import toast from 'react-hot-toast';
@@ -145,6 +145,7 @@ export default function AdminOrderDetailPage() {
     labelWindow.opener = null;
 
     const address = order.shippingAddress;
+    const qrCodeUrl = `${window.location.origin}/images/qrcode_docs.google.com.png`;
     const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
     const itemRows = order.items.map((item) => `
       <tr>
@@ -161,25 +162,33 @@ export default function AdminOrderDetailPage() {
           <title>Dispatch Label - ${escapeHtml(order.orderNumber)}</title>
           <style>
             * { box-sizing: border-box; }
-            body { margin: 0; padding: 20px; color: #111; font-family: Arial, sans-serif; }
-            .label { width: 100%; max-width: 760px; margin: 0 auto; border: 2px solid #111; }
+            html, body { width: 210mm; min-height: 99mm; }
+            body { margin: 0; padding: 4mm; color: #111; font-family: Arial, sans-serif; }
+            .label { width: 202mm; margin: 0 auto; border: 1.5px solid #111; }
             .row { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #111; }
-            .cell { padding: 14px; }
+            .cell { padding: 2.5mm; font-size: 10px; }
             .cell + .cell { border-left: 1px solid #111; }
-            .brand { font-size: 24px; font-weight: 700; }
-            .muted { color: #444; font-size: 12px; }
-            .title { margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-            .recipient { padding: 18px; border-bottom: 1px solid #111; font-size: 16px; line-height: 1.55; }
-            .recipient strong { font-size: 22px; }
-            .phone { margin-top: 8px; font-size: 18px; font-weight: 700; }
-            .payment { padding: 12px 18px; border-bottom: 1px solid #111; font-size: 18px; font-weight: 700; text-align: center; }
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
-            th, td { padding: 9px 12px; border-bottom: 1px solid #bbb; text-align: left; }
+            .brand { font-size: 17px; font-weight: 700; }
+            .muted { color: #444; font-size: 8px; line-height: 1.35; }
+            .title { margin-bottom: 1.5mm; font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+            .recipient { padding: 3mm; border-bottom: 1px solid #111; font-size: 11px; line-height: 1.35; }
+            .recipient strong { font-size: 15px; }
+            .phone { margin-top: 1.5mm; font-size: 12px; font-weight: 700; }
+            .payment { padding: 2mm 3mm; border-bottom: 1px solid #111; font-size: 12px; font-weight: 700; text-align: center; }
+            table { width: 100%; border-collapse: collapse; font-size: 8px; }
+            th, td { padding: 1.5mm 2mm; border-bottom: 1px solid #bbb; text-align: left; }
             th { background: #f2f2f2; }
             .center { text-align: center; }
-            .footer { padding: 10px 18px; font-size: 11px; color: #444; }
-            @page { size: A4; margin: 10mm; }
-            @media print { body { padding: 0; } .label { max-width: none; } }
+            .footer { padding: 2mm 3mm; font-size: 8px; color: #444; }
+            .qr-panel { display: flex; align-items: center; justify-content: space-between; gap: 3mm; padding: 2mm 3mm; border-top: 1px solid #111; }
+            .qr-copy { font-size: 9px; line-height: 1.35; }
+            .qr-code { width: 20mm; height: 20mm; flex: 0 0 auto; object-fit: contain; }
+            @page { size: 210mm 99mm; margin: 4mm; }
+            @media print {
+              html, body { width: 202mm; min-height: auto; }
+              body { padding: 0; }
+              .label { width: 202mm; break-inside: avoid; }
+            }
           </style>
         </head>
         <body>
@@ -216,13 +225,29 @@ export default function AdminOrderDetailPage() {
               <thead><tr><th>Item</th><th>SKU</th><th class="center">Qty</th></tr></thead>
               <tbody>${itemRows}</tbody>
             </table>
+            <div class="qr-panel">
+              <div class="qr-copy"><div class="title">Scan QR Code</div><strong>PP’s Aura</strong><br><span class="muted">Scan for more information.</span></div>
+              <img id="order-qr-code" class="qr-code" src="${escapeHtml(qrCodeUrl)}" alt="PP’s Aura QR code" />
+            </div>
             ${order.notes ? `<div class="footer"><strong>Dispatch note:</strong> ${escapeHtml(order.notes)}</div>` : ''}
           </main>
         </body>
       </html>`);
     labelWindow.document.close();
-    labelWindow.focus();
-    labelWindow.print();
+    const qrImage = labelWindow.document.getElementById('order-qr-code') as HTMLImageElement | null;
+    let printStarted = false;
+    const startPrint = () => {
+      if (printStarted) return;
+      printStarted = true;
+      labelWindow.focus();
+      labelWindow.print();
+    };
+    if (!qrImage || qrImage.complete) startPrint();
+    else {
+      qrImage.onload = startPrint;
+      qrImage.onerror = startPrint;
+      labelWindow.setTimeout(startPrint, 2000);
+    }
   };
 
   if (loading) return <LoadingSpinner label="Loading order…" />;
@@ -438,7 +463,7 @@ export default function AdminOrderDetailPage() {
                 <span className="text-primary">{formatPrice(order.totalAmount)}</span>
               </div>
               <p className="text-xs text-muted-foreground pt-1 capitalize">
-                Payment: {order.paymentInfo.method} ·{' '}
+                Payment: {formatPaymentMethod(order.paymentInfo.method)} ·{' '}
                 <span
                   style={{
                     color:

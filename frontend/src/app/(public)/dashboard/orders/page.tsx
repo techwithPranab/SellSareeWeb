@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchUserOrders } from '@/features/orders/ordersSlice';
-import { formatPrice, formatDate } from '@/utils/helpers';
+import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
@@ -50,7 +50,7 @@ export default function OrdersPage() {
                       Placed on {formatDate(order.createdAt)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {order.items.length} item(s) · {order.paymentInfo.method.toUpperCase()}
+                      {order.items.length} item(s) · {formatPaymentMethod(order.paymentInfo.method)}
                     </p>
                   </div>
                   <div className="text-right">

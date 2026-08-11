@@ -6,7 +6,7 @@ import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminPagination from '@/components/admin/AdminPagination';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { formatPrice, formatDate, asRoute } from '@/utils/helpers';
+import { formatPrice, formatDate, formatPaymentMethod, asRoute } from '@/utils/helpers';
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import type { Order, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
@@ -120,7 +120,7 @@ export default function AdminOrdersPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 capitalize text-muted-foreground">{order.paymentInfo.method}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatPaymentMethod(order.paymentInfo.method)}</td>
                     </tr>
                   );
                 })}

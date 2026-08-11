@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -8,17 +8,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, LayoutDashboard, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { loginSchema, type LoginFormData } from '@/validations/auth.schema';
-import { loginUser, logoutUser } from '@/features/auth/authSlice';
+import { loginUser, logoutUser, resetAuthRequestState } from '@/features/auth/authSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { APP_NAME } from '@/constants';
 
 export default function AdminLoginPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const isLoading = useAppSelector((state) => state.auth.isLoading);
   const authError = useAppSelector((state) => state.auth.error);
   const [showPassword, setShowPassword] = useState(false);
   const [accessError, setAccessError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    dispatch(resetAuthRequestState());
+  }, [dispatch]);
 
   const {
     register,
@@ -28,19 +32,24 @@ export default function AdminLoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setAccessError(null);
-    const result = await dispatch(loginUser(data));
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(loginUser(data));
 
-    if (!loginUser.fulfilled.match(result)) return;
+      if (!loginUser.fulfilled.match(result)) return;
 
-    const role = result.payload.user.role;
-    if (role !== 'admin' && role !== 'super_admin') {
-      await dispatch(logoutUser());
-      setAccessError('This account does not have permission to access the admin panel.');
-      return;
+      const role = result.payload.user.role;
+      if (role !== 'admin' && role !== 'super_admin') {
+        await dispatch(logoutUser());
+        setAccessError('This account does not have permission to access the admin panel.');
+        return;
+      }
+
+      toast.success(`Welcome to the ${APP_NAME} admin panel`);
+      router.replace('/admin');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast.success(`Welcome to the ${APP_NAME} admin panel`);
-    router.replace('/admin');
   };
 
   return (
@@ -124,8 +133,8 @@ export default function AdminLoginPage() {
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
             </div>
 
-            <button type="submit" disabled={isLoading} className="btn-primary w-full gap-2">
-              {isLoading ? (
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full gap-2">
+              {isSubmitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Verifying access…</>
               ) : (
                 <><ShieldCheck className="h-4 w-4" /> Sign in to admin panel</>

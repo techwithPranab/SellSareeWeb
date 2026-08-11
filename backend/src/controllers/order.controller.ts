@@ -36,8 +36,11 @@ export const trackOrderGuest = asyncHandler(async (req: Request, res: Response) 
 // ========================= CUSTOMER =========================
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
+  if (req.body.paymentMethod !== PaymentMethod.RAZORPAY) {
+    return ApiResponse.badRequest(res, 'Customer orders require online payment');
+  }
   const order = await orderService.createOrder(req.user!.id, req.body);
-  ApiResponse.created(res, 'Order placed successfully', { order });
+  return ApiResponse.created(res, 'Order placed successfully', { order });
 });
 
 export const getUserOrders = asyncHandler(async (req: Request, res: Response) => {

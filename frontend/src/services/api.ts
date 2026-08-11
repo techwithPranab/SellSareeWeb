@@ -46,8 +46,20 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    if (!originalRequest) return Promise.reject(error);
+    const requestUrl = originalRequest?.url || '';
+    const isAuthenticationRequest = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/logout',
+      '/auth/refresh-token',
+      '/auth/forgot-password',
+      '/auth/reset-password',
+    ].some((path) => requestUrl.includes(path));
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Authentication failures must reach their calling form directly. Attempting
+    // token refresh for a failed login causes the refresh request to queue itself.
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthenticationRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -79,9 +91,11 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError as Error, null);
         clearTokens();
-        // Redirect to login
         if (typeof window !== 'undefined') {
-          window.location.href = '/login?session=expired';
+          const isAdminPage = window.location.pathname.startsWith('/admin');
+          window.location.href = isAdminPage
+            ? '/admin-login?session=expired'
+            : '/login?session=expired';
         }
         return Promise.reject(refreshError);
       } finally {

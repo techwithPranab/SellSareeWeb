@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchOrderById } from '@/features/orders/ordersSlice';
-import { formatPrice, formatDate } from '@/utils/helpers';
+import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 export default function CheckoutSuccessPage() {
@@ -65,7 +65,7 @@ export default function CheckoutSuccessPage() {
             </div>
             <div>
               <p className="text-muted-foreground">Payment</p>
-              <p className="font-medium capitalize">{order.paymentInfo.method}</p>
+              <p className="font-medium">{formatPaymentMethod(order.paymentInfo.method)}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Status</p>

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, AuthState } from '@/types';
 import { authService } from '@/services/auth.service';
+import { REHYDRATE } from 'redux-persist';
 
 const initialState: AuthState = {
   user: null,
@@ -108,8 +109,17 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    resetAuthRequestState: (state) => {
+      state.isLoading = false;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
+    // Loading is transient UI state and must never remain true after a reload.
+    builder.addCase(REHYDRATE, (state) => {
+      state.isLoading = false;
+    });
+
     // Register
     builder
       .addCase(registerUser.pending, (state) => {
@@ -184,5 +194,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, updateUser, setAccessToken, clearAuth, clearError } = authSlice.actions;
+export const { setCredentials, updateUser, setAccessToken, clearAuth, clearError, resetAuthRequestState } = authSlice.actions;
 export default authSlice.reducer;
