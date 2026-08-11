@@ -81,12 +81,10 @@ export class OrderService {
     const storeSettings = await StoreSetting.findOne({ key: 'store' }).lean();
     const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? SHIPPING.FREE_SHIPPING_THRESHOLD;
     const standardShippingRate = storeSettings?.standardShippingRate ?? SHIPPING.STANDARD_RATE;
-    const codChargeRate = storeSettings?.codCharges ?? SHIPPING.COD_CHARGES;
     const loyaltyPointsRate = storeSettings?.loyaltyPointsRate ?? LOYALTY.POINTS_PER_RUPEE;
 
     // Calculate shipping
     const shippingCharge = subtotal >= freeShippingThreshold ? 0 : standardShippingRate;
-    const codCharges = paymentMethod === PaymentMethod.COD ? codChargeRate : 0;
 
     // Apply coupon
     let couponDiscount = 0;
@@ -156,7 +154,7 @@ export class OrderService {
 
     const taxAmount = 0; // GST can be added here
     const totalDiscount = couponDiscount + loyaltyDiscount;
-    const totalAmount = Math.max(0, subtotal + shippingCharge + codCharges + taxAmount - totalDiscount);
+    const totalAmount = Math.max(0, subtotal + shippingCharge + taxAmount - totalDiscount);
 
     // Loyalty points earned (1 point per rupee)
     const loyaltyPointsEarned = Math.floor(totalAmount * loyaltyPointsRate);
@@ -168,16 +166,15 @@ export class OrderService {
       shippingAddress,
       paymentInfo: {
         method: paymentMethod,
-        status: paymentMethod === PaymentMethod.COD ? PaymentStatus.PENDING : PaymentStatus.PENDING,
+        status: PaymentStatus.PENDING,
       },
       status: OrderStatus.PENDING,
       subtotal,
-      shippingCharge: paymentMethod === PaymentMethod.COD ? shippingCharge : shippingCharge - (couponCode && couponDiscount === shippingCharge ? shippingCharge : 0),
+      shippingCharge: shippingCharge - (couponCode && couponDiscount === shippingCharge ? shippingCharge : 0),
       taxAmount,
       discount: totalDiscount,
       couponCode: couponCodeUsed,
       couponDiscount,
-      codCharges,
       totalAmount,
       loyaltyPointsEarned,
       loyaltyPointsRedeemed: loyaltyPointsToRedeem || 0,

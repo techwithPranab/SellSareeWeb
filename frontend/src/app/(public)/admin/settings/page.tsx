@@ -16,7 +16,6 @@ const EMPTY_SETTINGS: StoreSettings = {
   storeAddress: '',
   freeShippingThreshold: 999,
   standardShippingRate: 99,
-  codCharges: 49,
   loyaltyPointsRate: 1,
   socialLinks: {},
 };
@@ -108,7 +107,6 @@ export default function AdminSettingsPage() {
             <SettingRow label="Store Address" value={settings.storeAddress || '—'} />
             <SettingRow label="Free Shipping Threshold" value={`₹${settings.freeShippingThreshold}`} />
             <SettingRow label="Standard Shipping" value={`₹${settings.standardShippingRate}`} />
-            <SettingRow label="COD Charges" value={`₹${settings.codCharges}`} />
             <SettingRow label="Loyalty Points Rate" value={`${settings.loyaltyPointsRate} pt / ₹1`} />
           </dl>
         </div>
@@ -152,7 +150,6 @@ export default function AdminSettingsPage() {
             <Field label="Store Address" wide><textarea className="input-field mt-1.5 min-h-20" value={draft.storeAddress} onChange={(e) => setDraft({ ...draft, storeAddress: e.target.value })} /></Field>
             <NumberField label="Free Shipping Threshold (₹)" value={draft.freeShippingThreshold} onChange={(value) => setDraft({ ...draft, freeShippingThreshold: value })} />
             <NumberField label="Standard Shipping Rate (₹)" value={draft.standardShippingRate} onChange={(value) => setDraft({ ...draft, standardShippingRate: value })} />
-            <NumberField label="COD Charges (₹)" value={draft.codCharges} onChange={(value) => setDraft({ ...draft, codCharges: value })} />
             <NumberField label="Loyalty Points per ₹1" value={draft.loyaltyPointsRate} onChange={(value) => setDraft({ ...draft, loyaltyPointsRate: value })} />
           </div>
 

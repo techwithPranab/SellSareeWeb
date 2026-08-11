@@ -27,12 +27,6 @@ export default function ShippingPolicyPage() {
         <li><strong>Remote Areas:</strong> May take up to 10 business days</li>
       </ul>
 
-      <h2>Cash on Delivery (COD)</h2>
-      <p>
-        COD is available for orders up to ₹25,000. An additional charge of ₹{SHIPPING.COD_CHARGES}
-        applies to all COD orders. Payment is collected at the time of delivery.
-      </p>
-
       <h2>Order Tracking</h2>
       <p>
         Once your order ships, you&apos;ll receive an SMS and email with tracking details.

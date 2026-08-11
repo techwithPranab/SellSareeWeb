@@ -59,7 +59,6 @@ export enum PaymentStatus {
 // Payment Methods
 export enum PaymentMethod {
   RAZORPAY = 'razorpay',
-  COD = 'cod',
   UPI = 'upi',
   WALLET = 'wallet',
 }
@@ -132,7 +131,6 @@ export const SHIPPING = {
   FREE_SHIPPING_THRESHOLD: 999,
   STANDARD_RATE: 99,
   EXPRESS_RATE: 199,
-  COD_CHARGES: 49,
   DELIVERY_DAYS_STANDARD: 5,
   DELIVERY_DAYS_EXPRESS: 2,
 };

@@ -15,7 +15,7 @@ export const getRazorpayInstance = (): Razorpay => {
       isPlaceholder(process.env.RAZORPAY_KEY_SECRET)
     ) {
       throw new CustomError(
-        'Online payment is not configured. Please use Cash on Delivery.',
+        'Online payment is not configured. Please contact support.',
         HTTP_STATUS.SERVICE_UNAVAILABLE
       );
     }
@@ -62,7 +62,7 @@ export const createRazorpayOrder = async (
   } catch (error) {
     if (error instanceof CustomError) throw error;
     throw new CustomError(
-      'Online payment service is currently unavailable. Please use Cash on Delivery or try again later.',
+      'Online payment service is currently unavailable. Please try again later or contact support.',
       HTTP_STATUS.SERVICE_UNAVAILABLE
     );
   }

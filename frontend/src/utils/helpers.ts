@@ -72,11 +72,10 @@ export const calculateCartSummary = (
 ): CartSummary => {
   const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
   const shippingCharge = subtotal >= SHIPPING.FREE_THRESHOLD ? 0 : SHIPPING.STANDARD_RATE;
-  const codCharges = paymentMethod === 'cod' ? SHIPPING.COD_CHARGES : 0;
   const loyaltyDiscount = loyaltyPointsToRedeem * LOYALTY.RUPEES_PER_POINT;
   const taxAmount = 0;
   const discount = couponDiscount + loyaltyDiscount;
-  const total = Math.max(0, subtotal + shippingCharge + codCharges + taxAmount - discount);
+  const total = Math.max(0, subtotal + shippingCharge + taxAmount - discount);
   const loyaltyPointsEarned = Math.floor(total * LOYALTY.POINTS_PER_RUPEE);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -87,7 +86,6 @@ export const calculateCartSummary = (
     discount,
     couponDiscount,
     loyaltyDiscount,
-    codCharges,
     total,
     itemCount,
     loyaltyPointsEarned,

@@ -94,7 +94,6 @@ const OrderSchema = new Schema<IOrder>(
     couponCode: { type: String, uppercase: true },
     couponDiscount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
-    codCharges: { type: Number, default: 0 },
     notes: { type: String },
     cancelReason: { type: String },
     returnReason: { type: String },

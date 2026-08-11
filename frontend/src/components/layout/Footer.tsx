@@ -1,12 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { APP_NAME, SOCIAL_LINKS, NAV_LINKS, SAREE_CATEGORIES } from '@/constants';
-import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
-
-const HIDDEN_FOOTER_CATEGORIES = new Set(['banarasi', 'kanjivaram', 'bridal']);
-const FOOTER_CATEGORIES = SAREE_CATEGORIES
-  .filter((category) => !HIDDEN_FOOTER_CATEGORIES.has(category.slug))
-  .slice(0, 6);
+import { APP_NAME, SOCIAL_LINKS, NAV_LINKS } from '@/constants';
+import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -88,51 +83,20 @@ export default function Footer() {
                 Our Story
               </Link>
             </li>
-            <li>
-              <Link href="/blog" className="text-sm text-[#b09070] hover:text-primary transition-colors">
-                Saree Guide Blog
-              </Link>
-            </li>
-            <li>
-              <Link href="/careers" className="text-sm text-[#b09070] hover:text-primary transition-colors">
-                Careers
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Categories */}
-        <div>
-          <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-4">
-            Popular Categories
-          </h3>
-          <ul className="space-y-2.5">
-            {FOOTER_CATEGORIES.map((cat) => (
-              <li key={cat.slug}>
-                <Link
-                  href={`/products?category=${cat.slug}`}
-                  className="text-sm text-[#b09070] hover:text-primary transition-colors flex items-center gap-1.5"
-                >
-                  <span>{cat.icon}</span>
-                  {cat.name}
-                </Link>
-              </li>
-            ))}
           </ul>
         </div>
 
         {/* Help & Contact */}
-        <div>
+        <div className="sm:col-span-2 lg:col-span-2">
           <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-4">
             Customer Care
           </h3>
-          <ul className="space-y-2.5 mb-6">
+          <ul className="mb-6 grid grid-cols-2 gap-x-8 gap-y-2.5">
             {[
               { label: 'Track Your Order', href: '/track-order' },
               { label: 'Shipping Policy', href: '/shipping-policy' },
               { label: 'Privacy Policy', href: '/privacy-policy' },
               { label: 'Terms & Conditions', href: '/terms' },
-              { label: 'Size Guide', href: '/size-guide' },
               { label: 'Care Instructions', href: '/care-guide' },
             ].map((item) => (
               <li key={item.href}>

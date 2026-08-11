@@ -24,7 +24,7 @@ const addressSchema = z.object({
 
 export const checkoutSchema = z.object({
   shippingAddress: addressSchema,
-  paymentMethod: z.enum(['razorpay', 'cod', 'upi', 'wallet'], {
+  paymentMethod: z.enum(['razorpay', 'upi', 'wallet'], {
     errorMap: () => ({ message: 'Please select a payment method' }),
   }),
   couponCode: z.string().optional(),

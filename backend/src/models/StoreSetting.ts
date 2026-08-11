@@ -7,7 +7,6 @@ export interface IStoreSetting {
   storeAddress: string;
   freeShippingThreshold: number;
   standardShippingRate: number;
-  codCharges: number;
   loyaltyPointsRate: number;
   socialLinks: Record<string, string>;
 }
@@ -20,7 +19,6 @@ const StoreSettingSchema = new Schema<IStoreSetting>(
     storeAddress: { type: String, trim: true, maxlength: 300 },
     freeShippingThreshold: { type: Number, required: true, min: 0 },
     standardShippingRate: { type: Number, required: true, min: 0 },
-    codCharges: { type: Number, required: true, min: 0 },
     loyaltyPointsRate: { type: Number, required: true, min: 0 },
     socialLinks: { type: Map, of: String, default: {} },
   },

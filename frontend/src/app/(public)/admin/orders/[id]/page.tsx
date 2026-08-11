@@ -114,9 +114,8 @@ export default function AdminOrderDetailPage() {
       toast.error(`Refund amount cannot exceed order total of ${formatPrice(order.totalAmount)}`);
       return;
     }
-    // Only online payments can be refunded via Razorpay
-    if (order.paymentInfo.method === 'cod') {
-      toast.error('COD orders require manual refund processing');
+    if (order.paymentInfo.method !== 'razorpay') {
+      toast.error('Only Razorpay payments can be refunded through the payment gateway');
       return;
     }
     setInitiatingRefund(true);
@@ -154,7 +153,6 @@ export default function AdminOrderDetailPage() {
         <td class="center">${item.quantity}</td>
       </tr>
     `).join('');
-    const isCod = order.paymentInfo.method === 'cod';
 
     labelWindow.document.write(`<!doctype html>
       <html>
@@ -206,7 +204,7 @@ export default function AdminOrderDetailPage() {
               <div class="phone">Phone: ${escapeHtml(address.phone)}</div>
             </section>
             <div class="payment">
-              ${isCod ? `CASH ON DELIVERY · Collect ${escapeHtml(formatPrice(order.totalAmount))}` : `PREPAID · ${escapeHtml(order.paymentInfo.status.toUpperCase())}`}
+              PAYMENT · ${escapeHtml(order.paymentInfo.status.toUpperCase())}
             </div>
             ${(order.trackingInfo?.courier || order.trackingInfo?.trackingNumber) ? `
               <div class="row">
@@ -234,7 +232,7 @@ export default function AdminOrderDetailPage() {
   const customer = typeof order.user === 'object' ? order.user : null;
   const isReturnContext = RETURN_STATUSES.includes(order.status);
   const canRefund =
-    REFUNDABLE_STATUSES.includes(order.status) && order.paymentInfo.method !== 'cod';
+    REFUNDABLE_STATUSES.includes(order.status) && order.paymentInfo.method === 'razorpay';
 
   return (
     <div className="space-y-6">
@@ -429,12 +427,6 @@ export default function AdminOrderDetailPage() {
                 <span className="text-muted-foreground">Shipping</span>
                 <span>{formatPrice(order.shippingCharge)}</span>
               </div>
-              {order.codCharges > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">COD Charges</span>
-                  <span>{formatPrice(order.codCharges)}</span>
-                </div>
-              )}
               {order.couponDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount ({order.couponCode})</span>
@@ -481,11 +473,10 @@ export default function AdminOrderDetailPage() {
               )}
             </div>
 
-            {/* Quick refund trigger if COD return */}
-            {isReturnContext && order.paymentInfo.method === 'cod' && (
+            {isReturnContext && order.paymentInfo.method !== 'razorpay' && (
               <div className="mt-4 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>This is a COD order. Refund must be processed manually (bank transfer / store credit).</span>
+                <span>This manually collected payment must be refunded outside the payment gateway.</span>
               </div>
             )}
           </div>

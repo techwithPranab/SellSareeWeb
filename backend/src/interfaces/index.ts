@@ -195,7 +195,6 @@ export interface IOrder extends Document {
   couponCode?: string;
   couponDiscount: number;
   totalAmount: number;
-  codCharges: number;
   notes?: string;
   cancelReason?: string;
   returnReason?: string;

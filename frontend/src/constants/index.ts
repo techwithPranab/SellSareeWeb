@@ -18,7 +18,6 @@ export const SHIPPING = {
   FREE_THRESHOLD: 999,
   STANDARD_RATE: 99,
   EXPRESS_RATE: 199,
-  COD_CHARGES: 49,
   STANDARD_DAYS: 5,
   EXPRESS_DAYS: 2,
 };
@@ -134,12 +133,6 @@ export const PAYMENT_METHODS = [
     label: 'Online Payment',
     description: 'Credit/Debit Card, UPI, Net Banking, Wallets',
     icon: '💳',
-  },
-  {
-    id: 'cod',
-    label: 'Cash on Delivery',
-    description: `Additional charge of ₹${SHIPPING.COD_CHARGES}`,
-    icon: '💵',
   },
 ];
 

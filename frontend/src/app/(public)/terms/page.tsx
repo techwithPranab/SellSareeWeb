@@ -30,7 +30,7 @@ export default function TermsPage() {
       <p>
         Placing an order constitutes an offer to purchase. We reserve the right to cancel orders
         due to pricing errors, stock unavailability, or suspected fraud. Payment must be completed
-        at the time of order (except for COD orders).
+        at the time of order.
       </p>
 
       <h2>Intellectual Property</h2>

@@ -43,7 +43,6 @@ export interface StoreSettings {
   storeAddress: string;
   freeShippingThreshold: number;
   standardShippingRate: number;
-  codCharges: number;
   loyaltyPointsRate: number;
   socialLinks: Record<string, string>;
 }
@@ -145,7 +144,7 @@ export const adminService = {
       pincode: string;
       country: string;
     };
-    paymentMethod: 'cod' | 'upi';
+    paymentMethod: 'upi';
     notes?: string;
     transactionId?: string;
     paymentScreenshot?: File;

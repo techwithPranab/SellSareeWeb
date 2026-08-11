@@ -19,7 +19,7 @@ export type OrderStatus =
 
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'partially_refunded';
 
-export type PaymentMethod = 'razorpay' | 'cod' | 'upi' | 'wallet';
+export type PaymentMethod = 'razorpay' | 'upi' | 'wallet';
 
 // =============================================
 // USER
@@ -221,7 +221,6 @@ export interface CartSummary {
   discount: number;
   couponDiscount: number;
   loyaltyDiscount: number;
-  codCharges: number;
   total: number;
   itemCount: number;
   loyaltyPointsEarned: number;
@@ -290,7 +289,6 @@ export interface Order {
   couponCode?: string;
   couponDiscount: number;
   totalAmount: number;
-  codCharges: number;
   notes?: string;
   cancelReason?: string;
   returnReason?: string;

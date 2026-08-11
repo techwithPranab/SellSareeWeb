@@ -36,7 +36,6 @@ export default function CheckoutPage() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -54,8 +53,6 @@ export default function CheckoutPage() {
       paymentMethod: 'razorpay',
     },
   });
-
-  const paymentMethod = watch('paymentMethod');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -86,8 +83,8 @@ export default function CheckoutPage() {
       const razorpayConfigured =
         Boolean(RAZORPAY_KEY_ID) && !/your_|change[_-]?me|x{6,}/i.test(RAZORPAY_KEY_ID);
 
-      if (data.paymentMethod !== 'cod' && !razorpayConfigured) {
-        toast.error('Online payment is not configured yet. Please select Cash on Delivery.');
+      if (!razorpayConfigured) {
+        toast.error('Online payment is not configured yet. Please contact support.');
         return;
       }
 
@@ -111,15 +108,9 @@ export default function CheckoutPage() {
 
       const order = result.payload.order;
 
-      if (data.paymentMethod === 'cod') {
-        emptyCart();
-        router.push(`/checkout/success?orderId=${order._id}`);
-        return;
-      }
-
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded || !RAZORPAY_KEY_ID) {
-        toast.error('Payment gateway unavailable. Please try COD or contact support.');
+        toast.error('Payment gateway unavailable. Please try again or contact support.');
         return;
       }
 
@@ -309,12 +300,6 @@ export default function CheckoutPage() {
                 <span className="text-muted-foreground">Shipping</span>
                 <span>{summary.shippingCharge === 0 ? 'FREE' : formatPrice(summary.shippingCharge)}</span>
               </div>
-              {paymentMethod === 'cod' && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">COD Charges</span>
-                  <span>{formatPrice(summary.codCharges)}</span>
-                </div>
-              )}
               {summary.couponDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
@@ -324,11 +309,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between font-bold text-base border-t border-border pt-2">
                 <span>Total</span>
                 <span className="text-primary">
-                  {formatPrice(
-                    paymentMethod === 'cod'
-                      ? summary.total + summary.codCharges
-                      : summary.total
-                  )}
+                  {formatPrice(summary.total)}
                 </span>
               </div>
             </div>

@@ -169,14 +169,11 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
     return ApiResponse.badRequest(res, 'A complete delivery address with valid pincode is required');
   }
 
-  if (![PaymentMethod.COD, PaymentMethod.UPI].includes(paymentMethod)) {
-    return ApiResponse.badRequest(res, 'Payment method must be Cash on Delivery or UPI');
+  if (paymentMethod !== PaymentMethod.UPI) {
+    return ApiResponse.badRequest(res, 'Admin-created orders must use manually collected UPI payment');
   }
   if (transactionId.length > 150) {
     return ApiResponse.badRequest(res, 'Transaction ID cannot exceed 150 characters');
-  }
-  if (paymentMethod === PaymentMethod.COD && (transactionId || req.file)) {
-    return ApiResponse.badRequest(res, 'Payment proof can only be added to manually collected UPI payments');
   }
 
   let orderCustomer = customerId ? await User.findById(customerId) : null;
@@ -231,7 +228,7 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
     throw error;
   }
 
-  if (paymentMethod === PaymentMethod.UPI && (transactionId || uploadedProof)) {
+  if (transactionId || uploadedProof) {
     order = await Order.findByIdAndUpdate(order._id, {
       $set: {
         'paymentInfo.status': PaymentStatus.COMPLETED,

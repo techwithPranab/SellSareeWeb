@@ -38,7 +38,7 @@ export default function CreateWhatsAppOrderPage() {
   const [items, setItems] = useState<OrderItemDraft[]>([]);
   const [productId, setProductId] = useState('');
   const [address, setAddress] = useState(EMPTY_ADDRESS);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi'>('cod');
+  const paymentMethod = 'upi' as const;
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [notes, setNotes] = useState('Order received through WhatsApp');
@@ -74,8 +74,7 @@ export default function CreateWhatsAppOrderPage() {
     return total + price * item.quantity;
   }, 0);
   const shippingCharge = subtotal >= SHIPPING.FREE_THRESHOLD ? 0 : SHIPPING.STANDARD_RATE;
-  const codCharge = paymentMethod === 'cod' ? SHIPPING.COD_CHARGES : 0;
-  const estimatedTotal = subtotal + shippingCharge + codCharge;
+  const estimatedTotal = subtotal + shippingCharge;
 
   const selectCustomer = (id: string) => {
     setCustomerId(id);
@@ -139,10 +138,8 @@ export default function CreateWhatsAppOrderPage() {
         shippingAddress: address,
         paymentMethod,
         notes,
-        ...(paymentMethod === 'upi' && {
-          transactionId: transactionId.trim() || undefined,
-          paymentScreenshot: paymentScreenshot || undefined,
-        }),
+        transactionId: transactionId.trim() || undefined,
+        paymentScreenshot: paymentScreenshot || undefined,
       });
       toast.success(`Order #${order.orderNumber} created`);
       router.push(asRoute(`/admin/orders/${order._id}`));
@@ -253,13 +250,11 @@ export default function CreateWhatsAppOrderPage() {
           <div className="mt-4 space-y-2 border-b border-border pb-4 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCharge ? formatPrice(shippingCharge) : 'FREE'}</span></div>
-            {codCharge > 0 && <div className="flex justify-between"><span className="text-muted-foreground">COD charge</span><span>{formatPrice(codCharge)}</span></div>}
           </div>
           <div className="flex justify-between py-4 font-bold"><span>Estimated total</span><span className="text-primary">{formatPrice(estimatedTotal)}</span></div>
           <div className="space-y-4 border-t border-border pt-4">
-            <div><label className="label">Payment method</label><select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as 'cod' | 'upi')} className="input-field"><option value="cod">Cash on Delivery</option><option value="upi">UPI / manually collected</option></select></div>
-            {paymentMethod === 'upi' && (
-              <div className="space-y-4 rounded-xl border border-border bg-surface/50 p-4">
+            <div><label className="label">Payment method</label><div className="input-field bg-surface text-sm">UPI / manually collected</div></div>
+            <div className="space-y-4 rounded-xl border border-border bg-surface/50 p-4">
                 <div>
                   <label className="label">Transaction ID / UTR</label>
                   <input value={transactionId} onChange={(event) => setTransactionId(event.target.value)} maxLength={150} className="input-field bg-white" placeholder="Enter payment reference" />
@@ -278,8 +273,7 @@ export default function CreateWhatsAppOrderPage() {
                   </label>
                   <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or GIF up to 5 MB.</p>
                 </div>
-              </div>
-            )}
+            </div>
             <div><label className="label">Internal notes</label><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} className="input-field resize-none" /></div>
             <button type="submit" disabled={saving} className="btn-primary w-full gap-2">{saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : <><UserPlus className="h-4 w-4" /> Create customer order</>}</button>
           </div>

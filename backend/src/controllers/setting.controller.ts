@@ -10,7 +10,6 @@ const defaults = {
   storeAddress: '12 Silk Street, Kolkata — 700001, West Bengal',
   freeShippingThreshold: 999,
   standardShippingRate: 99,
-  codCharges: 49,
   loyaltyPointsRate: 1,
   socialLinks: {
     instagram: 'https://instagram.com/ppaura',
@@ -33,7 +32,7 @@ export const getStoreSettings = asyncHandler(async (_req: Request, res: Response
 
 export const updateStoreSettings = asyncHandler(async (req: Request, res: Response) => {
   const stringFields = ['storeName', 'supportEmail', 'storeAddress'] as const;
-  const numberFields = ['freeShippingThreshold', 'standardShippingRate', 'codCharges', 'loyaltyPointsRate'] as const;
+  const numberFields = ['freeShippingThreshold', 'standardShippingRate', 'loyaltyPointsRate'] as const;
   const update: Record<string, unknown> = {};
 
   stringFields.forEach((field) => { update[field] = String(req.body[field] ?? '').trim(); });
