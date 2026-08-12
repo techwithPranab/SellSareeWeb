@@ -14,6 +14,7 @@ import {
   selectCartItemCount,
   selectCartSummary,
   selectCoupon,
+  selectLoyaltyPointsToRedeem,
 } from '@/features/cart/cartSlice';
 import { Product } from '@/types';
 import toast from 'react-hot-toast';
@@ -25,6 +26,7 @@ export const useCart = () => {
   const itemCount = useAppSelector(selectCartItemCount);
   const summary = useAppSelector(selectCartSummary);
   const coupon = useAppSelector(selectCoupon);
+  const loyaltyPointsToRedeem = useAppSelector(selectLoyaltyPointsToRedeem);
 
   const addItem = useCallback(
     (product: Product, quantity = 1, color?: string) => {
@@ -103,6 +105,7 @@ export const useCart = () => {
     itemCount,
     summary,
     coupon,
+    loyaltyPointsToRedeem,
     addItem,
     removeItem,
     updateItemQuantity,

@@ -88,7 +88,8 @@ export class AuthService {
     }
 
     if (!user.password) {
-      throw new CustomError('Please login with Google or reset your password', HTTP_STATUS.BAD_REQUEST);
+      // Do not reveal whether an account exists or which sign-in method it uses.
+      throw new CustomError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
     }
 
     const isPasswordValid = await user.comparePassword(password);

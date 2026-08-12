@@ -45,8 +45,8 @@ export const orderService = {
     return response.data.data as { order: Order };
   },
 
-  async initiatePayment(orderId: string, amount: number) {
-    const response = await api.post('/orders/payment/initiate', { orderId, amount });
+  async initiatePayment(orderId: string) {
+    const response = await api.post('/orders/payment/initiate', { orderId });
     return response.data.data as {
       razorpayOrderId: string;
       amount: number;
@@ -62,6 +62,16 @@ export const orderService = {
   }) {
     const response = await api.post('/orders/payment/verify', data);
     return response.data.data as { success: boolean; order: Order };
+  },
+
+  async submitManualPaymentProof(orderId: string, transactionId: string, paymentScreenshot: File) {
+    const formData = new FormData();
+    formData.append('transactionId', transactionId);
+    formData.append('paymentScreenshot', paymentScreenshot);
+    const response = await api.post(`/orders/${orderId}/manual-payment-proof`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data as { order: Order };
   },
 
   // Admin

@@ -7,9 +7,12 @@ import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchProducts } from '@/features/products/productsSlice';
 import ProductCard from '@/components/product/ProductCard';
 import { ProductGridSkeleton } from '@/components/common/LoadingSpinner';
-import { SAREE_CATEGORIES, SORT_OPTIONS, PRICE_RANGES, FABRICS, OCCASIONS } from '@/constants';
+import { SORT_OPTIONS, PRICE_RANGES, FABRICS, OCCASIONS } from '@/constants';
 import { cn } from '@/utils/helpers';
 import { useDebounce } from '@/hooks/useDebounce';
+import { categoryService } from '@/services/category.service';
+import type { Category } from '@/types';
+
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -22,7 +25,20 @@ export default function ProductsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
   const debouncedSearch = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    categoryService.getCategories()
+      .then(({ categories: activeCategories }) => {
+        setCategories(activeCategories);
+        setCategoriesError(false);
+      })
+      .catch(() => setCategoriesError(true))
+      .finally(() => setCategoriesLoading(false));
+  }, []);
 
   // Sync URL params → dispatch on mount
   useEffect(() => {
@@ -79,7 +95,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground font-playfair">
             {activeCategory
-              ? SAREE_CATEGORIES.find((c) => c.slug === activeCategory)?.name ?? 'Sarees'
+              ? categories.find((category) => category._id === activeCategory || category.slug === activeCategory)?.name ?? 'Sarees'
               : 'All Sarees'}
           </h1>
           {!isLoading && (
@@ -169,18 +185,23 @@ export default function ProductsPage() {
               >
                 All Categories
               </button>
-              {SAREE_CATEGORIES.map((cat) => (
+              {categoriesLoading && (
+                <p className="px-3 py-2 text-xs text-muted-foreground">Loading categories…</p>
+              )}
+              {categoriesError && (
+                <p className="px-3 py-2 text-xs text-red-500">Categories could not be loaded.</p>
+              )}
+              {categories.map((cat) => (
                 <button
-                  key={cat.slug}
-                  onClick={() => updateParam('category', cat.slug)}
+                  key={cat._id}
+                  onClick={() => updateParam('category', cat._id)}
                   className={cn(
-                    'w-full text-left text-sm px-3 py-2 rounded-lg transition-colors flex items-center gap-2',
-                    activeCategory === cat.slug
+                    'w-full text-left text-sm px-3 py-2 rounded-lg transition-colors',
+                    activeCategory === cat._id || activeCategory === cat.slug
                       ? 'bg-primary/10 text-primary font-medium'
                       : 'hover:bg-muted/50 text-foreground'
                   )}
                 >
-                  <span>{cat.icon}</span>
                   {cat.name}
                 </button>
               ))}

@@ -1,25 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Minus, Plus, Trash2, ShoppingBag, Tag, ArrowRight } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Tag, ArrowRight, Coins } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 import { formatPrice, getProductDefaultImage, cn } from '@/utils/helpers';
-import { SHIPPING } from '@/constants';
+import { LOYALTY, SHIPPING } from '@/constants';
 
 export default function CartPage() {
   const {
     items,
     summary,
     coupon,
+    loyaltyPointsToRedeem,
     removeItem,
     updateItemQuantity,
     applyCouponCode,
     removeCouponCode,
+    redeemLoyaltyPoints,
   } = useCart();
+  const { isAuthenticated, user } = useAuth();
   const [couponInput, setCouponInput] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const availableLoyaltyPoints = user?.loyaltyPoints ?? 0;
+  const totalBeforeLoyalty = summary.subtotal + summary.shippingCharge - summary.couponDiscount;
+  const maxPointsForOrder = Math.max(
+    0,
+    Math.floor((Math.max(0, totalBeforeLoyalty - 1) / LOYALTY.RUPEES_PER_POINT) + 1e-9)
+  );
+  const maxRedeemablePoints = Math.min(availableLoyaltyPoints, maxPointsForOrder);
+
+  useEffect(() => {
+    if (loyaltyPointsToRedeem > maxRedeemablePoints) {
+      redeemLoyaltyPoints(maxRedeemablePoints);
+    }
+  }, [loyaltyPointsToRedeem, maxRedeemablePoints, redeemLoyaltyPoints]);
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return;
@@ -164,6 +181,64 @@ export default function CartPage() {
               )}
             </div>
 
+            {/* Loyalty points */}
+            <div className="border-t border-border pt-4">
+              <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-foreground">
+                <Coins className="h-4 w-4 text-amber-600" />
+                Redeem Loyalty Points
+              </label>
+              {!isAuthenticated ? (
+                <p className="rounded-lg bg-amber-50 p-3 text-xs text-muted-foreground">
+                  <Link href="/login?redirect=/cart" className="font-semibold text-primary hover:underline">
+                    Sign in
+                  </Link>{' '}
+                  to view and redeem your loyalty points.
+                </p>
+              ) : (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground">100 points = ₹1 discount</span>
+                    <span className="font-semibold text-amber-700">
+                      {availableLoyaltyPoints.toLocaleString('en-IN')} available
+                    </span>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={maxRedeemablePoints}
+                      step={1}
+                      value={loyaltyPointsToRedeem}
+                      onChange={(event) => {
+                        const points = Math.floor(Number(event.target.value) || 0);
+                        redeemLoyaltyPoints(Math.min(Math.max(points, 0), maxRedeemablePoints));
+                      }}
+                      disabled={maxRedeemablePoints === 0}
+                      className="input-field bg-white py-2 text-sm"
+                      aria-label="Loyalty points to redeem"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => redeemLoyaltyPoints(maxRedeemablePoints)}
+                      disabled={maxRedeemablePoints === 0}
+                      className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 text-sm font-semibold text-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Use max
+                    </button>
+                  </div>
+                  {loyaltyPointsToRedeem > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => redeemLoyaltyPoints(0)}
+                      className="mt-2 text-xs font-medium text-primary hover:underline"
+                    >
+                      Remove points
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3 text-sm border-t border-border pt-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
@@ -183,7 +258,7 @@ export default function CartPage() {
               )}
               {summary.loyaltyDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Loyalty Points</span>
+                  <span>Loyalty Points ({loyaltyPointsToRedeem})</span>
                   <span>−{formatPrice(summary.loyaltyDiscount)}</span>
                 </div>
               )}

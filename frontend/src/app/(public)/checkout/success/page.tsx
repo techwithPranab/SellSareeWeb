@@ -14,6 +14,8 @@ export default function CheckoutSuccessPage() {
   const orderId = searchParams.get('orderId');
   const dispatch = useAppDispatch();
   const { currentOrder: order, isLoading } = useAppSelector((s) => s.orders);
+  const isQrVerificationPending =
+    order?.paymentInfo.method === 'upi' && order.paymentInfo.status === 'processing';
 
   useEffect(() => {
     if (orderId) dispatch(fetchOrderById(orderId));
@@ -39,10 +41,12 @@ export default function CheckoutSuccessPage() {
       </div>
 
       <h1 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-3">
-        Order Placed Successfully!
+        {isQrVerificationPending ? 'Payment Proof Submitted!' : 'Order Placed Successfully!'}
       </h1>
       <p className="text-muted-foreground mb-8">
-        Thank you for shopping with PP’s Aura. We&apos;ll send you a confirmation email shortly.
+        {isQrVerificationPending
+          ? 'We’ll confirm your order after verifying the QR payment. You can track its status from your account.'
+          : 'Thank you for shopping with PP’s Aura. We’ll send you a confirmation email shortly.'}
       </p>
 
       {order && (

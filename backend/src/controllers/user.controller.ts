@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { userRepository } from '../repositories/user.repository';
 import { CustomError } from '../middlewares/error.middleware';
-import { HTTP_STATUS, UserRole } from '../constants';
+import { HTTP_STATUS, LOYALTY, UserRole } from '../constants';
 import Review from '../models/Review';
 
 // ========================= CUSTOMER =========================
@@ -78,7 +78,7 @@ export const getLoyaltyPoints = asyncHandler(async (req: Request, res: Response)
   if (!user) return ApiResponse.notFound(res, 'User not found');
   ApiResponse.success(res, 'Loyalty points retrieved', {
     points: user.loyaltyPoints,
-    worth: user.loyaltyPoints * 0.1,
+    worth: user.loyaltyPoints * LOYALTY.RUPEES_PER_POINT,
   });
 });
 

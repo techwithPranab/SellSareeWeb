@@ -115,5 +115,7 @@ export const selectCoupon = (state: { cart: CartState }) => ({
   code: state.cart.couponCode,
   discount: state.cart.couponDiscount,
 });
+export const selectLoyaltyPointsToRedeem = (state: { cart: CartState }) =>
+  state.cart.loyaltyPointsToRedeem;
 
 export default cartSlice.reducer;

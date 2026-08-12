@@ -36,11 +36,65 @@ export const trackOrderGuest = asyncHandler(async (req: Request, res: Response) 
 // ========================= CUSTOMER =========================
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  if (req.body.paymentMethod !== PaymentMethod.RAZORPAY) {
-    return ApiResponse.badRequest(res, 'Customer orders require online payment');
+  if (![PaymentMethod.RAZORPAY, PaymentMethod.UPI].includes(req.body.paymentMethod)) {
+    return ApiResponse.badRequest(res, 'Please select a supported online payment method');
   }
   const order = await orderService.createOrder(req.user!.id, req.body);
   return ApiResponse.created(res, 'Order placed successfully', { order });
+});
+
+export const submitManualPaymentProof = asyncHandler(async (req: Request, res: Response) => {
+  const transactionId = String(req.body.transactionId || '').trim();
+  if (!transactionId || transactionId.length > 150) {
+    return ApiResponse.badRequest(res, 'A valid transaction ID or UTR is required');
+  }
+  if (!req.file) return ApiResponse.badRequest(res, 'Payment screenshot is required');
+
+  const order = await Order.findOne({ _id: req.params.id, user: req.user!.id });
+  if (!order) return ApiResponse.notFound(res, 'Order not found');
+  if (order.paymentInfo.method !== PaymentMethod.UPI) {
+    return ApiResponse.badRequest(res, 'This order does not use QR payment');
+  }
+  if (order.paymentInfo.status === PaymentStatus.COMPLETED) {
+    return ApiResponse.badRequest(res, 'Payment has already been confirmed');
+  }
+
+  const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+  const uploaded = await cloudinary.uploader.upload(dataURI, {
+    folder: 'pp-aura/payment-proofs',
+    resource_type: 'image',
+    transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+  });
+
+  if (order.paymentInfo.paymentScreenshotPublicId) {
+    await cloudinary.uploader.destroy(order.paymentInfo.paymentScreenshotPublicId).catch(() => undefined);
+  }
+
+  order.paymentInfo.manualTransactionId = transactionId;
+  order.paymentInfo.paymentScreenshot = uploaded.secure_url;
+  order.paymentInfo.paymentScreenshotPublicId = uploaded.public_id;
+  order.paymentInfo.status = PaymentStatus.PROCESSING;
+  await order.save();
+
+  return ApiResponse.success(res, 'Payment proof submitted for verification', { order });
+});
+
+export const confirmManualPayment = asyncHandler(async (req: Request, res: Response) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return ApiResponse.notFound(res, 'Order not found');
+  if (order.paymentInfo.method !== PaymentMethod.UPI || !order.paymentInfo.paymentScreenshot || !order.paymentInfo.manualTransactionId) {
+    return ApiResponse.badRequest(res, 'Complete QR payment proof is required');
+  }
+  if (order.paymentInfo.status === PaymentStatus.COMPLETED) {
+    return ApiResponse.success(res, 'Payment is already confirmed', { order });
+  }
+
+  order.paymentInfo.status = PaymentStatus.COMPLETED;
+  order.paymentInfo.paidAt = new Date();
+  order.status = OrderStatus.CONFIRMED;
+  await order.save();
+  await order.populate('user', 'name email phone');
+  return ApiResponse.success(res, 'Manual payment confirmed', { order });
 });
 
 export const getUserOrders = asyncHandler(async (req: Request, res: Response) => {
@@ -74,26 +128,31 @@ export const requestReturn = asyncHandler(async (req: Request, res: Response) =>
 // ========================= PAYMENT =========================
 
 export const initiatePayment = asyncHandler(async (req: Request, res: Response) => {
-  const { orderId, amount } = req.body;
-  const paymentData = await paymentService.initiatePayment(orderId, amount, req.user!.id);
-  ApiResponse.success(res, 'Payment initiated', { ...paymentData });
+  const { orderId } = req.body;
+  if (!orderId) return ApiResponse.badRequest(res, 'Order ID is required');
+  const paymentData = await paymentService.initiatePayment(orderId, req.user!.id);
+  return ApiResponse.success(res, 'Payment initiated', { ...paymentData });
 });
 
 export const verifyPayment = asyncHandler(async (req: Request, res: Response) => {
   const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    return ApiResponse.badRequest(res, 'Complete Razorpay payment details are required');
+  }
   const result = await paymentService.verifyPayment(
     razorpayOrderId,
     razorpayPaymentId,
     razorpaySignature,
     req.user!.id
   );
-  ApiResponse.success(res, 'Payment verified successfully', result);
+  return ApiResponse.success(res, 'Payment verified successfully', result);
 });
 
 export const handleRazorpayWebhook = asyncHandler(async (req: Request, res: Response) => {
   const signature = req.headers['x-razorpay-signature'] as string;
-  await paymentService.handleWebhook(JSON.stringify(req.body), signature);
-  res.status(200).json({ received: true });
+  if (!Buffer.isBuffer(req.body)) return ApiResponse.badRequest(res, 'Invalid webhook payload');
+  await paymentService.handleWebhook(req.body, signature);
+  return res.status(200).json({ received: true });
 });
 
 // ========================= ADMIN =========================

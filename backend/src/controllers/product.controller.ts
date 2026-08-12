@@ -5,6 +5,8 @@ import { productService } from '../services/product.service';
 import { HTTP_STATUS } from '../constants';
 import { CustomError } from '../middlewares/error.middleware';
 import type { IProduct } from '../interfaces';
+import Category from '../models/Category';
+import { Types } from 'mongoose';
 
 const normalizeProductNumbers = (body: Record<string, unknown>): Partial<IProduct> => {
   const normalized = { ...body };
@@ -35,8 +37,17 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
     fabric, occasion, color, isNewArrival, isBestSeller, isFeatured, isBridal, tags,
   } = req.query;
 
+  let activeCategoryId: string | undefined;
+  if (category) {
+    const categoryValue = String(category);
+    const activeCategory = Types.ObjectId.isValid(categoryValue)
+      ? await Category.findOne({ _id: categoryValue, isActive: true }).select('_id')
+      : await Category.findOne({ slug: categoryValue, isActive: true }).select('_id');
+    activeCategoryId = activeCategory?._id.toString() ?? '000000000000000000000000';
+  }
+
   const filter = {
-    ...(category && { category: category as string }),
+    ...(activeCategoryId && { category: activeCategoryId }),
     ...(minPrice && { minPrice: Number(minPrice) }),
     ...(maxPrice && { maxPrice: Number(maxPrice) }),
     ...(fabric && { fabric: fabric as string }),

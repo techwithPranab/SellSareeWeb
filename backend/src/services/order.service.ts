@@ -142,14 +142,32 @@ export class OrderService {
 
     // Apply loyalty points
     let loyaltyDiscount = 0;
+    let loyaltyPointsRedeemed = 0;
+    if (loyaltyPointsToRedeem !== undefined) {
+      if (!Number.isSafeInteger(loyaltyPointsToRedeem) || loyaltyPointsToRedeem < 0) {
+        throw new CustomError('Loyalty points must be a valid whole number', HTTP_STATUS.BAD_REQUEST);
+      }
+    }
     if (loyaltyPointsToRedeem && loyaltyPointsToRedeem > 0) {
       const user = await userRepository.findById(userId);
       if (!user) throw new CustomError('User not found', HTTP_STATUS.NOT_FOUND);
 
-      const maxRedeemable = Math.min(user.loyaltyPoints, loyaltyPointsToRedeem);
-      loyaltyDiscount = maxRedeemable * LOYALTY.RUPEES_PER_POINT;
+      const totalBeforeLoyalty = subtotal + shippingCharge - couponDiscount;
+      const maxForOrder = Math.max(
+        0,
+        Math.floor((Math.max(0, totalBeforeLoyalty - 1) / LOYALTY.RUPEES_PER_POINT) + 1e-9)
+      );
+      const maxRedeemable = Math.min(user.loyaltyPoints, maxForOrder);
+      if (loyaltyPointsToRedeem > maxRedeemable) {
+        throw new CustomError(
+          `You can redeem up to ${maxRedeemable} loyalty points on this order`,
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+      loyaltyPointsRedeemed = loyaltyPointsToRedeem;
+      loyaltyDiscount = loyaltyPointsRedeemed * LOYALTY.RUPEES_PER_POINT;
 
-      await userRepository.updateLoyaltyPoints(userId, -maxRedeemable);
+      await userRepository.updateLoyaltyPoints(userId, -loyaltyPointsRedeemed);
     }
 
     const taxAmount = 0; // GST can be added here
@@ -177,7 +195,7 @@ export class OrderService {
       couponDiscount,
       totalAmount,
       loyaltyPointsEarned,
-      loyaltyPointsRedeemed: loyaltyPointsToRedeem || 0,
+      loyaltyPointsRedeemed,
       notes,
     });
 

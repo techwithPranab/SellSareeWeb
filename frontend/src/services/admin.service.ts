@@ -130,6 +130,11 @@ export const adminService = {
     return response.data.data as { success: boolean };
   },
 
+  async confirmManualPayment(orderId: string) {
+    const response = await api.put(`/orders/${orderId}/manual-payment/confirm`);
+    return response.data.data as { order: Order };
+  },
+
   async createOrderForCustomer(data: {
     customerId?: string;
     customer?: { name: string; email: string; phone: string };

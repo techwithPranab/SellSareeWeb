@@ -68,6 +68,7 @@ export default function AdminOrderDetailPage() {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [refundAmount, setRefundAmount] = useState<number>(0);
   const [initiatingRefund, setInitiatingRefund] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -131,6 +132,22 @@ export default function AdminOrderDetailPage() {
       toast.error(msg || 'Failed to initiate refund');
     } finally {
       setInitiatingRefund(false);
+    }
+  };
+
+  const handleConfirmManualPayment = async () => {
+    if (!order) return;
+    setConfirmingPayment(true);
+    try {
+      const { order: updated } = await adminService.confirmManualPayment(order._id);
+      setOrder(updated);
+      setNewStatus(updated.status);
+      toast.success('QR payment confirmed and order approved');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(message || 'Failed to confirm payment');
+    } finally {
+      setConfirmingPayment(false);
     }
   };
 
@@ -490,6 +507,17 @@ export default function AdminOrderDetailPage() {
                     <Image src={order.paymentInfo.paymentScreenshot} alt={`Payment proof for order ${order.orderNumber}`} width={420} height={260} className="h-auto w-full object-contain" />
                   </a>
                 </div>
+              )}
+              {order.paymentInfo.method === 'upi' && order.paymentInfo.status === 'processing' && (
+                <button
+                  type="button"
+                  onClick={handleConfirmManualPayment}
+                  disabled={confirmingPayment}
+                  className="btn-primary mt-2 inline-flex w-full items-center justify-center gap-2"
+                >
+                  {confirmingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Confirm QR Payment
+                </button>
               )}
               {order.loyaltyPointsEarned > 0 && (
                 <p className="text-xs text-muted-foreground">

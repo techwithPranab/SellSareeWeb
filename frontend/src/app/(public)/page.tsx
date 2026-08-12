@@ -202,8 +202,8 @@ export default function HomePage() {
               Something beautiful is being woven.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-              Our first PP’s Aura collection is coming soon. Register now to receive the launch date,
-              an early reminder, and your launch-day special discount.
+              Our first PP’s Aura collection launches on 1st September, 2026. Register now to receive
+              an early reminder and your launch-day special discount.
             </p>
             <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-[#3d2b1f]">
@@ -212,7 +212,7 @@ export default function HomePage() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Launch date</p>
                 <p className="font-playfair text-xl font-semibold text-white">
-                  {process.env.NEXT_PUBLIC_LAUNCH_DATE || 'Date to be announced'}
+                  1st September, 2026
                 </p>
               </div>
             </div>

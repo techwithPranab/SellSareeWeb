@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, MapPin, CreditCard, ChevronLeft } from 'lucide-react';
+import { FileImage, Loader2, MapPin, CreditCard, ChevronLeft } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch } from '@/hooks/useStore';
@@ -16,10 +17,14 @@ import { formatPrice } from '@/utils/helpers';
 import { orderService } from '@/services/order.service';
 import { RAZORPAY_KEY_ID } from '@/constants';
 import toast from 'react-hot-toast';
+import type { Order } from '@/types';
 
 declare global {
   interface Window {
-    Razorpay: new (options: Record<string, unknown>) => { open: () => void };
+    Razorpay: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: 'payment.failed', callback: (response: { error?: { description?: string } }) => void) => void;
+    };
   }
 }
 
@@ -27,14 +32,24 @@ export default function CheckoutPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAuth();
-  const { items, summary, coupon, emptyCart } = useCart();
+  const {
+    items,
+    summary,
+    coupon,
+    loyaltyPointsToRedeem,
+    emptyCart,
+  } = useCart();
   const [isPlacing, setIsPlacing] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
 
   const defaultAddress = user?.addresses?.find((a) => a.isDefault) ?? user?.addresses?.[0];
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -52,6 +67,7 @@ export default function CheckoutPage() {
       paymentMethod: 'razorpay',
     },
   });
+  const paymentMethod = watch('paymentMethod');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -77,35 +93,59 @@ export default function CheckoutPage() {
     });
 
   const onSubmit = async (data: CheckoutFormData) => {
+    if (data.paymentMethod === 'upi') {
+      if (!transactionId.trim()) {
+        toast.error('Enter the transaction ID or UTR after completing the QR payment.');
+        return;
+      }
+      if (!paymentScreenshot) {
+        toast.error('Upload a screenshot of the completed QR payment.');
+        return;
+      }
+      if (paymentScreenshot.size > 5 * 1024 * 1024) {
+        toast.error('Payment screenshot must be 5 MB or smaller.');
+        return;
+      }
+    }
+
     setIsPlacing(true);
     try {
-      const razorpayConfigured =
-        Boolean(RAZORPAY_KEY_ID) && !/your_|change[_-]?me|x{6,}/i.test(RAZORPAY_KEY_ID);
-
-      if (!razorpayConfigured) {
-        toast.error('Online payment is not configured yet. Please contact support.');
+      let order = pendingOrder;
+      if (order && order.paymentInfo.method !== data.paymentMethod) {
+        toast.error('An order is already awaiting payment. Please retry using the originally selected payment method.');
         return;
       }
+      if (!order) {
+        const orderData = {
+          items: items.map((item) => ({
+            productId: item.product._id,
+            quantity: item.quantity,
+            color: item.color,
+          })),
+          shippingAddress: data.shippingAddress,
+          paymentMethod: data.paymentMethod,
+          couponCode: coupon.code ?? undefined,
+          loyaltyPointsToRedeem: loyaltyPointsToRedeem || undefined,
+          notes: data.notes,
+        };
 
-      const orderData = {
-        items: items.map((item) => ({
-          productId: item.product._id,
-          quantity: item.quantity,
-          color: item.color,
-        })),
-        shippingAddress: data.shippingAddress,
-        paymentMethod: data.paymentMethod,
-        couponCode: coupon.code ?? undefined,
-        notes: data.notes,
-      };
-
-      const result = await dispatch(createOrder(orderData));
-      if (!createOrder.fulfilled.match(result)) {
-        toast.error((result.payload as string) || 'Failed to place order');
-        return;
+        const result = await dispatch(createOrder(orderData));
+        if (!createOrder.fulfilled.match(result)) {
+          toast.error((result.payload as string) || 'Failed to place order');
+          return;
+        }
+        order = result.payload.order;
+        setPendingOrder(order);
       }
 
-      const order = result.payload.order;
+      if (data.paymentMethod === 'upi') {
+        await orderService.submitManualPaymentProof(order._id, transactionId.trim(), paymentScreenshot!);
+        setPendingOrder(null);
+        emptyCart();
+        toast.success('Payment proof submitted. Your order is awaiting verification.');
+        router.push(`/checkout/success?orderId=${order._id}`);
+        return;
+      }
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded || !RAZORPAY_KEY_ID) {
@@ -113,10 +153,15 @@ export default function CheckoutPage() {
         return;
       }
 
-      const paymentData = await orderService.initiatePayment(order._id, order.totalAmount);
+      const paymentData = await orderService.initiatePayment(order._id);
+      const checkoutKey = paymentData.key || RAZORPAY_KEY_ID;
+      if (!checkoutKey) {
+        toast.error('Razorpay key is not configured. Please contact support.');
+        return;
+      }
 
       const rzp = new window.Razorpay({
-        key: paymentData.key || RAZORPAY_KEY_ID,
+        key: checkoutKey,
         amount: paymentData.amount,
         currency: paymentData.currency,
         name: 'PP’s Aura',
@@ -133,11 +178,16 @@ export default function CheckoutPage() {
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
             });
+            setPendingOrder(null);
             emptyCart();
             router.push(`/checkout/success?orderId=${order._id}`);
           } catch {
             toast.error('Payment verification failed. Please contact support.');
           }
+        },
+        modal: {
+          ondismiss: () => toast('Payment window closed. Click Place Order to retry the same payment.'),
+          confirm_close: true,
         },
         prefill: {
           name: data.shippingAddress.fullName,
@@ -145,6 +195,9 @@ export default function CheckoutPage() {
           email: user?.email,
         },
         theme: { color: '#b5451b' },
+      });
+      rzp.on('payment.failed', (response) => {
+        toast.error(response.error?.description || 'Payment failed. Please try again.');
       });
       rzp.open();
     } catch (error: unknown) {
@@ -260,6 +313,40 @@ export default function CheckoutPage() {
                 </label>
               ))}
             </div>
+            {paymentMethod === 'upi' && (
+              <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                  <div className="shrink-0 rounded-xl border border-border bg-white p-2">
+                    <Image
+                      src="/images/qrcode_docs.google.com.png"
+                      alt="PP’s Aura payment QR code"
+                      width={190}
+                      height={190}
+                      className="h-44 w-44 object-contain"
+                    />
+                  </div>
+                  <div className="w-full space-y-4">
+                    <div>
+                      <p className="font-semibold text-foreground">Scan and pay {formatPrice(summary.total)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Use any UPI app, then enter the transaction reference and upload the payment screenshot.</p>
+                    </div>
+                    <div>
+                      <label className="label">Transaction ID / UTR *</label>
+                      <input value={transactionId} onChange={(event) => setTransactionId(event.target.value)} maxLength={150} className="input-field bg-white" placeholder="Enter transaction reference" />
+                    </div>
+                    <div>
+                      <label className="label">Payment screenshot *</label>
+                      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-primary/40 bg-white p-3 text-sm text-muted-foreground hover:bg-primary/5">
+                        <FileImage className="h-5 w-5 shrink-0 text-primary" />
+                        <span className="min-w-0 truncate">{paymentScreenshot?.name || 'Choose payment screenshot'}</span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={(event) => setPaymentScreenshot(event.target.files?.[0] || null)} />
+                      </label>
+                      <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or GIF up to 5 MB.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Order Notes */}
@@ -305,6 +392,12 @@ export default function CheckoutPage() {
                   <span>−{formatPrice(summary.couponDiscount)}</span>
                 </div>
               )}
+              {summary.loyaltyDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Loyalty points ({loyaltyPointsToRedeem})</span>
+                  <span>−{formatPrice(summary.loyaltyDiscount)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold text-base border-t border-border pt-2">
                 <span>Total</span>
                 <span className="text-primary">
@@ -324,7 +417,7 @@ export default function CheckoutPage() {
                   Placing Order…
                 </>
               ) : (
-                'Place Order'
+                paymentMethod === 'upi' ? 'Submit QR Payment' : 'Pay with Razorpay'
               )}
             </button>
           </div>

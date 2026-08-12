@@ -25,7 +25,7 @@ export const SHIPPING = {
 // Loyalty
 export const LOYALTY = {
   POINTS_PER_RUPEE: 1,
-  RUPEES_PER_POINT: 0.1,
+  RUPEES_PER_POINT: 0.01,
   WELCOME_BONUS: 50,
 };
 
@@ -133,6 +133,12 @@ export const PAYMENT_METHODS = [
     label: 'Online Payment',
     description: 'Credit/Debit Card, UPI, Net Banking, Wallets',
     icon: '💳',
+  },
+  {
+    id: 'upi',
+    label: 'Scan QR Code',
+    description: 'Scan and pay securely using any UPI app',
+    icon: '📱',
   },
 ];
 

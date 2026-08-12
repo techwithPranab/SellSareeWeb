@@ -138,7 +138,7 @@ export const SHIPPING = {
 // Loyalty Points
 export const LOYALTY = {
   POINTS_PER_RUPEE: 1,
-  RUPEES_PER_POINT: 0.1,
+  RUPEES_PER_POINT: 0.01,
   WELCOME_BONUS: 50,
   REVIEW_BONUS: 10,
   REFERRAL_BONUS: 100,

@@ -52,8 +52,13 @@ export const createRazorpayOrder = async (
   try {
     const razorpay = getRazorpayInstance();
 
+    const amountInPaise = Math.round(amount * 100);
+    if (!Number.isSafeInteger(amountInPaise) || amountInPaise < 100) {
+      throw new CustomError('Invalid payment amount', HTTP_STATUS.BAD_REQUEST);
+    }
+
     return await razorpay.orders.create({
-      amount: amount * 100, // Amount in paise
+      amount: amountInPaise,
       currency,
       receipt,
       notes,

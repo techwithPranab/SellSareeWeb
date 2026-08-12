@@ -15,6 +15,8 @@ import {
   initiateRefund,
   trackOrderGuest,
   createOrderForCustomer,
+  submitManualPaymentProof,
+  confirmManualPayment,
 } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -31,6 +33,7 @@ router.get('/track', trackOrderGuest);
 // Customer routes (authenticated)
 router.use(authenticate);
 router.post('/', createOrder);
+router.post('/:id/manual-payment-proof', uploadPaymentScreenshot, submitManualPaymentProof);
 router.get('/my-orders', getUserOrders);
 router.get('/:id', getOrderById);
 router.put('/:id/cancel', cancelOrder);
@@ -43,6 +46,7 @@ router.post('/payment/verify', verifyPayment);
 // Admin routes
 router.use(requireAdmin);
 router.post('/admin/create-for-customer', uploadPaymentScreenshot, createOrderForCustomer);
+router.put('/:id/manual-payment/confirm', confirmManualPayment);
 router.get('/', getAllOrders);
 router.get('/admin/stats', getOrderDashboardStats);
 router.get('/admin/:id', getAdminOrderById);

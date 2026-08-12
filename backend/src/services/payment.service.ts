@@ -5,14 +5,28 @@ import { HTTP_STATUS, PaymentStatus, OrderStatus } from '../constants';
 import { getReferenceId } from '../utils/getReferenceId';
 
 export class PaymentService {
-  async initiatePayment(orderId: string, amount: number, userId: string) {
+  async initiatePayment(orderId: string, userId: string) {
     const order = await orderRepository.findByIdAndUser(orderId, userId);
     if (!order) {
       throw new CustomError('Order not found', HTTP_STATUS.NOT_FOUND);
     }
 
+    if (order.paymentInfo.status === PaymentStatus.COMPLETED) {
+      throw new CustomError('This order has already been paid', HTTP_STATUS.CONFLICT);
+    }
+
+    const amountInPaise = Math.round(order.totalAmount * 100);
+    if (order.paymentInfo.status === PaymentStatus.PROCESSING && order.paymentInfo.razorpayOrderId) {
+      return {
+        razorpayOrderId: order.paymentInfo.razorpayOrderId,
+        amount: amountInPaise,
+        currency: 'INR',
+        key: process.env.RAZORPAY_KEY_ID,
+      };
+    }
+
     const receipt = `receipt_${order.orderNumber}`;
-    const razorpayOrder = await createRazorpayOrder(amount, 'INR', receipt, {
+    const razorpayOrder = await createRazorpayOrder(order.totalAmount, 'INR', receipt, {
       orderId: orderId,
       userId: userId,
     });
@@ -36,13 +50,6 @@ export class PaymentService {
     razorpaySignature: string,
     userId: string
   ) {
-    // Verify Razorpay signature
-    const isValid = verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
-    if (!isValid) {
-      throw new CustomError('Payment verification failed. Invalid signature.', HTTP_STATUS.BAD_REQUEST);
-    }
-
-    // Find order
     const order = await orderRepository.findByRazorpayOrderId(razorpayOrderId);
     if (!order) {
       throw new CustomError('Order not found', HTTP_STATUS.NOT_FOUND);
@@ -52,8 +59,28 @@ export class PaymentService {
       throw new CustomError('Unauthorized', HTTP_STATUS.FORBIDDEN);
     }
 
+    const storedRazorpayOrderId = order.paymentInfo.razorpayOrderId;
+    if (!storedRazorpayOrderId || storedRazorpayOrderId !== razorpayOrderId) {
+      throw new CustomError('Payment order does not match', HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const isValid = verifyRazorpaySignature(storedRazorpayOrderId, razorpayPaymentId, razorpaySignature);
+    if (!isValid) {
+      throw new CustomError('Payment verification failed. Invalid signature.', HTTP_STATUS.BAD_REQUEST);
+    }
+
     // Fetch payment details from Razorpay
     const payment = await fetchRazorpayPayment(razorpayPaymentId);
+    const paymentAmount = Number(payment.amount);
+    const expectedAmount = Math.round(order.totalAmount * 100);
+    if (
+      payment.order_id !== storedRazorpayOrderId ||
+      paymentAmount !== expectedAmount ||
+      payment.currency !== 'INR' ||
+      payment.status !== 'captured'
+    ) {
+      throw new CustomError('Payment has not been captured for the correct order amount', HTTP_STATUS.BAD_REQUEST);
+    }
 
     // Update order payment status
     await orderRepository.updateById(order._id.toString(), {
@@ -85,29 +112,40 @@ export class PaymentService {
     } as Partial<typeof order>);
   }
 
-  async handleWebhook(body: string, signature: string): Promise<void> {
-    // Verify webhook signature
+  async handleWebhook(body: Buffer, signature: string): Promise<void> {
     const crypto = await import('crypto');
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new CustomError('Razorpay webhook is not configured', HTTP_STATUS.SERVICE_UNAVAILABLE);
+    }
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET as string)
+      .createHmac('sha256', webhookSecret)
       .update(body)
       .digest('hex');
 
-    if (expectedSignature !== signature) {
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+    const signatureBuffer = Buffer.from(signature || '', 'utf8');
+    if (expectedBuffer.length !== signatureBuffer.length || !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)) {
       throw new CustomError('Invalid webhook signature', HTTP_STATUS.BAD_REQUEST);
     }
 
-    const event = JSON.parse(body);
+    const event = JSON.parse(body.toString('utf8'));
 
     switch (event.event) {
-      case 'payment.captured': {
-        const { order_id, id: paymentId } = event.payload.payment.entity;
+      case 'payment.captured':
+      case 'order.paid': {
+        const paymentEntity = event.payload.payment?.entity;
+        const order_id = paymentEntity?.order_id || event.payload.order?.entity?.id;
+        const paymentId = paymentEntity?.id;
+        if (!order_id || !paymentId) break;
         const order = await orderRepository.findByRazorpayOrderId(order_id);
         if (order) {
-          await orderRepository.updatePaymentStatus(order._id.toString(), PaymentStatus.COMPLETED, {
+          await orderRepository.updateById(order._id.toString(), {
             'paymentInfo.razorpayPaymentId': paymentId,
+            'paymentInfo.status': PaymentStatus.COMPLETED,
             'paymentInfo.paidAt': new Date(),
-          });
+            status: OrderStatus.CONFIRMED,
+          } as Partial<typeof order>);
         }
         break;
       }

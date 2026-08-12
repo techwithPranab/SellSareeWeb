@@ -14,6 +14,7 @@ import {
   Minus,
   Plus,
   Share2,
+  Boxes,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchProductBySlug, addToRecentlyViewed } from '@/features/products/productsSlice';
@@ -25,7 +26,6 @@ import {
   formatPrice,
   formatDiscount,
   getProductDefaultImage,
-  getStockLabel,
   getStockColor,
   cn,
 } from '@/utils/helpers';
@@ -221,9 +221,14 @@ export default function ProductDetailPage() {
               ))}
           </div>
 
-          <p className={cn('text-sm font-medium', getStockColor(product.stock))}>
-            {getStockLabel(product.stock)}
-          </p>
+          <div className="flex items-center gap-2 rounded-lg bg-surface px-3 py-2.5 text-sm">
+            <Boxes className={cn('h-4 w-4', getStockColor(product.stock))} />
+            <p className={cn('font-medium', getStockColor(product.stock))}>
+              {product.stock > 0
+                ? <><strong>{product.stock}</strong> {product.stock === 1 ? 'item' : 'items'} available in stock</>
+                : 'Out of stock'}
+            </p>
+          </div>
 
           {/* Quantity */}
           <div className="flex items-center gap-4">
