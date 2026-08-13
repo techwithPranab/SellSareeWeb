@@ -36,6 +36,9 @@ import { requireAdmin } from '../middlewares/role.middleware';
 
 const router = Router();
 
+// Approved product reviews are public.
+router.get('/reviews/product/:productId', getProductReviews);
+
 // ========================= CUSTOMER =========================
 router.use(authenticate);
 
@@ -61,7 +64,6 @@ router.get('/loyalty-points', getLoyaltyPoints);
 // Reviews
 router.post('/reviews', createReview);
 router.get('/reviews/my', getMyReviews);
-router.get('/reviews/product/:productId', getProductReviews);
 
 // Coupon validation
 router.post('/coupons/validate', validateCoupon);

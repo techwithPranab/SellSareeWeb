@@ -11,11 +11,23 @@ import { Types } from 'mongoose';
 const normalizeProductNumbers = (body: Record<string, unknown>): Partial<IProduct> => {
   const normalized = { ...body };
 
-  for (const field of ['price', 'stock', 'salePrice'] as const) {
+  if (normalized.launchDate === '') {
+    normalized.launchDate = null;
+  } else if (typeof normalized.launchDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(normalized.launchDate)) {
+    // A launch date becomes available at midnight in the store's India timezone.
+    normalized.launchDate = new Date(`${normalized.launchDate}T00:00:00+05:30`);
+  }
+
+  for (const field of ['isActive', 'isFeatured', 'isNewArrival', 'isBestSeller', 'isBridal', 'isSale'] as const) {
+    if (normalized[field] === 'true') normalized[field] = true;
+    if (normalized[field] === 'false') normalized[field] = false;
+  }
+
+  for (const field of ['price', 'stock', 'discountedPrice', 'salePrice'] as const) {
     const rawValue = normalized[field];
 
-    if (field === 'salePrice' && (rawValue === undefined || rawValue === null || rawValue === '' || rawValue === 'NaN')) {
-      delete normalized.salePrice;
+    if ((field === 'salePrice' || field === 'discountedPrice') && (rawValue === undefined || rawValue === null || rawValue === '' || rawValue === 'NaN')) {
+      delete normalized[field];
       continue;
     }
 

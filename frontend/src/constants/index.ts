@@ -5,10 +5,10 @@
 export const APP_NAME = 'PP’s Aura';
 export const APP_TAGLINE = 'Where Every Thread Tells a Story';
 export const APP_DESCRIPTION =
-  'Discover the finest collection of handcrafted sarees from across India — silk, cotton, tant, banarasi, kanjivaram, and more.';
+  'Shop distinctive Indian sarees online at PP’s Aura, including Jamdani sarees, handloom sarees, Bengali sarees, Bangladeshi Jamdani, Kardana Jamdani, silk and Tasar.';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ppaura.in';
 
 // Razorpay
 export const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
@@ -50,18 +50,12 @@ export const NAV_LINKS: Array<{
 
 // Categories
 export const SAREE_CATEGORIES = [
+  { name: 'Jamdani Sarees', slug: 'jamdani', icon: '✨', color: '#d4a853' },
+  { name: 'Handloom Sarees', slug: 'handloom', icon: '🎨', color: '#8b4513' },
+  { name: 'Bangladeshi Jamdani', slug: 'bangladeshi-jamdani', icon: '🧵', color: '#3d6b4f' },
+  { name: 'Kardana Jamdani', slug: 'kardana-jamdani', icon: '💫', color: '#6b2fa0' },
   { name: 'Silk Sarees', slug: 'silk', icon: '✨', color: '#d4a853' },
-  { name: 'Cotton Sarees', slug: 'cotton', icon: '🌿', color: '#8b7355' },
-  { name: 'Tant Sarees', slug: 'tant', icon: '🧵', color: '#3d6b4f' },
-  { name: 'Banarasi', slug: 'banarasi', icon: '👑', color: '#8b1a1a' },
-  { name: 'Kanjivaram', slug: 'kanjivaram', icon: '💫', color: '#6b2fa0' },
-  { name: 'Bridal', slug: 'bridal', icon: '💕', color: '#c41e3a' },
-  { name: 'Chiffon', slug: 'chiffon', icon: '🌸', color: '#ff69b4' },
-  { name: 'Georgette', slug: 'georgette', icon: '🌺', color: '#dc143c' },
-  { name: 'Linen', slug: 'linen', icon: '🌾', color: '#c4a882' },
-  { name: 'Handloom', slug: 'handloom', icon: '🎨', color: '#8b4513' },
-  { name: 'Festival', slug: 'festival', icon: '🪔', color: '#ff8c00' },
-  { name: 'Casual', slug: 'casual', icon: '👗', color: '#4682b4' },
+  { name: 'Tasar Sarees', slug: 'tasar', icon: '🌿', color: '#8b7355' },
 ];
 
 // Occasions
@@ -221,11 +215,9 @@ export const SEO_CONFIG = {
     locale: 'en_IN',
     url: APP_URL,
     siteName: APP_NAME,
-    images: [{ url: `${APP_URL}/images/og-image.jpg`, width: 1200, height: 630 }],
+    images: [{ url: `${APP_URL}/images/product-coming-soon.svg`, width: 900, height: 1200 }],
   },
   twitter: {
-    handle: '@rupkathasarees',
-    site: '@rupkathasarees',
     cardType: 'summary_large_image',
   },
 };

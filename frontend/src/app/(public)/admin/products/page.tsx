@@ -8,7 +8,7 @@ import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminPagination from '@/components/admin/AdminPagination';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { formatPrice, getProductDefaultImage, asRoute } from '@/utils/helpers';
+import { formatPrice, getProductDefaultImage, getProductEffectivePrice, isProductComingSoon, asRoute } from '@/utils/helpers';
 import type { Product, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -89,8 +89,9 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {products.map((product) => (
-                  <tr key={product._id} className="hover:bg-surface/50">
+                {products.map((product) => {
+                  const isComingSoon = isProductComingSoon(product);
+                  return <tr key={product._id} className="hover:bg-surface/50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative w-10 h-12 rounded-lg overflow-hidden bg-surface shrink-0">
@@ -103,13 +104,13 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
-                    <td className="px-4 py-3 font-medium">{formatPrice(product.salePrice || product.price)}</td>
+                    <td className="px-4 py-3 font-medium">{formatPrice(getProductEffectivePrice(product))}</td>
                     <td className="px-4 py-3">
                       <span className={product.stock <= 5 ? 'text-red-600 font-medium' : ''}>{product.stock}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {product.isActive ? 'Active' : 'Inactive'}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isComingSoon ? 'bg-amber-100 text-amber-700' : product.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {isComingSoon ? 'Coming Soon' : product.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -125,8 +126,8 @@ export default function AdminProductsPage() {
                         </button>
                       </div>
                     </td>
-                  </tr>
-                ))}
+                  </tr>;
+                })}
               </tbody>
             </table>
           </div>

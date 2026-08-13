@@ -19,6 +19,7 @@ import {
 import { Product } from '@/types';
 import toast from 'react-hot-toast';
 import { userService } from '@/services/user.service';
+import { isProductComingSoon } from '@/utils/helpers';
 
 export const useCart = () => {
   const dispatch = useAppDispatch();
@@ -30,6 +31,10 @@ export const useCart = () => {
 
   const addItem = useCallback(
     (product: Product, quantity = 1, color?: string) => {
+      if (isProductComingSoon(product)) {
+        toast.error('This product is coming soon and is not available to order yet.');
+        return;
+      }
       if (product.stock < quantity) {
         toast.error('Insufficient stock available');
         return;

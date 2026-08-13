@@ -116,6 +116,7 @@ OrderSchema.index({ user: 1, createdAt: -1 });
 OrderSchema.index({ orderNumber: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ 'paymentInfo.status': 1 });
+OrderSchema.index({ 'paymentInfo.status': 1, 'paymentInfo.paidAt': -1 });
 OrderSchema.index({ 'paymentInfo.razorpayOrderId': 1 });
 OrderSchema.index({ createdAt: -1 });
 

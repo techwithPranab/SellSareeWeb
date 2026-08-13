@@ -32,7 +32,15 @@ export class OrderRepository {
 
   async findUserOrders(userId: string, options: PaginationOptions = {}) {
     const { skip, limit, page, sort } = parsePagination(options);
-    const filter = { user: new Types.ObjectId(userId) };
+    const filter: FilterQuery<IOrder> = {
+      user: new Types.ObjectId(userId),
+      $or: [
+        { status: { $ne: OrderStatus.PENDING } },
+        // A submitted static-QR proof is still awaiting admin confirmation, but
+        // it is a real customer order and should remain visible for tracking.
+        { status: OrderStatus.PENDING, 'paymentInfo.status': PaymentStatus.PROCESSING },
+      ],
+    };
 
     const [data, total] = await Promise.all([
       Order.find(filter)
@@ -93,8 +101,13 @@ export class OrderRepository {
     return Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: startDate, $lte: endDate },
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          $expr: {
+            $and: [
+              { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, startDate] },
+              { $lte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, endDate] },
+            ],
+          },
         },
       },
       {
@@ -109,19 +122,26 @@ export class OrderRepository {
   }
 
   async getDailyRevenue(days = 30) {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     return Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: startDate },
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          $expr: {
+            $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, startDate],
+          },
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Asia/Kolkata' } },
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] },
+              timezone: 'Asia/Kolkata',
+            },
+          },
           revenue: { $sum: '$totalAmount' },
           orders: { $sum: 1 },
         },

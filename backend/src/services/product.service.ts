@@ -78,6 +78,24 @@ export class ProductService {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
 
+    const mrp = data.price ?? product.price;
+    const discountedPrice = data.discountedPrice ?? product.discountedPrice;
+    const isSale = data.isSale ?? product.isSale;
+    const salePrice = data.salePrice ?? product.salePrice;
+    if (discountedPrice !== undefined && discountedPrice > mrp) {
+      throw new CustomError('Discounted price cannot exceed MRP', HTTP_STATUS.BAD_REQUEST);
+    }
+    if (isSale && salePrice === undefined) {
+      throw new CustomError('Sale price is required when product is marked as Sale', HTTP_STATUS.BAD_REQUEST);
+    }
+    if (isSale && salePrice !== undefined && salePrice > (discountedPrice ?? mrp)) {
+      throw new CustomError('Sale price cannot exceed the discounted price', HTTP_STATUS.BAD_REQUEST);
+    }
+    const effectivePrice = isSale && salePrice !== undefined ? salePrice : discountedPrice ?? mrp;
+    data.discountPercent = effectivePrice < mrp
+      ? Math.round(((mrp - effectivePrice) / mrp) * 100)
+      : 0;
+
     let images = [...product.images];
 
     // Upload new images if provided
@@ -134,9 +152,22 @@ export class ProductService {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    await cloudinary.uploader.destroy(publicId);
+    const targetImage = product.images.find((img) => img.publicId === publicId);
+    if (!targetImage) {
+      throw new CustomError('Product image not found', HTTP_STATUS.NOT_FOUND);
+    }
 
-    const images = product.images.filter((img) => img.publicId !== publicId);
+    await cloudinary.uploader.destroy(targetImage.publicId);
+
+    const images = product.images
+      .filter((img) => img.publicId !== publicId)
+      .map((img, index) => ({
+        url: img.url,
+        publicId: img.publicId,
+        alt: img.alt,
+        isDefault: index === 0,
+        sortOrder: index,
+      }));
     const updated = await productRepository.updateById(productId, { images });
     if (!updated) {
       throw new CustomError('Failed to update product', HTTP_STATUS.INTERNAL_SERVER_ERROR);

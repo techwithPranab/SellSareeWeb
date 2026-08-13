@@ -121,7 +121,7 @@ export default function AdminReviewsPage() {
                     <p className="font-semibold text-foreground">{review.title}</p>
                     <p className="text-sm text-muted-foreground mt-1">{review.comment}</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {review.user.name} · {formatDate(review.createdAt)}
+                      {review.user?.name || 'Deleted customer'} · {formatDate(review.createdAt)}
                     </p>
                     {review.adminReply && (
                       <div className="mt-3 p-3 bg-surface rounded-lg text-sm">

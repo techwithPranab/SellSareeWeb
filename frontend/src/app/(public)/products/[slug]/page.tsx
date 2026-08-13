@@ -15,22 +15,30 @@ import {
   Plus,
   Share2,
   Boxes,
+  Loader2,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchProductBySlug, addToRecentlyViewed } from '@/features/products/productsSlice';
 import { toggleWishlist } from '@/features/wishlist/wishlistSlice';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner, { ProductGridSkeleton } from '@/components/common/LoadingSpinner';
 import {
   formatPrice,
-  formatDiscount,
+  getProductDiscountPercent,
+  getProductEffectivePrice,
   getProductDefaultImage,
   getStockColor,
+  formatDate,
+  isProductComingSoon,
+  generateProductSchema,
   cn,
 } from '@/utils/helpers';
 import { productService } from '@/services/product.service';
-import type { Product } from '@/types';
+import { userService } from '@/services/user.service';
+import type { Product, Review } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,11 +48,19 @@ export default function ProductDetailPage() {
     product ? s.wishlist.productIds.includes(product._id) : false
   );
   const { addItem, isInCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   useEffect(() => {
     if (slug) dispatch(fetchProductBySlug(slug));
@@ -65,6 +81,16 @@ export default function ProductDetailPage() {
       }
     }
   }, [product, dispatch]);
+
+  useEffect(() => {
+    if (!product?._id) return;
+    setLoadingReviews(true);
+    userService
+      .getProductReviews(product._id, { limit: 20 })
+      .then((response) => setReviews(response.data ?? []))
+      .catch(() => setReviews([]))
+      .finally(() => setLoadingReviews(false));
+  }, [product?._id]);
 
   if (isLoading) {
     return (
@@ -87,22 +113,56 @@ export default function ProductDetailPage() {
     );
   }
 
-  const images = product.images?.length ? product.images : [{ url: getProductDefaultImage(product), publicId: '', isDefault: true, sortOrder: 0 }];
-  const effectivePrice = product.salePrice || product.price;
-  const discountPercent =
-    product.salePrice && product.salePrice < product.price
-      ? formatDiscount(product.price, product.salePrice)
-      : 0;
+  const isComingSoon = isProductComingSoon(product);
+  const images = isComingSoon
+    ? [{ url: '/images/product-coming-soon.svg', publicId: 'coming-soon', isDefault: true, sortOrder: 0 }]
+    : product.images?.length
+      ? product.images
+      : [{ url: getProductDefaultImage(product), publicId: '', isDefault: true, sortOrder: 0 }];
+  const effectivePrice = getProductEffectivePrice(product);
+  const discountPercent = getProductDiscountPercent(product);
   const categoryName =
     typeof product.category === 'object' ? product.category.name : product.category;
   const inCart = isInCart(product._id);
 
   const handleAddToCart = () => {
+    if (isComingSoon) return;
     addItem(product, quantity);
+  };
+
+  const handleReviewSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!reviewTitle.trim() || reviewComment.trim().length < 10) {
+      toast.error('Add a title and at least 10 characters in your review.');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await userService.createReview({
+        productId: product._id,
+        rating: reviewRating,
+        title: reviewTitle.trim(),
+        comment: reviewComment.trim(),
+      });
+      setReviewSubmitted(true);
+      setReviewTitle('');
+      setReviewComment('');
+      setReviewRating(5);
+      toast.success('Review submitted for admin approval.');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast.error(message || 'Unable to submit review.');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   return (
     <div className="container-custom py-8 md:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProductSchema(product)).replace(/</g, '\\u003c') }}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8 flex-wrap">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
@@ -132,10 +192,10 @@ export default function ProductDetailPage() {
               alt={product.name}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
+              className={isComingSoon ? 'object-contain' : 'object-cover'}
               priority
             />
-            {discountPercent > 0 && (
+            {!isComingSoon && discountPercent > 0 && (
               <span className="absolute top-4 left-4 badge-discount">−{discountPercent}%</span>
             )}
           </div>
@@ -168,6 +228,15 @@ export default function ProductDetailPage() {
             {product.name}
           </h1>
 
+          {isComingSoon && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="font-semibold text-amber-800">Coming Soon</p>
+              <p className="mt-1 text-sm text-amber-700">
+                Launching on {formatDate(product.launchDate!)}. Add to Cart will be available after launch.
+              </p>
+            </div>
+          )}
+
           {product.averageRating > 0 && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-0.5">
@@ -189,15 +258,28 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-foreground">{formatPrice(effectivePrice)}</span>
-            {discountPercent > 0 && (
-              <>
-                <span className="text-xl text-muted line-through">{formatPrice(product.price)}</span>
-                <span className="text-sm font-semibold text-green-600">Save {discountPercent}%</span>
-              </>
-            )}
-          </div>
+          {isComingSoon ? (
+            <div className="relative h-14 max-w-sm overflow-hidden rounded-xl border border-amber-200 bg-amber-50">
+              <div aria-hidden="true" className="absolute inset-0 select-none bg-white/40 blur-md" />
+              <div className="absolute inset-0 flex items-center justify-center bg-white/65 px-4 text-center font-semibold text-amber-700 backdrop-blur-md">
+                Price will be revealed on launch day
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className={cn('text-3xl font-bold', product.isSale ? 'text-red-600' : 'text-foreground')}>
+                {formatPrice(effectivePrice)}
+              </span>
+              <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-base font-medium text-gray-600 line-through decoration-red-500 decoration-2">
+                MRP {formatPrice(product.price)}
+              </span>
+              {discountPercent > 0 && (
+                <>
+                  <span className="text-sm font-semibold text-green-600">Save {discountPercent}%</span>
+                </>
+              )}
+            </div>
+          )}
 
           <p className="text-muted-foreground leading-relaxed">
             {product.shortDescription || product.description}
@@ -221,14 +303,14 @@ export default function ProductDetailPage() {
               ))}
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg bg-surface px-3 py-2.5 text-sm">
+          {!isComingSoon && <div className="flex items-center gap-2 rounded-lg bg-surface px-3 py-2.5 text-sm">
             <Boxes className={cn('h-4 w-4', getStockColor(product.stock))} />
             <p className={cn('font-medium', getStockColor(product.stock))}>
               {product.stock > 0
                 ? <><strong>{product.stock}</strong> {product.stock === 1 ? 'item' : 'items'} available in stock</>
                 : 'Out of stock'}
             </p>
-          </div>
+          </div>}
 
           {/* Quantity */}
           <div className="flex items-center gap-4">
@@ -259,14 +341,16 @@ export default function ProductDetailPage() {
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0}
+              disabled={product.stock === 0 || isComingSoon}
               className={cn(
                 'flex-1 min-w-[200px] btn-primary flex items-center justify-center gap-2',
-                inCart && 'bg-green-600 hover:bg-green-700'
+                isComingSoon
+                  ? 'cursor-not-allowed bg-amber-100 text-amber-700 hover:bg-amber-100'
+                  : inCart && 'bg-green-600 hover:bg-green-700'
               )}
             >
               <ShoppingBag className="w-5 h-5" />
-              {inCart ? 'Add More to Cart' : 'Add to Cart'}
+              {isComingSoon ? 'Coming Soon' : inCart ? 'Add More to Cart' : 'Add to Cart'}
             </button>
             <button
               onClick={() => dispatch(toggleWishlist(product._id))}
@@ -336,6 +420,103 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Customer Reviews */}
+      <section className="mb-16 rounded-2xl border border-border bg-white p-6 md:p-8">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-playfair text-2xl font-bold text-foreground">Customer Reviews</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Only admin-approved reviews are published.</p>
+          </div>
+          {product.totalReviews > 0 && (
+            <p className="font-semibold text-foreground">
+              {product.averageRating.toFixed(1)} / 5 · {product.totalReviews} reviews
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            {loadingReviews ? (
+              <LoadingSpinner label="Loading reviews…" />
+            ) : reviews.length === 0 ? (
+              <p className="rounded-xl bg-surface p-6 text-sm text-muted-foreground">
+                No approved reviews yet. Be the first customer to share your experience.
+              </p>
+            ) : (
+              <div className="divide-y divide-border">
+                {reviews.map((review) => (
+                  <article key={review._id} className="py-5 first:pt-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex" aria-label={`${review.rating} out of 5 stars`}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className={cn('h-4 w-4', star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300')} />
+                        ))}
+                      </div>
+                      {review.isVerifiedPurchase && (
+                        <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Verified Purchase</span>
+                      )}
+                    </div>
+                    <h3 className="mt-2 font-semibold text-foreground">{review.title}</h3>
+                    <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{review.comment}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {review.user?.name || 'PP’s Aura customer'}
+                    </p>
+                    {review.adminReply && (
+                      <div className="mt-3 rounded-lg bg-surface p-3 text-sm">
+                        <p className="text-xs font-semibold text-primary">PP’s Aura response</p>
+                        <p className="mt-1 text-muted-foreground">{review.adminReply}</p>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <h3 className="font-semibold text-foreground">Write a Review</h3>
+              {!isAuthenticated ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <Link href={`/login?redirect=/products/${product.slug}`} className="font-semibold text-primary hover:underline">Sign in</Link>{' '}
+                  to submit a review.
+                </p>
+              ) : reviewSubmitted ? (
+                <p className="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                  Thank you. Your review is awaiting admin approval.
+                </p>
+              ) : (
+                <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
+                  <div>
+                    <label className="label">Rating</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button key={star} type="button" onClick={() => setReviewRating(star)} aria-label={`Rate ${star} stars`}>
+                          <Star className={cn('h-7 w-7', star <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300')} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="label" htmlFor="review-title">Title</label>
+                    <input id="review-title" value={reviewTitle} onChange={(event) => setReviewTitle(event.target.value)} maxLength={100} className="input-field bg-white" required />
+                  </div>
+                  <div>
+                    <label className="label" htmlFor="review-comment">Your Review</label>
+                    <textarea id="review-comment" value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} minLength={10} maxLength={1000} rows={5} className="input-field resize-none bg-white" required />
+                    <p className="mt-1 text-xs text-muted-foreground">Sexual, abusive, or offensive content is not allowed.</p>
+                  </div>
+                  <button type="submit" disabled={submittingReview} className="btn-primary flex w-full items-center justify-center gap-2">
+                    {submittingReview && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {submittingReview ? 'Submitting…' : 'Submit for Approval'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Related Products */}
       {(relatedProducts.length > 0 || loadingRelated) && (

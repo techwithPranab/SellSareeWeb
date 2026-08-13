@@ -3,8 +3,12 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { userRepository } from '../repositories/user.repository';
 import { CustomError } from '../middlewares/error.middleware';
-import { HTTP_STATUS, LOYALTY, UserRole } from '../constants';
+import { HTTP_STATUS, LOYALTY, OrderStatus, REVIEW, UserRole } from '../constants';
 import Review from '../models/Review';
+import Product from '../models/Product';
+import Order from '../models/Order';
+import { containsBlockedReviewContent } from '../utils/contentModeration';
+import mongoose from 'mongoose';
 
 // ========================= CUSTOMER =========================
 
@@ -57,7 +61,7 @@ export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.findById(req.user!.id);
   if (!user) return ApiResponse.notFound(res, 'User not found');
 
-  const populatedUser = await user.populate('wishlist', 'name slug price salePrice images averageRating');
+  const populatedUser = await user.populate('wishlist', 'name slug price discountedPrice salePrice isSale images averageRating');
   ApiResponse.success(res, 'Wishlist retrieved', { wishlist: populatedUser.wishlist });
 });
 
@@ -86,6 +90,25 @@ export const getLoyaltyPoints = asyncHandler(async (req: Request, res: Response)
 
 export const createReview = asyncHandler(async (req: Request, res: Response) => {
   const { productId, rating, title, comment, orderId } = req.body;
+  const normalizedTitle = String(title || '').trim();
+  const normalizedComment = String(comment || '').trim();
+  const normalizedRating = Number(rating);
+
+  if (!productId || !mongoose.isValidObjectId(productId) || !(await Product.exists({ _id: productId, isActive: true }))) {
+    return ApiResponse.badRequest(res, 'Product is not available for review');
+  }
+  if (!Number.isInteger(normalizedRating) || normalizedRating < REVIEW.MIN_RATING || normalizedRating > REVIEW.MAX_RATING) {
+    return ApiResponse.badRequest(res, 'Rating must be a whole number between 1 and 5');
+  }
+  if (!normalizedTitle || normalizedTitle.length > 100) {
+    return ApiResponse.badRequest(res, 'Review title is required and cannot exceed 100 characters');
+  }
+  if (normalizedComment.length < REVIEW.MIN_COMMENT_LENGTH || normalizedComment.length > REVIEW.MAX_COMMENT_LENGTH) {
+    return ApiResponse.badRequest(res, `Review must be between ${REVIEW.MIN_COMMENT_LENGTH} and ${REVIEW.MAX_COMMENT_LENGTH} characters`);
+  }
+  if (containsBlockedReviewContent(normalizedTitle, normalizedComment)) {
+    return ApiResponse.badRequest(res, 'Please remove sexual, abusive, or offensive language from your review');
+  }
 
   const existingReview = await Review.findOne({
     product: productId,
@@ -96,17 +119,25 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
     throw new CustomError('You have already reviewed this product', HTTP_STATUS.CONFLICT);
   }
 
+  const purchaseFilter: Record<string, unknown> = {
+    user: req.user!.id,
+    status: OrderStatus.DELIVERED,
+    'items.product': productId,
+  };
+  if (orderId && mongoose.isValidObjectId(orderId)) purchaseFilter._id = orderId;
+  const verifiedOrder = await Order.findOne(purchaseFilter).select('_id');
+
   const review = await Review.create({
     product: productId,
     user: req.user!.id,
-    order: orderId,
-    rating,
-    title,
-    comment,
-    isVerifiedPurchase: !!orderId,
+    order: verifiedOrder?._id,
+    rating: normalizedRating,
+    title: normalizedTitle,
+    comment: normalizedComment,
+    isVerifiedPurchase: Boolean(verifiedOrder),
   });
 
-  ApiResponse.created(res, 'Review submitted for approval', { review });
+  return ApiResponse.created(res, 'Review submitted for approval', { review });
 });
 
 export const getMyReviews = asyncHandler(async (req: Request, res: Response) => {
@@ -260,12 +291,10 @@ export const getAllReviews = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const approveReview = asyncHandler(async (req: Request, res: Response) => {
-  const review = await Review.findByIdAndUpdate(
-    req.params.id,
-    { isApproved: true },
-    { new: true }
-  );
+  const review = await Review.findById(req.params.id);
   if (!review) return ApiResponse.notFound(res, 'Review not found');
+  review.isApproved = true;
+  await review.save();
   ApiResponse.success(res, 'Review approved', { review });
 });
 

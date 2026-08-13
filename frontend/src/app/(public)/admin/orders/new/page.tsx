@@ -8,7 +8,7 @@ import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { adminService } from '@/services/admin.service';
 import { INDIAN_STATES, SHIPPING } from '@/constants';
-import { asRoute, formatPrice } from '@/utils/helpers';
+import { asRoute, formatPrice, getProductEffectivePrice } from '@/utils/helpers';
 import type { Product, User } from '@/types';
 
 type CustomerMode = 'existing' | 'new';
@@ -70,7 +70,7 @@ export default function CreateWhatsAppOrderPage() {
   );
 
   const subtotal = selectedProducts.reduce((total, item) => {
-    const price = item.product?.salePrice || item.product?.price || 0;
+    const price = item.product ? getProductEffectivePrice(item.product) : 0;
     return total + price * item.quantity;
   }, 0);
   const shippingCharge = subtotal >= SHIPPING.FREE_THRESHOLD ? 0 : SHIPPING.STANDARD_RATE;
@@ -207,7 +207,7 @@ export default function CreateWhatsAppOrderPage() {
             <div className="flex gap-3">
               <select value={productId} onChange={(event) => setProductId(event.target.value)} className="input-field flex-1">
                 <option value="">Select a product</option>
-                {products.map((product) => <option key={product._id} value={product._id}>{product.name} — {formatPrice(product.salePrice || product.price)} ({product.stock} available)</option>)}
+                {products.map((product) => <option key={product._id} value={product._id}>{product.name} — {formatPrice(getProductEffectivePrice(product))} ({product.stock} available)</option>)}
               </select>
               <button type="button" onClick={addProduct} disabled={!productId} className="btn-primary btn-sm gap-1"><Plus className="h-4 w-4" /> Add</button>
             </div>
@@ -217,13 +217,13 @@ export default function CreateWhatsAppOrderPage() {
                 <div className="rounded-xl bg-surface p-8 text-center text-sm text-muted-foreground"><ShoppingBag className="mx-auto mb-2 h-6 w-6" />No products added yet.</div>
               ) : selectedProducts.map(({ product, productId: id, quantity }) => (
                 <div key={id} className="flex items-center gap-3 rounded-xl border border-border p-3">
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{product.name}</p><p className="text-xs text-muted-foreground">{formatPrice(product.salePrice || product.price)} each</p></div>
+                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{product.name}</p><p className="text-xs text-muted-foreground">{formatPrice(getProductEffectivePrice(product))} each</p></div>
                   <div className="flex items-center rounded-lg border border-border">
                     <button type="button" onClick={() => updateQuantity(id, quantity - 1)} className="p-2"><Minus className="h-3 w-3" /></button>
                     <span className="w-8 text-center text-sm">{quantity}</span>
                     <button type="button" onClick={() => updateQuantity(id, quantity + 1)} className="p-2"><Plus className="h-3 w-3" /></button>
                   </div>
-                  <p className="w-24 text-right text-sm font-semibold">{formatPrice((product.salePrice || product.price) * quantity)}</p>
+                  <p className="w-24 text-right text-sm font-semibold">{formatPrice(getProductEffectivePrice(product) * quantity)}</p>
                   <button type="button" onClick={() => setItems((current) => current.filter((item) => item.productId !== id))} className="p-2 text-red-500" aria-label={`Remove ${product.name}`}><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}

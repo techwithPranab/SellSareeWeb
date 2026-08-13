@@ -51,6 +51,9 @@ export class OrderService {
       if (!product.isActive) {
         throw new CustomError(`Product "${product.name}" is no longer available`, HTTP_STATUS.BAD_REQUEST);
       }
+      if (product.launchDate && new Date(product.launchDate).getTime() > Date.now()) {
+        throw new CustomError(`Product "${product.name}" is coming soon and cannot be ordered yet`, HTTP_STATUS.BAD_REQUEST);
+      }
       if (product.stock < item.quantity) {
         throw new CustomError(
           `Insufficient stock for "${product.name}". Available: ${product.stock}`,
@@ -58,7 +61,9 @@ export class OrderService {
         );
       }
 
-      const price = product.salePrice || product.price;
+      const price = product.isSale && product.salePrice !== undefined
+        ? product.salePrice
+        : product.discountedPrice ?? product.price;
       const subtotalItem = price * item.quantity;
       subtotal += subtotalItem;
 
@@ -357,8 +362,7 @@ export class OrderService {
     const startOfToday = new Date(`${indiaDateParts.year}-${indiaDateParts.month}-${indiaDateParts.day}T00:00:00+05:30`);
     const startOfMonth = new Date(`${indiaDateParts.year}-${indiaDateParts.month}-01T00:00:00+05:30`);
 
-    const last30Days = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
-    last30Days.setHours(0, 0, 0, 0);
+    const last30Days = new Date(startOfToday.getTime() - 29 * 24 * 60 * 60 * 1000);
 
     const [
       totalOrders,
@@ -381,7 +385,10 @@ export class OrderService {
       orderRepository.getDailyRevenue(30),
       User.countDocuments({ role: 'customer' }),
       Order.aggregate([
-        { $match: { createdAt: { $gte: last30Days }, status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] } } },
+        { $match: {
+          'paymentInfo.status': PaymentStatus.COMPLETED,
+          $expr: { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, last30Days] },
+        } },
         { $unwind: '$items' },
         { $group: { _id: '$items.product', name: { $first: '$items.name' }, quantity: { $sum: '$items.quantity' }, revenue: { $sum: '$items.subtotal' } } },
         { $sort: { quantity: -1 } },
@@ -389,7 +396,7 @@ export class OrderService {
       ]),
       Order.aggregate([
         { $match: {
-          status: { $nin: [OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.REFUNDED] },
+          'paymentInfo.status': PaymentStatus.COMPLETED,
           'paymentInfo.method': { $in: Object.values(PaymentMethod) },
         } },
         { $group: { _id: '$paymentInfo.method', count: { $sum: 1 }, amount: { $sum: '$totalAmount' } } },

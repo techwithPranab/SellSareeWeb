@@ -1,6 +1,6 @@
 import type { Route } from 'next';
 import { Product, Order, Review, User, CartSummary, CartItem } from '@/types';
-import { SHIPPING, LOYALTY } from '@/constants';
+import { APP_URL, SHIPPING, LOYALTY } from '@/constants';
 import { format, formatDistanceToNow, isValid } from 'date-fns';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -63,6 +63,9 @@ export const formatDateTime = (date: string | Date): string => {
   return format(d, 'dd MMM yyyy, hh:mm a');
 };
 
+export const isProductComingSoon = (product: Pick<Product, 'launchDate'>): boolean =>
+  Boolean(product.launchDate && new Date(product.launchDate).getTime() > Date.now());
+
 export const formatRelativeTime = (date: string | Date): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (!isValid(d)) return 'Unknown';
@@ -114,7 +117,13 @@ export const getProductDefaultImage = (product: Product): string => {
 };
 
 export const getProductEffectivePrice = (product: Product): number => {
-  return product.salePrice || product.price;
+  if (product.isSale && product.salePrice !== undefined) return product.salePrice;
+  return product.discountedPrice ?? product.price;
+};
+
+export const getProductDiscountPercent = (product: Product): number => {
+  const effectivePrice = getProductEffectivePrice(product);
+  return effectivePrice < product.price ? formatDiscount(product.price, effectivePrice) : 0;
 };
 
 export const isProductInStock = (product: Product): boolean => {
@@ -239,15 +248,17 @@ export const generateProductSchema = (product: Product) => ({
   '@context': 'https://schema.org/',
   '@type': 'Product',
   name: product.name,
-  image: product.images.map((img) => img.url),
+  image: isProductComingSoon(product)
+    ? [`${APP_URL}/images/product-coming-soon.svg`]
+    : product.images.map((img) => img.url),
   description: product.description,
   sku: product.sku,
   brand: { '@type': 'Brand', name: 'PP’s Aura' },
-  offers: {
+  offers: isProductComingSoon(product) ? undefined : {
     '@type': 'Offer',
-    url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}`,
+    url: `${APP_URL}/products/${product.slug}`,
     priceCurrency: 'INR',
-    price: product.salePrice || product.price,
+    price: getProductEffectivePrice(product),
     availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     itemCondition: 'https://schema.org/NewCondition',
   },

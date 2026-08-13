@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   keywords: [
-    'saree', 'silk saree', 'cotton saree', 'banarasi saree', 'kanjivaram saree',
-    'tant saree', 'bridal saree', 'bengali saree', 'Indian ethnic wear',
-    'rupkatha sarees', 'handloom saree', 'online saree shopping',
+    'saree', 'Indian saree', 'Jamdani saree', 'handloom saree', 'Bengali saree',
+    'Bangladeshi Jamdani', 'Kardana Jamdani', 'silk saree', 'Tasar saree',
+    'saree online', 'online saree shopping India', 'PP’s Aura',
   ],
   authors: [{ name: APP_NAME, url: APP_URL }],
   creator: APP_NAME,
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     images: [
       {
-        url: `${APP_URL}/images/og-image.jpg`,
-        width: 1200,
-        height: 630,
+        url: `${APP_URL}/images/product-coming-soon.svg`,
+        width: 900,
+        height: 1200,
         alt: APP_NAME,
       },
     ],
@@ -51,8 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    creator: '@rupkathasarees',
-    images: [`${APP_URL}/images/og-image.jpg`],
+    images: [`${APP_URL}/images/product-coming-soon.svg`],
   },
   robots: {
     index: true,
@@ -67,8 +66,7 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/favicon.ico',
-    apple: '/icons/apple-touch-icon.png',
+    icon: '/icon.svg',
   },
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { APP_NAME, SOCIAL_LINKS, NAV_LINKS } from '@/constants';
 import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
+import { asRoute } from '@/utils/helpers';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,8 +20,8 @@ export default function Footer() {
             <span className="font-playfair font-bold text-xl text-white">{APP_NAME}</span>
           </div>
           <p className="text-sm leading-relaxed text-[#b09070] mb-6">
-            Where every thread tells a story. Curating authentic handcrafted sarees from master
-            weavers across India since 2020.
+            Distinctive Indian sarees for every occasion, including Jamdani, Bengali handloom,
+            silk and Tasar collections.
           </p>
           <div className="flex items-center gap-3">
             <a
@@ -83,6 +84,19 @@ export default function Footer() {
                 Our Story
               </Link>
             </li>
+            {[
+              { label: 'Jamdani Sarees', href: '/collections/jamdani-sarees' },
+              { label: 'Handloom Sarees', href: '/collections/handloom-sarees' },
+              { label: 'Bengali Sarees', href: '/collections/bengali-sarees' },
+              { label: 'Indian Sarees', href: '/collections/indian-sarees' },
+              { label: 'Tasar Sarees', href: '/collections/tasar-sarees' },
+            ].map((item) => (
+              <li key={item.href}>
+                <Link href={asRoute(item.href)} className="text-sm text-[#b09070] hover:text-primary transition-colors">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 

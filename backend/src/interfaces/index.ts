@@ -108,7 +108,9 @@ export interface IProduct extends Document {
   sareeLength: string;
   careInstructions: string[];
   price: number;
+  discountedPrice?: number;
   salePrice?: number;
+  isSale: boolean;
   discountPercent: number;
   stock: number;
   soldCount: number;
@@ -121,6 +123,7 @@ export interface IProduct extends Document {
   isNewArrival: boolean;
   isBestSeller: boolean;
   isBridal: boolean;
+  launchDate?: Date;
   averageRating: number;
   totalReviews: number;
   metaTitle?: string;

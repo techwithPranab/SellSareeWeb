@@ -21,13 +21,13 @@ export interface ProductFilter {
 
 export class ProductRepository {
   async findById(id: string): Promise<IProduct | null> {
-    return Product.findById(id).populate('category', 'name slug').populate('relatedProducts', 'name slug price salePrice images');
+    return Product.findById(id).populate('category', 'name slug').populate('relatedProducts', 'name slug price discountedPrice salePrice isSale images');
   }
 
   async findBySlug(slug: string): Promise<IProduct | null> {
     return Product.findOne({ slug, isActive: true })
       .populate('category', 'name slug')
-      .populate('relatedProducts', 'name slug price salePrice images averageRating');
+      .populate('relatedProducts', 'name slug price discountedPrice salePrice isSale images averageRating');
   }
 
   async findBySku(sku: string): Promise<IProduct | null> {
@@ -123,7 +123,7 @@ export class ProductRepository {
     })
       .sort({ averageRating: -1, soldCount: -1 })
       .limit(limit)
-      .select('name slug price salePrice images averageRating totalReviews');
+      .select('name slug price discountedPrice salePrice isSale images averageRating totalReviews');
   }
 
   async updateStock(productId: string, quantity: number): Promise<IProduct | null> {

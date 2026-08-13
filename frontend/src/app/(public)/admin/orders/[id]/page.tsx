@@ -137,12 +137,13 @@ export default function AdminOrderDetailPage() {
 
   const handleConfirmManualPayment = async () => {
     if (!order) return;
+    if (!window.confirm('Confirm that payment has been received for this order? This amount will be included in revenue.')) return;
     setConfirmingPayment(true);
     try {
       const { order: updated } = await adminService.confirmManualPayment(order._id);
       setOrder(updated);
       setNewStatus(updated.status);
-      toast.success('QR payment confirmed and order approved');
+      toast.success('Payment marked as paid and included in revenue');
     } catch (error: unknown) {
       const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(message || 'Failed to confirm payment');
@@ -508,7 +509,7 @@ export default function AdminOrderDetailPage() {
                   </a>
                 </div>
               )}
-              {order.paymentInfo.method === 'upi' && order.paymentInfo.status === 'processing' && (
+              {order.paymentInfo.method === 'upi' && ['pending', 'processing'].includes(order.paymentInfo.status) && (
                 <button
                   type="button"
                   onClick={handleConfirmManualPayment}
@@ -516,7 +517,7 @@ export default function AdminOrderDetailPage() {
                   className="btn-primary mt-2 inline-flex w-full items-center justify-center gap-2"
                 >
                   {confirmingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  Confirm QR Payment
+                  {order.paymentInfo.status === 'processing' ? 'Confirm QR Payment' : 'Mark Payment as Paid'}
                 </button>
               )}
               {order.loyaltyPointsEarned > 0 && (

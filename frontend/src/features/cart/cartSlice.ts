@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { CartItem, CartState, Product } from '@/types';
-import { calculateCartSummary } from '@/utils/helpers';
+import { calculateCartSummary, getProductEffectivePrice } from '@/utils/helpers';
 
 const initialState: CartState = {
   items: [],
@@ -20,7 +20,7 @@ const cartSlice = createSlice({
       action: PayloadAction<{ product: Product; quantity: number; color?: string }>
     ) => {
       const { product, quantity, color } = action.payload;
-      const price = product.salePrice || product.price;
+      const price = getProductEffectivePrice(product);
       const existingIndex = state.items.findIndex(
         (item) => item.product._id === product._id && item.color === color
       );

@@ -101,6 +101,13 @@ export const adminService = {
     return response.data.data as { product: Product };
   },
 
+  async deleteProductImage(productId: string, publicId: string) {
+    const response = await api.delete(
+      `/products/${productId}/images/${encodeURIComponent(publicId)}`
+    );
+    return response.data.data as { product: Product };
+  },
+
   async deleteProduct(id: string) {
     await api.delete(`/products/${id}`);
   },

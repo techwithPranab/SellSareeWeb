@@ -82,8 +82,8 @@ export const submitManualPaymentProof = asyncHandler(async (req: Request, res: R
 export const confirmManualPayment = asyncHandler(async (req: Request, res: Response) => {
   const order = await Order.findById(req.params.id);
   if (!order) return ApiResponse.notFound(res, 'Order not found');
-  if (order.paymentInfo.method !== PaymentMethod.UPI || !order.paymentInfo.paymentScreenshot || !order.paymentInfo.manualTransactionId) {
-    return ApiResponse.badRequest(res, 'Complete QR payment proof is required');
+  if (order.paymentInfo.method !== PaymentMethod.UPI) {
+    return ApiResponse.badRequest(res, 'Only manual UPI orders can be marked as paid');
   }
   if (order.paymentInfo.status === PaymentStatus.COMPLETED) {
     return ApiResponse.success(res, 'Payment is already confirmed', { order });
@@ -91,7 +91,8 @@ export const confirmManualPayment = asyncHandler(async (req: Request, res: Respo
 
   order.paymentInfo.status = PaymentStatus.COMPLETED;
   order.paymentInfo.paidAt = new Date();
-  order.status = OrderStatus.CONFIRMED;
+  // Do not move an order backwards if fulfilment has already started.
+  if (order.status === OrderStatus.PENDING) order.status = OrderStatus.CONFIRMED;
   await order.save();
   await order.populate('user', 'name email phone');
   return ApiResponse.success(res, 'Manual payment confirmed', { order });

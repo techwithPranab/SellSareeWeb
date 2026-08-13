@@ -101,6 +101,9 @@ export default function ProductsPage() {
           {!isLoading && (
             <p className="text-muted text-sm mt-1">{totalItems} products found</p>
           )}
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Explore Indian sarees online, including Jamdani, handloom, Bengali, Bangladeshi Jamdani, Kardana Jamdani, silk and Tasar sarees.
+          </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">

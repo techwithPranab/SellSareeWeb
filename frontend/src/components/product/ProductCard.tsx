@@ -9,7 +9,7 @@ import type { Product } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { toggleWishlist, selectIsInWishlist } from '@/features/wishlist/wishlistSlice';
-import { formatPrice, formatDiscount, getProductEffectivePrice, cn } from '@/utils/helpers';
+import { formatPrice, getProductDiscountPercent, getProductEffectivePrice, isProductComingSoon, formatDate, cn } from '@/utils/helpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -28,13 +28,13 @@ export default function ProductCard({
   const isWishlisted = useAppSelector(selectIsInWishlist(product._id));
   const { addItem, isInCart } = useCart();
 
-  const primaryImage = product.images?.[0]?.url ?? '/images/placeholder-saree.jpg';
-  const hoverImage = product.images?.[1]?.url ?? primaryImage;
+  const isComingSoon = isProductComingSoon(product);
+  const primaryImage = isComingSoon
+    ? '/images/product-coming-soon.svg'
+    : product.images?.[0]?.url ?? '/images/placeholder-saree.jpg';
+  const hoverImage = isComingSoon ? primaryImage : product.images?.[1]?.url ?? primaryImage;
   const effectivePrice = getProductEffectivePrice(product);
-  const discountPercent =
-    product.salePrice && product.salePrice < product.price
-      ? formatDiscount(product.price, product.salePrice)
-      : 0;
+  const discountPercent = getProductDiscountPercent(product);
 
   const handleWishlist = useCallback(
     (e: React.MouseEvent) => {
@@ -47,9 +47,10 @@ export default function ProductCard({
   const handleAddToCart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
+      if (isComingSoon) return;
       addItem(product);
     },
-    [addItem, product]
+    [addItem, isComingSoon, product]
   );
 
   const inCart = isInCart(product._id);
@@ -74,7 +75,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-all duration-500 group-hover:opacity-0"
+            className={cn('transition-all duration-500', isComingSoon ? 'object-contain' : 'object-cover group-hover:opacity-0')}
             loading="lazy"
           />
           {/* Hover Image */}
@@ -83,14 +84,22 @@ export default function ProductCard({
             alt={`${product.name} — alternate view`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover absolute inset-0 opacity-0 transition-all duration-500 group-hover:opacity-100"
+            className={cn('absolute inset-0 object-cover opacity-0 transition-all duration-500', !isComingSoon && 'group-hover:opacity-100')}
             loading="lazy"
           />
 
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {discountPercent > 0 && (
+            {isComingSoon && (
+              <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                Coming Soon
+              </span>
+            )}
+            {!isComingSoon && discountPercent > 0 && (
               <span className="badge-discount">−{discountPercent}%</span>
+            )}
+            {!isComingSoon && product.isSale && (
+              <span className="rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">Sale</span>
             )}
             {product.isNewArrival && (
               <span className="badge-new">New</span>
@@ -100,7 +109,7 @@ export default function ProductCard({
                 <Zap className="w-2.5 h-2.5" /> Featured
               </span>
             )}
-            {product.stock === 0 && (
+            {!isComingSoon && product.stock === 0 && (
               <span className="badge-sold-out">Sold Out</span>
             )}
           </div>
@@ -125,10 +134,12 @@ export default function ProductCard({
           <div className="absolute bottom-3 left-3 right-3 z-10 flex gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0}
+              disabled={product.stock === 0 || isComingSoon}
               className={cn(
                 'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md',
-                inCart
+                isComingSoon
+                  ? 'bg-amber-100 text-amber-700 cursor-not-allowed'
+                  : inCart
                   ? 'bg-green-600 text-white'
                   : product.stock === 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -136,7 +147,7 @@ export default function ProductCard({
               )}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              {inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              {isComingSoon ? 'Coming Soon' : inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
             </button>
             <Link
               href={`/products/${product.slug}`}
@@ -163,6 +174,9 @@ export default function ProductCard({
           <h3 className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
             {product.name}
           </h3>
+          {isComingSoon && product.launchDate && (
+            <p className="text-xs font-medium text-amber-700">Launching {formatDate(product.launchDate)}</p>
+          )}
 
           {/* Rating */}
           {product.averageRating > 0 && (
@@ -185,16 +199,29 @@ export default function ProductCard({
           )}
 
           {/* Pricing */}
-          <div className="flex items-center gap-2">
-            <span className="text-base font-bold text-foreground">
-              {formatPrice(effectivePrice)}
-            </span>
-            {discountPercent > 0 && (
-              <span className="text-sm text-muted line-through">
-                {formatPrice(product.price)}
+          {isComingSoon ? (
+            <div className="relative h-8 overflow-hidden rounded-lg border border-amber-200 bg-amber-50">
+              <div aria-hidden="true" className="absolute inset-0 select-none bg-white/40 blur-sm" />
+              <div className="absolute inset-0 flex items-center justify-center bg-white/65 px-2 text-center text-xs font-semibold text-amber-700 backdrop-blur-sm">
+                Price revealed at launch
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span
+                className={cn('text-base font-bold', product.isSale ? 'text-red-600' : 'text-foreground')}
+                aria-label={`${product.isSale ? 'Sale' : 'Discounted'} price ${formatPrice(effectivePrice)}`}
+              >
+                {formatPrice(effectivePrice)}
               </span>
-            )}
-          </div>
+              <span
+                className="rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 line-through decoration-red-500 decoration-2"
+                aria-label={`MRP ${formatPrice(product.price)}`}
+              >
+                MRP {formatPrice(product.price)}
+              </span>
+            </div>
+          )}
 
           {/* Fabric tag */}
           {product.fabric && (

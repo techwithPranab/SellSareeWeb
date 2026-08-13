@@ -136,7 +136,9 @@ export interface Product {
   sareeLength: string;
   careInstructions: string[];
   price: number;
+  discountedPrice?: number;
   salePrice?: number;
+  isSale: boolean;
   discountPercent: number;
   stock: number;
   soldCount: number;
@@ -148,6 +150,7 @@ export interface Product {
   isNewArrival: boolean;
   isBestSeller: boolean;
   isBridal: boolean;
+  launchDate?: string | null;
   averageRating: number;
   totalReviews: number;
   relatedProducts: Product[] | string[];
@@ -155,7 +158,7 @@ export interface Product {
   metaDescription?: string;
   isOnSale: boolean;
   effectivePrice: number;
-  status: 'active' | 'inactive' | 'out_of_stock' | 'draft';
+  status: 'active' | 'coming_soon' | 'inactive' | 'out_of_stock' | 'draft';
   createdAt: string;
   updatedAt: string;
 }

@@ -22,6 +22,23 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+type ReviewProduct = {
+  name: string;
+  slug: string;
+  images?: { url: string }[];
+};
+
+function isReviewProduct(product: unknown): product is ReviewProduct {
+  return Boolean(
+    product &&
+      typeof product === 'object' &&
+      'name' in product &&
+      typeof product.name === 'string' &&
+      'slug' in product &&
+      typeof product.slug === 'string'
+  );
+}
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,24 +72,27 @@ export default function ReviewsPage() {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => {
-            const product = review.product as unknown as { name: string; slug: string; images?: { url: string }[] };
-            const productImage = typeof product === 'object' && product?.images?.[0]?.url;
+            const product = review.product as unknown;
+            const productDetails = isReviewProduct(product) ? product : null;
+            const productImage = productDetails?.images?.[0]?.url;
             return (
               <div key={review._id} className="bg-white rounded-2xl border border-border p-5">
                 <div className="flex gap-4">
                   {productImage && (
                     <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-surface shrink-0">
-                      <Image src={productImage} alt={typeof product === 'object' ? product.name : ''} fill sizes="64px" className="object-cover" />
+                      <Image src={productImage} alt={productDetails?.name ?? 'Reviewed product'} fill sizes="64px" className="object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    {typeof product === 'object' && (
+                    {productDetails ? (
                       <Link
-                        href={`/products/${product.slug}`}
+                        href={`/products/${productDetails.slug}`}
                         className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1"
                       >
-                        {product.name}
+                        {productDetails.name}
                       </Link>
+                    ) : (
+                      <p className="font-semibold text-muted-foreground">Product no longer available</p>
                     )}
                     <div className="flex items-center gap-2 mt-1">
                       <StarRating rating={review.rating} />
@@ -108,4 +128,3 @@ export default function ReviewsPage() {
     </div>
   );
 }
-

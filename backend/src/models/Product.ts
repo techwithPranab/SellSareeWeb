@@ -75,10 +75,15 @@ const ProductSchema = new Schema<IProduct>(
       required: [true, 'Price is required'],
       min: [0, 'Price cannot be negative'],
     },
+    discountedPrice: {
+      type: Number,
+      min: [0, 'Discounted price cannot be negative'],
+    },
     salePrice: {
       type: Number,
       min: [0, 'Sale price cannot be negative'],
     },
+    isSale: { type: Boolean, default: false },
     discountPercent: {
       type: Number,
       default: 0,
@@ -101,6 +106,7 @@ const ProductSchema = new Schema<IProduct>(
     isNewArrival: { type: Boolean, default: false },
     isBestSeller: { type: Boolean, default: false },
     isBridal: { type: Boolean, default: false },
+    launchDate: { type: Date },
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0 },
     metaTitle: { type: String },
@@ -134,17 +140,19 @@ ProductSchema.index(
 
 // Virtual: isOnSale
 ProductSchema.virtual('isOnSale').get(function () {
-  return this.salePrice !== undefined && this.salePrice < this.price;
+  return this.isSale && this.salePrice !== undefined && this.salePrice < this.price;
 });
 
 // Virtual: effectivePrice
 ProductSchema.virtual('effectivePrice').get(function () {
-  return this.salePrice || this.price;
+  if (this.isSale && this.salePrice !== undefined) return this.salePrice;
+  return this.discountedPrice ?? this.price;
 });
 
 // Virtual: status
 ProductSchema.virtual('status').get(function () {
   if (!this.isActive) return ProductStatus.INACTIVE;
+  if (this.launchDate && this.launchDate.getTime() > Date.now()) return ProductStatus.COMING_SOON;
   if (this.stock === 0) return ProductStatus.OUT_OF_STOCK;
   return ProductStatus.ACTIVE;
 });
@@ -164,9 +172,21 @@ ProductSchema.pre('save', async function (next) {
   }
 
   // Calculate discount percent
-  if (this.salePrice && this.price) {
-    this.discountPercent = Math.round(((this.price - this.salePrice) / this.price) * 100);
+  const effectivePrice = this.isSale && this.salePrice !== undefined
+    ? this.salePrice
+    : this.discountedPrice ?? this.price;
+  if (this.discountedPrice !== undefined && this.discountedPrice > this.price) {
+    return next(new Error('Discounted price cannot exceed MRP'));
   }
+  if (this.isSale && this.salePrice === undefined) {
+    return next(new Error('Sale price is required when product is marked as Sale'));
+  }
+  if (this.isSale && this.salePrice !== undefined && this.salePrice > (this.discountedPrice ?? this.price)) {
+    return next(new Error('Sale price cannot exceed the discounted price'));
+  }
+  this.discountPercent = effectivePrice < this.price
+    ? Math.round(((this.price - effectivePrice) / this.price) * 100)
+    : 0;
 
   next();
 });

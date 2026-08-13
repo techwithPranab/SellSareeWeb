@@ -55,6 +55,19 @@ export default function EditProductPage() {
     }
   };
 
+  const handleDeleteImage = async (publicId: string) => {
+    if (!id) return;
+    try {
+      const { product: updated } = await adminService.deleteProductImage(id, publicId);
+      setProduct(updated);
+      toast.success('Image deleted successfully');
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Failed to delete image');
+      throw error;
+    }
+  };
+
   if (loading) return <LoadingSpinner label="Loading product…" />;
   if (!product) return <p className="text-muted-foreground">Product not found.</p>;
 
@@ -62,7 +75,12 @@ export default function EditProductPage() {
     <div>
       <AdminPageHeader title={`Edit: ${product.name}`} backHref="/admin/products" />
       <div className="bg-white rounded-2xl border border-border p-6">
-        <ProductForm product={product} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        <ProductForm
+          product={product}
+          onSubmit={handleSubmit}
+          onDeleteExistingImage={handleDeleteImage}
+          isSubmitting={isSubmitting}
+        />
       </div>
     </div>
   );

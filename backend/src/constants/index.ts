@@ -83,6 +83,7 @@ export enum SareeCategory {
 // Product Status
 export enum ProductStatus {
   ACTIVE = 'active',
+  COMING_SOON = 'coming_soon',
   INACTIVE = 'inactive',
   DRAFT = 'draft',
   OUT_OF_STOCK = 'out_of_stock',
