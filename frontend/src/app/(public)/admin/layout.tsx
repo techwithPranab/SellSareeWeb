@@ -7,10 +7,10 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminGuard>
-      <div className="container-custom py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="container-custom px-3 py-3 sm:px-4 sm:py-6 lg:py-10">
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-8">
           <AdminSidebar />
-          <div className="flex-1 min-w-0">{children}</div>
+          <main className="min-w-0 flex-1">{children}</main>
         </div>
       </div>
     </AdminGuard>

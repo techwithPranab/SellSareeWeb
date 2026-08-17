@@ -50,7 +50,7 @@ export default function AdminDashboardPage() {
         <p className="text-muted-foreground mt-1">Overview of your store performance</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {statCards.map((card) => (
           <div key={card.label} className="bg-white rounded-2xl border border-border p-5">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${card.color}`}>
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="bg-white rounded-2xl border border-border p-6">
           <h2 className="font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
             {QUICK_LINKS.map((link) => (
               <Link
                 key={link.href}

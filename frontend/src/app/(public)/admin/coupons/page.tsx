@@ -133,7 +133,7 @@ export default function AdminCouponsPage() {
           <div className="p-12 text-center text-muted-foreground text-sm">No coupons yet. Create your first coupon.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-[760px] w-full text-sm">
               <thead className="bg-surface text-left">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Code</th>
@@ -184,7 +184,7 @@ export default function AdminCouponsPage() {
 
       <AdminModal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Coupon' : 'Create Coupon'} size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Code *</label>
               <input {...register('code', { required: true })} className="input-field uppercase" disabled={!!editing} />

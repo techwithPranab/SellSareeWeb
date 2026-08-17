@@ -160,7 +160,7 @@ export default function AdminCategoriesPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-[700px] w-full text-sm">
               <thead className="bg-surface border-b border-border">
                 <tr>
                   <th className="text-left px-5 py-3 text-muted-foreground font-medium">Category</th>
@@ -248,8 +248,8 @@ export default function AdminCategoriesPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-border">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+          <div className="max-h-[95dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-white p-4 shadow-xl sm:rounded-2xl sm:p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-playfair text-lg font-bold text-foreground">
                 {editing ? 'Edit Category' : 'Add Category'}
@@ -327,7 +327,7 @@ export default function AdminCategoriesPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

@@ -12,8 +12,8 @@ interface AdminPageHeaderProps {
 
 export default function AdminPageHeader({ title, description, backHref, action }: AdminPageHeaderProps) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-      <div>
+    <div className="mb-5 flex flex-col items-stretch justify-between gap-4 sm:mb-6 sm:flex-row sm:items-start">
+      <div className="min-w-0">
         {backHref && (
           <Link
             href={asRoute(backHref)}
@@ -23,10 +23,10 @@ export default function AdminPageHeader({ title, description, backHref, action }
             Back
           </Link>
         )}
-        <h1 className="font-playfair text-2xl font-bold text-foreground">{title}</h1>
+        <h1 className="break-words font-playfair text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
         {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="w-full shrink-0 [&>*]:w-full sm:w-auto sm:[&>*]:w-auto">{action}</div>}
     </div>
   );
 }

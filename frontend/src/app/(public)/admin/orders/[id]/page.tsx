@@ -296,7 +296,7 @@ export default function AdminOrderDetailPage() {
         <div className="lg:col-span-2 space-y-6">
 
           {/* Items */}
-          <div className="bg-white rounded-2xl border border-border p-6">
+          <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
             <h2 className="font-semibold text-foreground mb-4">Order Items</h2>
             <div className="space-y-4">
               {order.items.map((item) => (
@@ -319,7 +319,7 @@ export default function AdminOrderDetailPage() {
 
           {/* Return Details Card — visible when status is return-related */}
           {isReturnContext && order.returnReason && (
-            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 space-y-3">
+            <div className="space-y-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 sm:p-6">
               <div className="flex items-center gap-2 text-orange-800 font-semibold">
                 <RotateCcw className="w-5 h-5 text-orange-600" />
                 Customer Return Details
@@ -376,7 +376,7 @@ export default function AdminOrderDetailPage() {
           )}
 
           {/* Shipping Address */}
-          <div className="bg-white rounded-2xl border border-border p-6">
+          <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
             <h2 className="font-semibold text-foreground mb-3">Shipping Address</h2>
             <p className="font-medium">{order.shippingAddress.fullName}</p>
             <p className="text-sm text-muted-foreground">{order.shippingAddress.phone}</p>
@@ -393,7 +393,7 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6">
 
           {/* Status updater */}
-          <div className="bg-white rounded-2xl border border-border p-6">
+          <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
             <h2 className="font-semibold text-foreground mb-4">Update Status</h2>
 
             {statusConfig && (
@@ -450,7 +450,7 @@ export default function AdminOrderDetailPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white rounded-2xl border border-border p-6">
+          <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
             <h2 className="font-semibold text-foreground mb-3">Summary</h2>
 
             {customer && (
@@ -537,7 +537,7 @@ export default function AdminOrderDetailPage() {
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-white rounded-2xl border border-border p-6">
+            <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
               <h2 className="font-semibold text-foreground mb-2">Customer Notes</h2>
               <p className="text-sm text-muted-foreground italic">{order.notes}</p>
             </div>
@@ -547,8 +547,8 @@ export default function AdminOrderDetailPage() {
 
       {/* ── Refund Modal ── */}
       {showRefundModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-border space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+          <div className="max-h-[95dvh] w-full max-w-sm space-y-4 overflow-y-auto rounded-t-2xl border border-border bg-white p-4 shadow-xl sm:rounded-2xl sm:p-6">
             <div className="flex items-center gap-2 text-primary font-semibold text-lg">
               <CreditCard className="w-5 h-5" />
               Initiate Refund
@@ -586,7 +586,7 @@ export default function AdminOrderDetailPage() {
                 </span>
               </div>
 
-              <div className="flex justify-end gap-3 pt-1">
+              <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setShowRefundModal(false)}

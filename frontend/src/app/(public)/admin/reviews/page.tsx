@@ -81,7 +81,7 @@ export default function AdminReviewsPage() {
       <AdminPageHeader title="Review Moderation" description="Approve, reject, and reply to customer reviews" />
 
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="p-4 border-b border-border flex gap-2">
+        <div className="flex gap-2 overflow-x-auto border-b border-border p-4">
           {(['pending', 'approved', 'all'] as const).map((f) => (
             <button
               key={f}
@@ -102,10 +102,10 @@ export default function AdminReviewsPage() {
         ) : (
           <div className="divide-y divide-border">
             {reviews.map((review) => (
-              <div key={review._id} className="p-5">
-                <div className="flex items-start justify-between gap-4">
+              <div key={review._id} className="p-4 sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
                       <div className="flex">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-secondary text-secondary' : 'text-gray-300'}`} />
@@ -130,7 +130,7 @@ export default function AdminReviewsPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex shrink-0 justify-end gap-1 self-end sm:self-auto">
                     {!review.isApproved && (
                       <button onClick={() => handleApprove(review._id)} className="p-2 rounded-lg hover:bg-green-50 text-green-600" title="Approve">
                         <Check className="w-4 h-4" />
@@ -163,7 +163,7 @@ export default function AdminReviewsPage() {
             placeholder="Write your reply…"
             className="input-field resize-none"
           />
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <button onClick={handleReply} disabled={replying} className="btn-primary btn-sm">
               {replying ? 'Posting…' : 'Post Reply'}
             </button>

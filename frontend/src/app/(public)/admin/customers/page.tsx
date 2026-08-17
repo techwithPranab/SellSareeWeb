@@ -130,7 +130,7 @@ export default function AdminCustomersPage() {
           <div className="p-12 text-center text-muted-foreground text-sm">No customers found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-[760px] w-full text-sm">
               <thead className="bg-surface text-left">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Customer</th>

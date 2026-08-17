@@ -86,7 +86,7 @@ export default function AdminAnalyticsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Today’s Revenue" value={formatPrice(orderStats?.todayRevenue ?? 0)} icon={TrendingUp} />
         <Kpi label="Today’s Orders" value={orderStats?.todayOrders ?? 0} icon={Package} />
         <Kpi label="Monthly Revenue" value={formatPrice(orderStats?.monthlyRevenue ?? 0)} icon={TrendingUp} />
@@ -128,7 +128,7 @@ export default function AdminAnalyticsPage() {
         <ChartCard title="Top Products — Last 30 Days" className="xl:col-span-2">
           {(orderStats?.topProducts ?? []).length ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="min-w-[640px] w-full text-sm">
                 <thead><tr className="border-b border-border text-left text-xs text-muted-foreground"><th className="pb-3 font-medium">Product</th><th className="pb-3 text-right font-medium">Units</th><th className="pb-3 text-right font-medium">Sales</th></tr></thead>
                 <tbody className="divide-y divide-border">
                   {orderStats!.topProducts.map((product) => <tr key={product._id}><td className="py-3 font-medium">{product.name}</td><td className="py-3 text-right">{product.quantity}</td><td className="py-3 text-right font-semibold">{formatPrice(product.revenue)}</td></tr>)}

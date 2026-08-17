@@ -13,22 +13,22 @@ export default function AdminPagination({ pagination, onPageChange }: AdminPagin
   if (!pagination || pagination.totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-      <p className="text-sm text-muted-foreground">
+    <div className="mt-6 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-center text-xs text-muted-foreground sm:text-left sm:text-sm">
         Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
       </p>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex">
         <button
           onClick={() => onPageChange(pagination.page - 1)}
           disabled={!pagination.hasPrevPage}
-          className="btn-outline btn-sm disabled:opacity-40"
+          className="btn-outline btn-sm justify-center disabled:opacity-40"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(pagination.page + 1)}
           disabled={!pagination.hasNextPage}
-          className="btn-outline btn-sm disabled:opacity-40"
+          className="btn-outline btn-sm justify-center disabled:opacity-40"
         >
           Next
         </button>

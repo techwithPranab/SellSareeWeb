@@ -24,7 +24,7 @@ export default function AdminModal({ open, onClose, title, children, size = 'md'
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -36,15 +36,15 @@ export default function AdminModal({ open, onClose, title, children, size = 'md'
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className={`relative w-full ${sizeMap[size]} bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col`}
+            className={`relative flex max-h-[95dvh] w-full ${sizeMap[size]} flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-2xl`}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <div className="flex items-center justify-between border-b border-border px-4 py-4 sm:px-6">
               <h2 className="font-semibold text-lg text-foreground">{title}</h2>
               <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
-            <div className="overflow-y-auto p-6">{children}</div>
+            <div className="overflow-y-auto p-4 sm:p-6">{children}</div>
           </motion.div>
         </div>
       )}
