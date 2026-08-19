@@ -21,6 +21,7 @@ import userRoutes from './routes/user.routes';
 import bannerRoutes from './routes/banner.routes';
 import launchRoutes from './routes/launch.routes';
 import settingRoutes from './routes/setting.routes';
+import expenseRoutes from './routes/expense.routes';
 
 // Load environment variables
 dotenv.config();
@@ -179,6 +180,7 @@ app.use(`${API_PREFIX}/users`, userRoutes);
 app.use(`${API_PREFIX}/banners`, bannerRoutes);
 app.use(`${API_PREFIX}/launch`, launchRoutes);
 app.use(`${API_PREFIX}/settings`, settingRoutes);
+app.use(`${API_PREFIX}/expenses`, expenseRoutes);
 
 // ============================================================
 // ERROR HANDLING

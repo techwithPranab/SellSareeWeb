@@ -1,0 +1,270 @@
+[{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bc0"
+  },
+  "name": "Pranab Paul",
+  "email": "admin@ppaura.in",
+  "phone": "9876543210",
+  "password": "$2a$12$/fY8WcklflRlfVd9hAAS5.814oXX8lJzqYEOur.ETfSYDmjs2xKQe",
+  "role": "admin",
+  "addresses": [
+    {
+      "fullName": "Pranab Paul",
+      "phone": "9876543210",
+      "addressLine1": "12 Park Street",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "pincode": "700016",
+      "country": "India",
+      "isDefault": true,
+      "type": "home",
+      "_id": {
+        "$oid": "6a75fdca8b702214fe1a7bc1"
+      }
+    }
+  ],
+  "isEmailVerified": true,
+  "isPhoneVerified": false,
+  "isActive": true,
+  "loyaltyPoints": 0,
+  "referralCode": "ADMIN001",
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-19T07:36:19.556Z"
+  },
+  "lastLogin": {
+    "$date": "2026-08-12T03:15:25.065Z"
+  },
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNzVmZGNhOGI3MDIyMTRmZTFhN2JjMCIsImVtYWlsIjoiYWRtaW5AcHBhdXJhLmluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg3MTI0OTc5LCJleHAiOjE3ODc3Mjk3Nzl9.jyiVwUcOXWFEA9OZ8-ryLzLCjLKL6HKGXaxG2Mkgvm4"
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bc2"
+  },
+  "name": "Riya Sharma",
+  "email": "riya@example.com",
+  "phone": "9812345678",
+  "password": "$2a$12$Ufd6VqTdrJbwVsBAFcYIUO.BUez2L4X/3Itv/6GlrWvpqBsNeKDBG",
+  "role": "customer",
+  "addresses": [
+    {
+      "fullName": "Riya Sharma",
+      "phone": "9812345678",
+      "addressLine1": "45 Bose Road",
+      "addressLine2": "Near Lake Gardens",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "pincode": "700045",
+      "country": "India",
+      "isDefault": false,
+      "type": "home",
+      "_id": {
+        "$oid": "6a75fdca8b702214fe1a7bc3"
+      }
+    },
+    {
+      "fullName": "Riya Sharma",
+      "phone": "9812345678",
+      "addressLine1": "Tech Park, Tower B, Floor 5",
+      "city": "Salt Lake",
+      "state": "West Bengal",
+      "pincode": "700091",
+      "country": "India",
+      "isDefault": true,
+      "type": "work",
+      "_id": {
+        "$oid": "6a75fdca8b702214fe1a7bc4"
+      }
+    }
+  ],
+  "isEmailVerified": true,
+  "isPhoneVerified": false,
+  "isActive": false,
+  "loyaltyPoints": 250,
+  "referralCode": "RIYA2025",
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-13T11:43:47.265Z"
+  },
+  "lastLogin": {
+    "$date": "2026-08-11T18:15:49.288Z"
+  },
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNzVmZGNhOGI3MDIyMTRmZTFhN2JjMiIsImVtYWlsIjoicml5YUBleGFtcGxlLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc4NjUwMzc4OSwiZXhwIjoxNzg3MTA4NTg5fQ.RDUXZ5FyzgQDffgcszlX9dnidgOYtlQnO64W7TvFOSg"
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bc5"
+  },
+  "name": "Ananya Bose",
+  "email": "ananya@example.com",
+  "phone": "9823456789",
+  "password": "$2a$12$Ufd6VqTdrJbwVsBAFcYIUO.BUez2L4X/3Itv/6GlrWvpqBsNeKDBG",
+  "role": "customer",
+  "addresses": [
+    {
+      "fullName": "Ananya Bose",
+      "phone": "9823456789",
+      "addressLine1": "78 Jodhpur Park",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "pincode": "700068",
+      "country": "India",
+      "isDefault": true,
+      "type": "home",
+      "_id": {
+        "$oid": "6a75fdca8b702214fe1a7bc6"
+      }
+    }
+  ],
+  "isEmailVerified": true,
+  "isPhoneVerified": false,
+  "isActive": false,
+  "loyaltyPoints": 100,
+  "referralCode": "ANAN2025",
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-13T11:43:48.557Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bc7"
+  },
+  "name": "Priya Menon",
+  "email": "priya@example.com",
+  "phone": "9834567890",
+  "password": "$2a$12$Ufd6VqTdrJbwVsBAFcYIUO.BUez2L4X/3Itv/6GlrWvpqBsNeKDBG",
+  "role": "customer",
+  "addresses": [
+    {
+      "fullName": "Priya Menon",
+      "phone": "9834567890",
+      "addressLine1": "22 MG Road",
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "pincode": "560001",
+      "country": "India",
+      "isDefault": true,
+      "type": "home",
+      "_id": {
+        "$oid": "6a75fdca8b702214fe1a7bc8"
+      }
+    }
+  ],
+  "isEmailVerified": true,
+  "isPhoneVerified": false,
+  "isActive": false,
+  "loyaltyPoints": 75,
+  "referralCode": "PRIY2025",
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-13T11:43:49.487Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bc9"
+  },
+  "name": "Sunita Verma",
+  "email": "sunita@example.com",
+  "phone": "9845678901",
+  "password": "$2a$12$Ufd6VqTdrJbwVsBAFcYIUO.BUez2L4X/3Itv/6GlrWvpqBsNeKDBG",
+  "role": "customer",
+  "addresses": [],
+  "isEmailVerified": false,
+  "isPhoneVerified": false,
+  "isActive": false,
+  "loyaltyPoints": 0,
+  "referralCode": "SUNI2025",
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-13T11:43:50.319Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78c1034dffe4238460c7d1"
+  },
+  "name": "Papiya Paul",
+  "email": "quicklearn1984@gmail.com",
+  "phone": "9836027578",
+  "role": "customer",
+  "addresses": [
+    {
+      "fullName": "Papiya Paul",
+      "phone": "9836027578",
+      "addressLine1": "asdasd",
+      "addressLine2": "asdasda",
+      "city": "sdsadas",
+      "state": "West Bengal",
+      "pincode": "700122",
+      "country": "India",
+      "isDefault": true,
+      "type": "home",
+      "_id": {
+        "$oid": "6a78c1034dffe4238460c7d2"
+      }
+    }
+  ],
+  "isEmailVerified": false,
+  "isPhoneVerified": false,
+  "isActive": true,
+  "loyaltyPoints": 3799,
+  "wishlist": [],
+  "preferredLanguage": "en",
+  "preferredCurrency": "INR",
+  "createdAt": {
+    "$date": "2026-08-09T18:03:47.541Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-11T16:20:58.021Z"
+  },
+  "referralCode": "PAP5648A7",
+  "__v": 0,
+  "importantDates": [
+    {
+      "label": "Birthday",
+      "date": {
+        "$date": "2026-08-18T00:00:00.000Z"
+      },
+      "notes": "",
+      "_id": {
+        "$oid": "6a79531d422869972f1984fd"
+      }
+    }
+  ],
+  "passwordResetExpires": {
+    "$date": "2026-08-11T16:30:58.016Z"
+  },
+  "passwordResetToken": "bf7ba2a98810d84bca542cd01e3ed366df009f3417ba58ed4596d5f1350e2586"
+}]

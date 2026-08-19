@@ -47,7 +47,64 @@ export interface StoreSettings {
   socialLinks: Record<string, string>;
 }
 
+export interface AdminExpense {
+  _id: string;
+  transactionType: 'expense' | 'investment';
+  expenseDate: string;
+  category: string;
+  amount: number;
+  description: string;
+  vendor?: string;
+  paymentMethod: 'Cash' | 'UPI' | 'Bank Transfer' | 'Card' | 'Other';
+  reference?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseSummary {
+  asOf: string;
+  totalRevenue: number;
+  totalInvestments: number;
+  totalExpenses: number;
+  currentBalance: number;
+  todayExpenses: number;
+  monthExpenses: number;
+  todayInvestments: number;
+  monthInvestments: number;
+  byCategory: Array<{ _id: string; amount: number; count: number }>;
+}
+
 export const adminService = {
+  async getExpenses(params?: { page?: number; limit?: number; category?: string; from?: string; to?: string }) {
+    const response = await api.get('/expenses', { params });
+    return response.data as PaginatedResponse<AdminExpense>;
+  },
+
+  async getExpenseSummary() {
+    const response = await api.get('/expenses/summary');
+    return response.data.data as { summary: ExpenseSummary };
+  },
+
+  async exportExpenses(params?: { category?: string; from?: string; to?: string }) {
+    const response = await api.get('/expenses/export', { params, responseType: 'blob' });
+    return response.data as Blob;
+  },
+
+  async createExpense(data: Omit<AdminExpense, '_id' | 'createdAt' | 'updatedAt'>) {
+    const response = await api.post('/expenses', data);
+    return response.data.data as { expense: AdminExpense };
+  },
+
+  async updateExpense(id: string, data: Omit<AdminExpense, '_id' | 'createdAt' | 'updatedAt'>) {
+    const response = await api.put(`/expenses/${id}`, data);
+    return response.data.data as { expense: AdminExpense };
+  },
+
+  async deleteExpense(id: string) {
+    await api.delete(`/expenses/${id}`);
+  },
+
   async getStoreSettings() {
     const response = await api.get('/settings');
     return response.data.data as { settings: StoreSettings };
@@ -173,7 +230,7 @@ export const adminService = {
   },
 
   // ── Customers ──────────────────────────────────────────────────────────────
-  async getCustomers(params?: { page?: number; limit?: number; search?: string; role?: string }) {
+  async getCustomers(params?: { page?: number; limit?: number; search?: string; role?: string; isActive?: boolean }) {
     const response = await api.get('/users/admin/users', { params });
     return response.data as PaginatedResponse<User>;
   },

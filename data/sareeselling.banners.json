@@ -1,0 +1,143 @@
+[{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c1f"
+  },
+  "title": "Silk Sale — Up to 20% Off",
+  "subtitle": "Limited time offer on our premium silk collection.",
+  "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&q=85",
+  "imagePublicId": "banners/mid-silk-sale",
+  "link": "/products?fabric=silk&sale=true",
+  "position": "middle",
+  "sortOrder": 1,
+  "isActive": true,
+  "endDate": {
+    "$date": "2026-09-06T15:46:18.710Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.711Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c20"
+  },
+  "title": "Free Shipping on Orders Above ₹999",
+  "subtitle": "Across India. All saree styles.",
+  "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&q=85",
+  "imagePublicId": "banners/bottom-freeship",
+  "link": "/products",
+  "position": "bottom",
+  "sortOrder": 1,
+  "isActive": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.711Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78be78799174e4da22a83c"
+  },
+  "imagePublicId": "seed/carousel-jamdani",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  },
+  "image": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1800&q=85&auto=format&fit=crop",
+  "isActive": true,
+  "link": "/products?search=jamdani",
+  "position": "hero",
+  "sortOrder": 1,
+  "subtitle": "Delicate motifs appear to float across the weave, shaped patiently by skilled artisan hands.",
+  "title": "The Art of Jamdani",
+  "updatedAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78be78799174e4da22a83d"
+  },
+  "imagePublicId": "seed/carousel-handloom",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  },
+  "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1800&q=85&auto=format&fit=crop",
+  "isActive": true,
+  "link": "/products?category=handloom",
+  "position": "hero",
+  "sortOrder": 2,
+  "subtitle": "Sarees woven slowly and thoughtfully, celebrating the character of true handmade craft.",
+  "title": "Authentic Handloom Stories",
+  "updatedAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78be78799174e4da22a83e"
+  },
+  "imagePublicId": "seed/carousel-bangladeshi-jamdani",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  },
+  "image": "https://images.unsplash.com/photo-1618901185975-d59f7091bcfe?w=1800&q=85&auto=format&fit=crop",
+  "isActive": true,
+  "link": "/products?search=bangladeshi%20jamdani",
+  "position": "hero",
+  "sortOrder": 3,
+  "subtitle": "A graceful expression of Bengal’s weaving legacy, rich with rhythmic motifs and timeless detail.",
+  "title": "Bangladeshi Jamdani Heritage",
+  "updatedAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78be78799174e4da22a83f"
+  },
+  "imagePublicId": "seed/carousel-kardana-jamdani-silk",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  },
+  "image": "https://images.unsplash.com/photo-1621184455862-c163dfb30e0f?w=1800&q=85&auto=format&fit=crop",
+  "isActive": true,
+  "link": "/products?search=kardana%20jamdani%20silk",
+  "position": "hero",
+  "sortOrder": 4,
+  "subtitle": "Lustrous silk, Jamdani artistry, and delicate kardana work come together for a festive statement.",
+  "title": "Kardana Jamdani Silk",
+  "updatedAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a78be78799174e4da22a840"
+  },
+  "imagePublicId": "seed/carousel-tasar",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  },
+  "image": "https://images.unsplash.com/photo-1610189012906-4c0aa9b9781e?w=1800&q=85&auto=format&fit=crop",
+  "isActive": true,
+  "link": "/products?search=tasar",
+  "position": "hero",
+  "sortOrder": 5,
+  "subtitle": "Earthy texture and a subtle natural sheen make Tasar an enduring choice for effortless elegance.",
+  "title": "Naturally Elegant Tasar",
+  "updatedAt": {
+    "$date": "2026-08-09T17:52:56.455Z"
+  }
+}]

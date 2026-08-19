@@ -1,0 +1,90 @@
+[{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bd1"
+  },
+  "name": "Tant Sarees",
+  "description": "Traditional Bengali tant sarees known for their fine weave and elegant patterns.",
+  "image": "https://res.cloudinary.com/demo/image/upload/v1/samples/tant-saree.jpg",
+  "imagePublicId": "categories/tant",
+  "parent": null,
+  "level": 0,
+  "sortOrder": 3,
+  "isActive": true,
+  "productCount": 1,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.637Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.705Z"
+  },
+  "slug": "tant-sarees",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bd6"
+  },
+  "name": "Handloom Sarees",
+  "description": "Authentic handloom sarees crafted by skilled artisans using traditional techniques.",
+  "image": "https://res.cloudinary.com/demo/image/upload/v1/samples/handloom-saree.jpg",
+  "imagePublicId": "categories/handloom",
+  "parent": null,
+  "level": 0,
+  "sortOrder": 8,
+  "isActive": true,
+  "productCount": 1,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.637Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.710Z"
+  },
+  "slug": "handloom-sarees",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bcf"
+  },
+  "name": "Silk Sarees",
+  "description": "Luxurious pure silk sarees from across India, perfect for weddings and festive occasions.",
+  "image": "https://res.cloudinary.com/demo/image/upload/v1/samples/silk-saree.jpg",
+  "imagePublicId": "categories/silk",
+  "parent": null,
+  "level": 0,
+  "sortOrder": 1,
+  "isActive": true,
+  "productCount": 3,
+  "metaTitle": "Buy Silk Sarees Online | PP's Aura",
+  "metaDescription": "Shop the finest collection of pure silk sarees — Kanjivaram, Banarasi, Mysore Silk and more.",
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.636Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.696Z"
+  },
+  "slug": "silk-sarees",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bd0"
+  },
+  "name": "Cotton Sarees",
+  "description": "Lightweight and breathable cotton sarees for everyday wear and casual occasions.",
+  "image": "https://res.cloudinary.com/demo/image/upload/v1/samples/cotton-saree.jpg",
+  "imagePublicId": "categories/cotton",
+  "parent": null,
+  "level": 0,
+  "sortOrder": 2,
+  "isActive": true,
+  "productCount": 2,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.637Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.704Z"
+  },
+  "slug": "cotton-sarees",
+  "__v": 0
+}]

@@ -1,0 +1,214 @@
+[{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c22"
+  },
+  "code": "WELCOME10",
+  "description": "10% off on your first order",
+  "type": "percentage",
+  "discountValue": 10,
+  "minOrderAmount": 500,
+  "maxDiscount": 500,
+  "usageLimit": -1,
+  "usedCount": 0,
+  "userUsageLimit": 1,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c23"
+  },
+  "code": "FLAT500",
+  "description": "₹500 flat off on orders above ₹3000",
+  "type": "fixed",
+  "discountValue": 500,
+  "minOrderAmount": 3000,
+  "usageLimit": 200,
+  "usedCount": 0,
+  "userUsageLimit": 2,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c24"
+  },
+  "code": "FREESHIP",
+  "description": "Free shipping on any order",
+  "type": "free_shipping",
+  "discountValue": 0,
+  "minOrderAmount": 0,
+  "usageLimit": -1,
+  "usedCount": 0,
+  "userUsageLimit": 3,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c25"
+  },
+  "code": "SILK15",
+  "description": "15% off on all silk sarees",
+  "type": "percentage",
+  "discountValue": 15,
+  "minOrderAmount": 5000,
+  "maxDiscount": 2000,
+  "usageLimit": 100,
+  "usedCount": 0,
+  "userUsageLimit": 1,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c26"
+  },
+  "code": "BRIDAL20",
+  "description": "20% off on bridal collection",
+  "type": "percentage",
+  "discountValue": 20,
+  "minOrderAmount": 10000,
+  "maxDiscount": 5000,
+  "usageLimit": 50,
+  "usedCount": 0,
+  "userUsageLimit": 1,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c27"
+  },
+  "code": "NEWUSER50",
+  "description": "New user special — ₹50 off on first order",
+  "type": "fixed",
+  "discountValue": 50,
+  "minOrderAmount": 299,
+  "usageLimit": -1,
+  "usedCount": 0,
+  "userUsageLimit": 1,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-08-07T15:46:18.713Z"
+  },
+  "endDate": {
+    "$date": "2027-08-07T15:46:18.713Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7c28"
+  },
+  "code": "SUMMER25",
+  "description": "25% off on cotton & tant sarees",
+  "type": "percentage",
+  "discountValue": 25,
+  "minOrderAmount": 800,
+  "maxDiscount": 1000,
+  "usageLimit": 300,
+  "usedCount": 42,
+  "userUsageLimit": 2,
+  "usedBy": [],
+  "categories": [],
+  "products": [],
+  "isActive": false,
+  "startDate": {
+    "$date": "2026-04-01T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2026-06-30T00:00:00.000Z"
+  },
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-07T15:46:18.714Z"
+  }
+}]

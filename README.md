@@ -1,8 +1,8 @@
-# 🥻 Rupkatha Sarees — Enterprise E-Commerce Platform
+# 🥻 PP's Aura — Enterprise E-Commerce Platform
 
 A production-ready, full-stack saree e-commerce platform built with **Next.js 15**, **Node.js**, **TypeScript**, **MongoDB Atlas**, and **Razorpay**.
 
-![Rupkatha Sarees](https://img.shields.io/badge/Rupkatha-Sarees-orange?style=for-the-badge)
+![PP's Aura](https://img.shields.io/badge/PP%27s-Aura-orange?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
 ![Node.js](https://img.shields.io/badge/Node.js-20-green?style=for-the-badge&logo=node.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=for-the-badge&logo=typescript)
@@ -198,6 +198,6 @@ cd backend && npm run build
 
 ## 📧 Contact
 
-**Rupkatha Sarees** — Where every thread tells a story.
+**PP's Aura** — Where every thread tells a story.
 
 Built with ❤️ using modern web technologies.

@@ -167,11 +167,11 @@ export const SAREE_COLORS = [
 
 // Social Links
 export const SOCIAL_LINKS = {
-  instagram: 'https://instagram.com/rupkathasarees',
-  facebook: 'https://facebook.com/rupkathasarees',
-  twitter: 'https://twitter.com/rupkathasarees',
-  youtube: 'https://youtube.com/@rupkathasarees',
-  pinterest: 'https://pinterest.com/rupkathasarees',
+  instagram: 'https://instagram.com/ppsaura',
+  facebook: 'https://facebook.com/ppsaura',
+  twitter: 'https://twitter.com/ppsaura',
+  youtube: 'https://youtube.com/@ppsaura',
+  pinterest: 'https://pinterest.com/ppsaura',
   whatsapp: `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`,
 };
 
@@ -180,14 +180,14 @@ export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+91XX
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  CART: 'rupkatha_cart',
-  WISHLIST: 'rupkatha_wishlist',
-  RECENTLY_VIEWED: 'rupkatha_recently_viewed',
-  COMPARE_LIST: 'rupkatha_compare',
-  AUTH_TOKEN: 'rupkatha_access_token',
-  REFRESH_TOKEN: 'rupkatha_refresh_token',
-  PREFERRED_LANGUAGE: 'rupkatha_lang',
-  PREFERRED_CURRENCY: 'rupkatha_currency',
+  CART: 'pps_aura_cart',
+  WISHLIST: 'pps_aura_wishlist',
+  RECENTLY_VIEWED: 'pps_aura_recently_viewed',
+  COMPARE_LIST: 'pps_aura_compare',
+  AUTH_TOKEN: 'pps_aura_access_token',
+  REFRESH_TOKEN: 'pps_aura_refresh_token',
+  PREFERRED_LANGUAGE: 'pps_aura_lang',
+  PREFERRED_CURRENCY: 'pps_aura_currency',
 };
 
 // Currencies

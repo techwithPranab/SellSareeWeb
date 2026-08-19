@@ -18,7 +18,7 @@ const rootReducer = combineReducers({
 });
 
 const persistConfig = {
-  key: 'rupkatha_root',
+  key: 'pps_aura_root',
   storage,
   whitelist: ['auth', 'cart', 'wishlist'], // Only persist these reducers
 };

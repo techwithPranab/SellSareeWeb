@@ -1,0 +1,27 @@
+[{
+  "_id": {
+    "$oid": "6a7daddb799174e4da22a841"
+  },
+  "key": "store",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-08-13T11:43:23.967Z"
+  },
+  "freeShippingThreshold": 999,
+  "loyaltyPointsRate": 1,
+  "socialLinks": {
+    "instagram": "https://instagram.com/ppaura",
+    "facebook": "https://facebook.com/ppaura",
+    "twitter": "https://twitter.com/ppaura",
+    "youtube": "https://youtube.com/@ppaura",
+    "pinterest": "https://pinterest.com/ppaura",
+    "whatsapp": ""
+  },
+  "standardShippingRate": 99,
+  "storeAddress": "12 Silk Street, Kolkata — 700001, West Bengal",
+  "storeName": "PP’s Aura",
+  "supportEmail": "support@ppaura.in",
+  "updatedAt": {
+    "$date": "2026-08-13T11:43:26.352Z"
+  }
+}]

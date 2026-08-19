@@ -46,11 +46,11 @@ export default function CreateWhatsAppOrderPage() {
   useEffect(() => {
     Promise.all([
       adminService.getProducts({ page: 1, limit: 100 }),
-      adminService.getCustomers({ page: 1, limit: 100, role: 'customer' }),
+      adminService.getCustomers({ page: 1, limit: 100, role: 'customer', isActive: true }),
     ])
       .then(([productResponse, customerResponse]) => {
         setProducts((productResponse.data ?? []).filter((product) => product.isActive && product.stock > 0));
-        setCustomers(customerResponse.data ?? []);
+        setCustomers((customerResponse.data ?? []).filter((customer) => customer.isActive));
       })
       .catch(() => toast.error('Could not load customers or products'))
       .finally(() => setLoading(false));
@@ -115,6 +115,11 @@ export default function CreateWhatsAppOrderPage() {
 
     if (customerMode === 'existing' && !customerId) {
       toast.error('Select a customer');
+      return;
+    }
+    if (customerMode === 'existing' && !customers.some((customer) => customer._id === customerId && customer.isActive)) {
+      toast.error('The selected customer account is no longer active');
+      setCustomerId('');
       return;
     }
     if (items.length === 0) {

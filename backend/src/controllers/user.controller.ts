@@ -189,10 +189,12 @@ export const getProductReviews = asyncHandler(async (req: Request, res: Response
 // ========================= ADMIN =========================
 
 export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, role, search } = req.query;
+  const { page, limit, role, search, isActive } = req.query;
 
   const filter: Record<string, unknown> = {};
   if (role) filter.role = role;
+  if (isActive === 'true') filter.isActive = true;
+  if (isActive === 'false') filter.isActive = false;
   if (search) {
     filter.$or = [
       { name: new RegExp(search as string, 'i') },

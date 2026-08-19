@@ -1,0 +1,137 @@
+[{
+  "_id": {
+    "$oid": "6a75fdca8b702214fe1a7bed"
+  },
+  "name": "Handwoven Bengal Cotton Saree — Mustard",
+  "description": "A beautifully handwoven pure cotton saree from the heartland of West Bengal. The vibrant mustard yellow colour is complemented by a bold red border and traditional woven motifs. Soft, breathable and perfect for daily wear.",
+  "shortDescription": "Handwoven Bengal cotton in mustard with red border — perfect daily wear.",
+  "sku": "COT-BEN-001",
+  "category": {
+    "$oid": "6a75fdca8b702214fe1a7bcf"
+  },
+  "tags": [
+    "cotton",
+    "bengal",
+    "handwoven",
+    "daily wear"
+  ],
+  "fabric": "cotton",
+  "occasion": [
+    "Casual",
+    "Daily Wear",
+    "Puja"
+  ],
+  "style": "Traditional",
+  "color": "Mustard Yellow",
+  "colorCode": "#ffdb58",
+  "pattern": "Woven Checks",
+  "blouseLength": "80 cm",
+  "sareeLength": "5.5 meters",
+  "careInstructions": [],
+  "price": 1200,
+  "discountPercent": 17,
+  "stock": 32,
+  "soldCount": 123,
+  "images": [
+    {
+      "url": "https://images.unsplash.com/photo-1585914924626-15adac1e6402?w=800&q=80",
+      "publicId": "products/cot-ben-001-1",
+      "isDefault": true,
+      "sortOrder": 0
+    }
+  ],
+  "isActive": true,
+  "isFeatured": false,
+  "isNewArrival": false,
+  "isBestSeller": true,
+  "isBridal": false,
+  "averageRating": 4.5,
+  "totalReviews": 2,
+  "relatedProducts": [],
+  "variants": [],
+  "dimensions": {
+    "length": 5.5,
+    "width": 1.2,
+    "weight": 500,
+    "unit": "meters"
+  },
+  "createdAt": {
+    "$date": "2026-08-07T15:46:18.663Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-12T15:40:38.267Z"
+  },
+  "slug": "handwoven-bengal-cotton-saree-mustard",
+  "__v": 0,
+  "launchDate": {
+    "$date": "2026-08-21T18:30:00.000Z"
+  },
+  "salePrice": 800,
+  "discountedPrice": 1000,
+  "isSale": false
+},
+{
+  "_id": {
+    "$oid": "6a826b25332a29ef3e0ec820"
+  },
+  "name": "Manipuri Cotton- Red",
+  "description": "Lightweight, breathable and elegant, Manipuri Cotton Sarees offer traditional charm, comfortable draping and effortless style for everyday and festive occasions.",
+  "shortDescription": "Lightweight Cotton with Traditional Elegance",
+  "sku": "MAN-COT-RED-01",
+  "category": {
+    "$oid": "6a75fdca8b702214fe1a7bd0"
+  },
+  "tags": [],
+  "fabric": "cotton",
+  "occasion": [
+    "Wedding",
+    "Durga Puja",
+    "Casual"
+  ],
+  "color": "Red",
+  "colorCode": "#000000",
+  "pattern": "",
+  "blouseLength": "80 cm",
+  "sareeLength": "5.5 meters",
+  "careInstructions": [],
+  "price": 3499,
+  "discountedPrice": 2699,
+  "salePrice": 2599,
+  "isSale": false,
+  "discountPercent": 23,
+  "stock": 1,
+  "soldCount": 0,
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/due8vcyim/image/upload/v1786933660/PPsAura/products/MAN-COT-RED-01/d9eygcqlvudn0wcco8bc.jpg",
+      "publicId": "PPsAura/products/MAN-COT-RED-01/d9eygcqlvudn0wcco8bc",
+      "alt": "Manipuri Cotton- Red",
+      "isDefault": true,
+      "sortOrder": 0
+    }
+  ],
+  "isActive": true,
+  "isFeatured": false,
+  "isNewArrival": true,
+  "isBestSeller": false,
+  "isBridal": false,
+  "launchDate": null,
+  "averageRating": 0,
+  "totalReviews": 0,
+  "relatedProducts": [],
+  "variants": [],
+  "dimensions": {
+    "length": 5.5,
+    "width": 1.2,
+    "weight": 500,
+    "unit": "meters"
+  },
+  "createdAt": {
+    "$date": "2026-08-17T02:00:05.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-17T02:27:41.033Z"
+  },
+  "slug": "manipuri-cotton-red",
+  "__v": 0
+}]

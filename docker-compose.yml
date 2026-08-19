@@ -3,44 +3,44 @@ version: '3.9'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: rupkatha_mongo
+    container_name: ppsaura_mongo
     restart: always
     ports:
       - '27017:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: rupkatha_sarees
+      MONGO_INITDB_DATABASE: pps_aura
     volumes:
       - mongo_data:/data/db
     networks:
-      - rupkatha_net
+      - ppsaura_net
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: rupkatha_backend
+    container_name: ppsaura_backend
     restart: always
     ports:
       - '5000:5000'
     environment:
       NODE_ENV: development
       PORT: 5000
-      MONGO_URI: mongodb://admin:password123@mongodb:27017/rupkatha_sarees?authSource=admin
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/pps_aura?authSource=admin
     depends_on:
       - mongodb
     volumes:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - rupkatha_net
+      - ppsaura_net
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: rupkatha_frontend
+    container_name: ppsaura_frontend
     restart: always
     ports:
       - '3000:3000'
@@ -53,11 +53,11 @@ services:
       - /app/node_modules
       - /app/.next
     networks:
-      - rupkatha_net
+      - ppsaura_net
 
 volumes:
   mongo_data:
 
 networks:
-  rupkatha_net:
+  ppsaura_net:
     driver: bridge

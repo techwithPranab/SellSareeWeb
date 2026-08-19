@@ -18,6 +18,7 @@ import {
   LogOut,
   Menu,
   X,
+  ReceiptIndianRupee,
 } from 'lucide-react';
 import { cn, asRoute } from '@/utils/helpers';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
   { href: '/admin/banners', label: 'Homepage Carousel', icon: Image },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/expenses', label: 'Expense Tracker', icon: ReceiptIndianRupee },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];

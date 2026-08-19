@@ -121,7 +121,7 @@ api.interceptors.response.use(
 const getAccessToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const state = JSON.parse(localStorage.getItem('persist:rupkatha_root') || '{}');
+    const state = JSON.parse(localStorage.getItem('persist:pps_aura_root') || '{}');
     const auth = JSON.parse(state.auth || '{}');
     return auth.accessToken || null;
   } catch {
@@ -132,7 +132,7 @@ const getAccessToken = (): string | null => {
 const getRefreshToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const state = JSON.parse(localStorage.getItem('persist:rupkatha_root') || '{}');
+    const state = JSON.parse(localStorage.getItem('persist:pps_aura_root') || '{}');
     const auth = JSON.parse(state.auth || '{}');
     return auth.refreshToken || null;
   } catch {
@@ -143,11 +143,11 @@ const getRefreshToken = (): string | null => {
 const setAccessToken = (token: string): void => {
   if (typeof window === 'undefined') return;
   try {
-    const state = JSON.parse(localStorage.getItem('persist:rupkatha_root') || '{}');
+    const state = JSON.parse(localStorage.getItem('persist:pps_aura_root') || '{}');
     const auth = JSON.parse(state.auth || '{}');
     auth.accessToken = token;
     state.auth = JSON.stringify(auth);
-    localStorage.setItem('persist:rupkatha_root', JSON.stringify(state));
+    localStorage.setItem('persist:pps_aura_root', JSON.stringify(state));
   } catch {
     // silent fail
   }
@@ -156,11 +156,11 @@ const setAccessToken = (token: string): void => {
 const setRefreshToken = (token: string): void => {
   if (typeof window === 'undefined') return;
   try {
-    const state = JSON.parse(localStorage.getItem('persist:rupkatha_root') || '{}');
+    const state = JSON.parse(localStorage.getItem('persist:pps_aura_root') || '{}');
     const auth = JSON.parse(state.auth || '{}');
     auth.refreshToken = token;
     state.auth = JSON.stringify(auth);
-    localStorage.setItem('persist:rupkatha_root', JSON.stringify(state));
+    localStorage.setItem('persist:pps_aura_root', JSON.stringify(state));
   } catch {
     // silent fail
   }
@@ -169,14 +169,14 @@ const setRefreshToken = (token: string): void => {
 const clearTokens = (): void => {
   if (typeof window === 'undefined') return;
   try {
-    const state = JSON.parse(localStorage.getItem('persist:rupkatha_root') || '{}');
+    const state = JSON.parse(localStorage.getItem('persist:pps_aura_root') || '{}');
     const auth = JSON.parse(state.auth || '{}');
     auth.accessToken = null;
     auth.refreshToken = null;
     auth.isAuthenticated = false;
     auth.user = null;
     state.auth = JSON.stringify(auth);
-    localStorage.setItem('persist:rupkatha_root', JSON.stringify(state));
+    localStorage.setItem('persist:pps_aura_root', JSON.stringify(state));
   } catch {
     // silent fail
   }
