@@ -3,7 +3,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production
+# TypeScript and its type definitions are development dependencies required
+# only while compiling the application.
+RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
@@ -17,9 +19,10 @@ RUN apk add --no-cache tini
 
 WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=builder /app/dist ./dist
 
 RUN mkdir -p uploads logs
 
