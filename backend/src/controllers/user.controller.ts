@@ -15,7 +15,7 @@ import mongoose from 'mongoose';
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.findById(req.user!.id);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Profile retrieved', { user });
+  return ApiResponse.success(res, 'Profile retrieved', { user });
 });
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
@@ -24,37 +24,37 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
     name, phone, preferredLanguage, preferredCurrency,
   });
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Profile updated', { user });
+  return ApiResponse.success(res, 'Profile updated', { user });
 });
 
 export const getAddresses = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.findById(req.user!.id);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Addresses retrieved', { addresses: user.addresses });
+  return ApiResponse.success(res, 'Addresses retrieved', { addresses: user.addresses });
 });
 
 export const addAddress = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.addAddress(req.user!.id, req.body);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.created(res, 'Address added', { addresses: user.addresses });
+  return ApiResponse.created(res, 'Address added', { addresses: user.addresses });
 });
 
 export const updateAddress = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.updateAddress(req.user!.id, req.params.addressId, req.body);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Address updated', { addresses: user.addresses });
+  return ApiResponse.success(res, 'Address updated', { addresses: user.addresses });
 });
 
 export const deleteAddress = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.deleteAddress(req.user!.id, req.params.addressId);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Address deleted', { addresses: user.addresses });
+  return ApiResponse.success(res, 'Address deleted', { addresses: user.addresses });
 });
 
 export const setDefaultAddress = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.setDefaultAddress(req.user!.id, req.params.addressId);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Default address set', { addresses: user.addresses });
+  return ApiResponse.success(res, 'Default address set', { addresses: user.addresses });
 });
 
 export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
@@ -62,25 +62,25 @@ export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
   if (!user) return ApiResponse.notFound(res, 'User not found');
 
   const populatedUser = await user.populate('wishlist', 'name slug price discountedPrice salePrice isSale images averageRating');
-  ApiResponse.success(res, 'Wishlist retrieved', { wishlist: populatedUser.wishlist });
+  return ApiResponse.success(res, 'Wishlist retrieved', { wishlist: populatedUser.wishlist });
 });
 
 export const addToWishlist = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.addToWishlist(req.user!.id, req.params.productId);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Added to wishlist');
+  return ApiResponse.success(res, 'Added to wishlist');
 });
 
 export const removeFromWishlist = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.removeFromWishlist(req.user!.id, req.params.productId);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Removed from wishlist');
+  return ApiResponse.success(res, 'Removed from wishlist');
 });
 
 export const getLoyaltyPoints = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.findById(req.user!.id);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'Loyalty points retrieved', {
+  return ApiResponse.success(res, 'Loyalty points retrieved', {
     points: user.loyaltyPoints,
     worth: user.loyaltyPoints * LOYALTY.RUPEES_PER_POINT,
   });
@@ -211,7 +211,7 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   const user = await userRepository.findById(req.params.id);
   if (!user) return ApiResponse.notFound(res, 'User not found');
-  ApiResponse.success(res, 'User retrieved', { user });
+  return ApiResponse.success(res, 'User retrieved', { user });
 });
 
 export const toggleUserStatus = asyncHandler(async (req: Request, res: Response) => {
@@ -219,7 +219,7 @@ export const toggleUserStatus = asyncHandler(async (req: Request, res: Response)
   if (!user) return ApiResponse.notFound(res, 'User not found');
 
   const updated = await userRepository.updateById(req.params.id, { isActive: !user.isActive });
-  ApiResponse.success(
+  return ApiResponse.success(
     res,
     `User ${updated?.isActive ? 'activated' : 'deactivated'} successfully`,
     { user: updated }
@@ -295,7 +295,7 @@ export const approveReview = asyncHandler(async (req: Request, res: Response) =>
   if (!review) return ApiResponse.notFound(res, 'Review not found');
   review.isApproved = true;
   await review.save();
-  ApiResponse.success(res, 'Review approved', { review });
+  return ApiResponse.success(res, 'Review approved', { review });
 });
 
 export const rejectReview = asyncHandler(async (req: Request, res: Response) => {
@@ -311,5 +311,5 @@ export const replyToReview = asyncHandler(async (req: Request, res: Response) =>
     { new: true }
   );
   if (!review) return ApiResponse.notFound(res, 'Review not found');
-  ApiResponse.success(res, 'Reply added', { review });
+  return ApiResponse.success(res, 'Reply added', { review });
 });

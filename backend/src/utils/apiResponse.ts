@@ -15,7 +15,7 @@ export class ApiResponse {
     res: Response,
     message: string,
     data?: T,
-    statusCode = HTTP_STATUS.OK,
+    statusCode: number = HTTP_STATUS.OK,
     meta?: Record<string, unknown>
   ): Response {
     const response: ApiResponseData = {
@@ -34,7 +34,7 @@ export class ApiResponse {
   static error(
     res: Response,
     message: string,
-    statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
     errors?: unknown[]
   ): Response {
     const response: ApiResponseData = {

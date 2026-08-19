@@ -17,7 +17,7 @@ export const getAllBanners = asyncHandler(async (req: Request, res: Response) =>
 export const getBannerById = asyncHandler(async (req: Request, res: Response) => {
   const banner = await Banner.findById(req.params.id);
   if (!banner) return ApiResponse.notFound(res, 'Banner not found');
-  ApiResponse.success(res, 'Banner retrieved', { banner });
+  return ApiResponse.success(res, 'Banner retrieved', { banner });
 });
 
 export const createBanner = asyncHandler(async (req: Request, res: Response) => {
@@ -53,7 +53,7 @@ export const createBanner = asyncHandler(async (req: Request, res: Response) => 
     isActive: req.body.isActive !== 'false',
   });
 
-  ApiResponse.created(res, 'Banner created', { banner });
+  return ApiResponse.created(res, 'Banner created', { banner });
 });
 
 export const updateBanner = asyncHandler(async (req: Request, res: Response) => {
@@ -96,7 +96,7 @@ export const updateBanner = asyncHandler(async (req: Request, res: Response) => 
     runValidators: true,
   });
 
-  ApiResponse.success(res, 'Banner updated', { banner: updated });
+  return ApiResponse.success(res, 'Banner updated', { banner: updated });
 });
 
 export const deleteBanner = asyncHandler(async (req: Request, res: Response) => {
@@ -107,7 +107,7 @@ export const deleteBanner = asyncHandler(async (req: Request, res: Response) => 
     await cloudinary.uploader.destroy(banner.imagePublicId).catch(() => undefined);
   }
   await Banner.findByIdAndDelete(req.params.id);
-  ApiResponse.success(res, 'Banner deleted');
+  return ApiResponse.success(res, 'Banner deleted');
 });
 
 // Public — active banners for homepage

@@ -25,7 +25,7 @@ export const getAllCoupons = asyncHandler(async (req: Request, res: Response) =>
 export const getCouponById = asyncHandler(async (req: Request, res: Response) => {
   const coupon = await Coupon.findById(req.params.id);
   if (!coupon) return ApiResponse.notFound(res, 'Coupon not found');
-  ApiResponse.success(res, 'Coupon retrieved', { coupon });
+  return ApiResponse.success(res, 'Coupon retrieved', { coupon });
 });
 
 export const createCoupon = asyncHandler(async (req: Request, res: Response) => {
@@ -39,13 +39,13 @@ export const updateCoupon = asyncHandler(async (req: Request, res: Response) => 
     runValidators: true,
   });
   if (!coupon) return ApiResponse.notFound(res, 'Coupon not found');
-  ApiResponse.success(res, 'Coupon updated', { coupon });
+  return ApiResponse.success(res, 'Coupon updated', { coupon });
 });
 
 export const deleteCoupon = asyncHandler(async (req: Request, res: Response) => {
   const coupon = await Coupon.findByIdAndDelete(req.params.id);
   if (!coupon) return ApiResponse.notFound(res, 'Coupon not found');
-  ApiResponse.success(res, 'Coupon deleted');
+  return ApiResponse.success(res, 'Coupon deleted');
 });
 
 export const validateCoupon = asyncHandler(async (req: Request, res: Response) => {
@@ -92,7 +92,7 @@ export const validateCoupon = asyncHandler(async (req: Request, res: Response) =
     discountAmount = 0; // handled separately
   }
 
-  ApiResponse.success(res, 'Coupon is valid', {
+  return ApiResponse.success(res, 'Coupon is valid', {
     coupon: {
       code: coupon.code,
       type: coupon.type,

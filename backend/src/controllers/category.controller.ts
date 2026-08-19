@@ -28,7 +28,7 @@ export const getCategoryById = asyncHandler(async (req: Request, res: Response) 
   if (!category) {
     return ApiResponse.notFound(res, 'Category not found');
   }
-  ApiResponse.success(res, 'Category retrieved', { category });
+  return ApiResponse.success(res, 'Category retrieved', { category });
 });
 
 export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response) => {
@@ -38,7 +38,7 @@ export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response
   if (!category) {
     return ApiResponse.notFound(res, 'Category not found');
   }
-  ApiResponse.success(res, 'Category retrieved', { category });
+  return ApiResponse.success(res, 'Category retrieved', { category });
 });
 
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
@@ -128,7 +128,7 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
     { new: true, runValidators: true }
   );
 
-  ApiResponse.success(res, 'Category updated', { category: updated });
+  return ApiResponse.success(res, 'Category updated', { category: updated });
 });
 
 export const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
@@ -149,5 +149,5 @@ export const deleteCategory = asyncHandler(async (req: Request, res: Response) =
   }
 
   await Category.findByIdAndDelete(req.params.id);
-  ApiResponse.success(res, 'Category deleted');
+  return ApiResponse.success(res, 'Category deleted');
 });

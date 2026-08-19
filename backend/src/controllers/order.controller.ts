@@ -30,7 +30,7 @@ export const trackOrderGuest = asyncHandler(async (req: Request, res: Response) 
     return ApiResponse.notFound(res, 'No order found with these details');
   }
 
-  ApiResponse.success(res, 'Order found', { order });
+  return ApiResponse.success(res, 'Order found', { order });
 });
 
 // ========================= CUSTOMER =========================
@@ -188,7 +188,7 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
   }
 
   const order = await orderService.updateOrderStatus(req.params.id, status, trackingInfo);
-  ApiResponse.success(res, 'Order status updated', { order });
+  return ApiResponse.success(res, 'Order status updated', { order });
 });
 
 export const getOrderDashboardStats = asyncHandler(async (_req: Request, res: Response) => {

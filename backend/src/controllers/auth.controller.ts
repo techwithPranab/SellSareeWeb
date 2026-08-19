@@ -55,7 +55,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
   res.cookie('accessToken', tokens.accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
   res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
 
-  ApiResponse.success(res, 'Token refreshed', { tokens });
+  return ApiResponse.success(res, 'Token refreshed', { tokens });
 });
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {

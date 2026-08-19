@@ -92,7 +92,7 @@ export const searchProducts = asyncHandler(async (req: Request, res: Response) =
 
   const options = { page: Number(page) || 1, limit: Number(limit) || 12 };
   const { data, meta } = await productService.searchProducts(q as string, filterParams, options);
-  ApiResponse.paginated(res, 'Search results', data, meta);
+  return ApiResponse.paginated(res, 'Search results', data, meta);
 });
 
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
