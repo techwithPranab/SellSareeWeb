@@ -1,6 +1,17 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { logger } from '../middlewares/logger.middleware';
 
+export const CLOUDINARY_ROOT_FOLDER = 'PPsAura';
+
+export const getCloudinaryProductFolder = (sku?: string): string => {
+  const safeSku = String(sku || 'unassigned')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'unassigned';
+
+  return `${CLOUDINARY_ROOT_FOLDER}/products/${safeSku}`;
+};
+
 export const configureCloudinary = (): void => {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,7 +25,7 @@ export const configureCloudinary = (): void => {
 
 export const uploadImage = async (
   filePath: string,
-  folder = 'rupkatha-sarees'
+  folder = CLOUDINARY_ROOT_FOLDER
 ): Promise<{ url: string; publicId: string }> => {
   const result = await cloudinary.uploader.upload(filePath, {
     folder,
@@ -32,7 +43,7 @@ export const uploadImage = async (
 
 export const uploadMultipleImages = async (
   filePaths: string[],
-  folder = 'rupkatha-sarees'
+  folder = CLOUDINARY_ROOT_FOLDER
 ): Promise<Array<{ url: string; publicId: string }>> => {
   const uploads = filePaths.map((fp) => uploadImage(fp, folder));
   return Promise.all(uploads);

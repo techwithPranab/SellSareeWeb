@@ -1,5 +1,5 @@
 import { productRepository, ProductFilter } from '../repositories/product.repository';
-import { cloudinary } from '../config/cloudinary';
+import { cloudinary, getCloudinaryProductFolder } from '../config/cloudinary';
 import { CustomError } from '../middlewares/error.middleware';
 import { HTTP_STATUS } from '../constants';
 import { IProduct } from '../interfaces';
@@ -44,7 +44,7 @@ export class ProductService {
         const b64 = Buffer.from(file.buffer).toString('base64');
         const dataURI = `data:${file.mimetype};base64,${b64}`;
         const result = await cloudinary.uploader.upload(dataURI, {
-          folder: 'rupkatha-sarees/products',
+          folder: getCloudinaryProductFolder(data.sku),
           transformation: [
             { quality: 'auto:best', fetch_format: 'auto' },
             { width: 1200, height: 1200, crop: 'limit' },
@@ -105,7 +105,7 @@ export class ProductService {
           const b64 = Buffer.from(file.buffer).toString('base64');
           const dataURI = `data:${file.mimetype};base64,${b64}`;
           const result = await cloudinary.uploader.upload(dataURI, {
-            folder: 'rupkatha-sarees/products',
+            folder: getCloudinaryProductFolder(data.sku || product.sku),
             transformation: [
               { quality: 'auto:best', fetch_format: 'auto' },
             ],
@@ -114,12 +114,23 @@ export class ProductService {
             url: result.secure_url,
             publicId: result.public_id,
             alt: data.name || product.name,
-            isDefault: false,
-            sortOrder: images.length + index,
+            isDefault: index === 0,
+            sortOrder: index,
           };
         })
       );
-      images = [...images, ...uploadedImages];
+      const existingImages = images.map((image, index) => ({
+        url: image.url,
+        publicId: image.publicId,
+        alt: image.alt,
+        isDefault: false,
+        sortOrder: uploadedImages.length + index,
+      }));
+      images = [...uploadedImages, ...existingImages];
+    }
+
+    if (images.length === 0) {
+      throw new CustomError('At least one product image is required', HTTP_STATUS.BAD_REQUEST);
     }
 
     const updated = await productRepository.updateById(id, { ...data, images });

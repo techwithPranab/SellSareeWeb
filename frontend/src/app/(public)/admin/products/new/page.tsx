@@ -15,7 +15,7 @@ export default function NewProductPage() {
   const handleSubmit = async (data: ProductFormData, images: File[]) => {
     if (images.length === 0) {
       toast.error('Please upload at least one product image');
-      return;
+      return false;
     }
     setIsSubmitting(true);
     try {
@@ -38,9 +38,11 @@ export default function NewProductPage() {
       const { product } = await adminService.createProduct(formData);
       toast.success('Product created successfully');
       router.push(asRoute(`/admin/products/${product._id}/edit`));
+      return true;
     } catch (error: unknown) {
       const requestError = error as { response?: { data?: { message?: string } } };
       toast.error(requestError.response?.data?.message || 'Failed to create product');
+      return false;
     } finally {
       setIsSubmitting(false);
     }

@@ -31,6 +31,13 @@ const processQueue = (error: Error | null, token: string | null) => {
 // Request interceptor — Add access token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Let the browser add the multipart boundary. Keeping the instance's
+    // application/json header (or manually setting multipart/form-data without
+    // a boundary) can cause Multer to receive no files.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
+      config.headers.delete('Content-Type');
+    }
+
     // Get token from Redux store / localStorage
     const token = getAccessToken();
     if (token && config.headers) {

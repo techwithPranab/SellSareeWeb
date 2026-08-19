@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import { HTTP_STATUS } from '../constants';
 import Category from '../models/Category';
-import { cloudinary } from '../config/cloudinary';
+import { cloudinary, CLOUDINARY_ROOT_FOLDER } from '../config/cloudinary';
 
 export const getAllCategories = asyncHandler(async (_req: Request, res: Response) => {
   const categories = await Category.find({ isActive: true })
@@ -51,7 +51,7 @@ export const createCategory = asyncHandler(async (req: Request, res: Response) =
     const b64 = Buffer.from(imageFile.buffer).toString('base64');
     const dataURI = `data:${imageFile.mimetype};base64,${b64}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'rupkatha-sarees/categories',
+      folder: `${CLOUDINARY_ROOT_FOLDER}/categories`,
     });
     imageData = { image: result.secure_url, imagePublicId: result.public_id };
   }
@@ -117,7 +117,7 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
     const b64 = Buffer.from(imageFile.buffer).toString('base64');
     const dataURI = `data:${imageFile.mimetype};base64,${b64}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'rupkatha-sarees/categories',
+      folder: `${CLOUDINARY_ROOT_FOLDER}/categories`,
     });
     imageData = { image: result.secure_url, imagePublicId: result.public_id };
   }

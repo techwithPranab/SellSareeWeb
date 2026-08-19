@@ -39,7 +39,8 @@ export class ProductRepository {
   }
 
   async updateById(id: string, update: Partial<IProduct>): Promise<IProduct | null> {
-    return Product.findByIdAndUpdate(id, update, { new: true, runValidators: true });
+    return Product.findByIdAndUpdate(id, update, { new: true, runValidators: true })
+      .populate('category', 'name slug isActive');
   }
 
   async deleteById(id: string): Promise<boolean> {

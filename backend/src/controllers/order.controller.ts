@@ -6,7 +6,7 @@ import { paymentService } from '../services/payment.service';
 import { OrderStatus, PaymentMethod, PaymentStatus, UserRole } from '../constants';
 import Order from '../models/Order';
 import User from '../models/User';
-import { cloudinary } from '../config/cloudinary';
+import { cloudinary, CLOUDINARY_ROOT_FOLDER } from '../config/cloudinary';
 
 // ========================= PUBLIC =========================
 
@@ -61,7 +61,7 @@ export const submitManualPaymentProof = asyncHandler(async (req: Request, res: R
 
   const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
   const uploaded = await cloudinary.uploader.upload(dataURI, {
-    folder: 'pp-aura/payment-proofs',
+    folder: `${CLOUDINARY_ROOT_FOLDER}/payment-proofs`,
     resource_type: 'image',
     transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
   });
@@ -271,7 +271,7 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
   if (req.file) {
     const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'pp-aura/payment-proofs',
+      folder: `${CLOUDINARY_ROOT_FOLDER}/payment-proofs`,
       resource_type: 'image',
       transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
     });

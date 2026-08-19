@@ -10,6 +10,7 @@ import {
   Star,
   Truck,
   ShieldCheck,
+  ChevronLeft,
   ChevronRight,
   Minus,
   Plus,
@@ -65,6 +66,10 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (slug) dispatch(fetchProductBySlug(slug));
   }, [slug, dispatch]);
+
+  useEffect(() => {
+    setSelectedImage(0);
+  }, [product?._id]);
 
   useEffect(() => {
     if (product) {
@@ -124,6 +129,14 @@ export default function ProductDetailPage() {
   const categoryName =
     typeof product.category === 'object' ? product.category.name : product.category;
   const inCart = isInCart(product._id);
+
+  const showPreviousImage = () => {
+    setSelectedImage((current) => (current - 1 + images.length) % images.length);
+  };
+
+  const showNextImage = () => {
+    setSelectedImage((current) => (current + 1) % images.length);
+  };
 
   const handleAddToCart = () => {
     if (isComingSoon) return;
@@ -192,9 +205,32 @@ export default function ProductDetailPage() {
               alt={product.name}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className={isComingSoon ? 'object-contain' : 'object-cover'}
+              className="object-contain p-2 sm:p-4"
               priority
             />
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={showPreviousImage}
+                  className="absolute left-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md transition hover:bg-white hover:text-primary"
+                  aria-label="Show previous product image"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={showNextImage}
+                  className="absolute right-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md transition hover:bg-white hover:text-primary"
+                  aria-label="Show next product image"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <span className="absolute bottom-3 right-3 rounded-full bg-black/65 px-2.5 py-1 text-xs font-medium text-white">
+                  {selectedImage + 1} / {images.length}
+                </span>
+              </>
+            )}
             {!isComingSoon && discountPercent > 0 && (
               <span className="absolute top-4 left-4 badge-discount">−{discountPercent}%</span>
             )}
@@ -210,7 +246,7 @@ export default function ProductDetailPage() {
                     selectedImage === i ? 'border-primary' : 'border-border hover:border-primary/50'
                   )}
                 >
-                  <Image src={img.url} alt="" fill sizes="80px" className="object-cover" />
+                  <Image src={img.url} alt={`${product.name} image ${i + 1}`} fill sizes="80px" className="object-contain p-1" />
                 </button>
               ))}
             </div>

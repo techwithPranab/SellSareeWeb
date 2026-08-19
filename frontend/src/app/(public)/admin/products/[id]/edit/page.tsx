@@ -26,6 +26,10 @@ export default function EditProductPage() {
 
   const handleSubmit = async (data: ProductFormData, images: File[]) => {
     if (!id) return;
+    if ((product?.images?.length ?? 0) === 0 && images.length === 0) {
+      toast.error('Please select at least one product image');
+      return false;
+    }
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -47,9 +51,11 @@ export default function EditProductPage() {
       const { product: updated } = await adminService.updateProduct(id, formData);
       setProduct(updated);
       toast.success('Product updated successfully');
+      return true;
     } catch (error: unknown) {
       const requestError = error as { response?: { data?: { message?: string } } };
       toast.error(requestError.response?.data?.message || 'Failed to update product');
+      return false;
     } finally {
       setIsSubmitting(false);
     }

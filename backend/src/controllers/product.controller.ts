@@ -128,8 +128,11 @@ export const getRelatedProducts = asyncHandler(async (req: Request, res: Respons
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const imageFiles = (req.files as Express.Multer.File[]) || [];
+  if (imageFiles.length === 0) {
+    return ApiResponse.badRequest(res, 'At least one product image is required');
+  }
   const product = await productService.createProduct(normalizeProductNumbers(req.body), imageFiles);
-  ApiResponse.created(res, 'Product created successfully', { product });
+  return ApiResponse.created(res, 'Product created successfully', { product });
 });
 
 export const updateProduct = asyncHandler(async (req: Request, res: Response) => {

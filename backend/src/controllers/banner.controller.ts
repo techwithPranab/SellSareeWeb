@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/apiResponse';
 import Banner from '../models/Banner';
-import { cloudinary } from '../config/cloudinary';
+import { cloudinary, CLOUDINARY_ROOT_FOLDER } from '../config/cloudinary';
 
 export const getAllBanners = asyncHandler(async (req: Request, res: Response) => {
   const { position, isActive } = req.query;
@@ -29,7 +29,7 @@ export const createBanner = asyncHandler(async (req: Request, res: Response) => 
     const b64 = Buffer.from(file.buffer).toString('base64');
     const dataURI = `data:${file.mimetype};base64,${b64}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'rupkatha-sarees/banners',
+      folder: `${CLOUDINARY_ROOT_FOLDER}/banners`,
       transformation: [{ quality: 'auto:best', fetch_format: 'auto' }],
     });
     return { url: result.secure_url, publicId: result.public_id };
@@ -67,7 +67,7 @@ export const updateBanner = asyncHandler(async (req: Request, res: Response) => 
     const b64 = Buffer.from(file.buffer).toString('base64');
     const dataURI = `data:${file.mimetype};base64,${b64}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'rupkatha-sarees/banners',
+      folder: `${CLOUDINARY_ROOT_FOLDER}/banners`,
     });
     return { url: result.secure_url, publicId: result.public_id };
   };

@@ -88,16 +88,12 @@ export const adminService = {
   },
 
   async createProduct(formData: FormData) {
-    const response = await api.post('/products', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/products', formData);
     return response.data.data as { product: Product };
   },
 
   async updateProduct(id: string, formData: FormData) {
-    const response = await api.put(`/products/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.put(`/products/${id}`, formData);
     return response.data.data as { product: Product };
   },
 

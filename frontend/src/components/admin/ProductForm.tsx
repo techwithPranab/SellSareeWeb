@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { Loader2, Trash2, Upload, X } from 'lucide-react';
+import { adminService } from '@/services/admin.service';
 import { categoryService } from '@/services/category.service';
 import { FABRICS, OCCASIONS } from '@/constants';
 import type { Product, Category } from '@/types';
@@ -37,7 +38,7 @@ export interface ProductFormData {
 
 interface ProductFormProps {
   product?: Product;
-  onSubmit: (data: ProductFormData, images: File[]) => Promise<void>;
+  onSubmit: (data: ProductFormData, images: File[]) => Promise<boolean | void>;
   onDeleteExistingImage?: (publicId: string) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -54,19 +55,28 @@ const toIndiaDateInput = (value?: string | null): string => {
   return `${part('year')}-${part('month')}-${part('day')}`;
 };
 
+const getProductCategoryId = (product?: Product): string => {
+  if (!product?.category) return '';
+  return typeof product.category === 'object'
+    ? String(product.category._id || '')
+    : String(product.category);
+};
+
 export default function ProductForm({ product, onSubmit, onDeleteExistingImage, isSubmitting }: ProductFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
     defaultValues: {
       name: product?.name ?? '',
       description: product?.description ?? '',
       shortDescription: product?.shortDescription ?? '',
       sku: product?.sku ?? '',
-      category: typeof product?.category === 'object' ? product.category._id : product?.category ?? '',
+      category: getProductCategoryId(product),
       fabric: product?.fabric ?? '',
       color: product?.color ?? '',
       colorCode: product?.colorCode ?? '#000000',
@@ -100,8 +110,35 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
     : 'available';
 
   useEffect(() => {
-    categoryService.getCategories().then((res) => setCategories(res.categories));
+    let cancelled = false;
+
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoriesError('');
+      try {
+        const response = await adminService.getCategories();
+        if (!cancelled) setCategories(response.categories ?? []);
+      } catch {
+        try {
+          const response = await categoryService.getCategories();
+          if (!cancelled) setCategories(response.categories ?? []);
+        } catch {
+          if (!cancelled) setCategoriesError('Categories could not be loaded.');
+        }
+      } finally {
+        if (!cancelled) setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const categoryId = getProductCategoryId(product);
+    if (!categoryId) return;
+    setValue('category', categoryId);
+  }, [product?._id, product?.category, setValue]);
 
   useEffect(() => {
     const previews = images.map((file) => URL.createObjectURL(file));
@@ -110,8 +147,8 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
   }, [images]);
 
   const handleFormSubmit = async (data: ProductFormData) => {
-    await onSubmit(data, images);
-    setImages([]);
+    const succeeded = await onSubmit(data, images);
+    if (succeeded !== false) setImages([]);
   };
 
   const handleDeleteExistingImage = async (publicId: string) => {
@@ -123,6 +160,15 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
       setDeletingImageId(null);
     }
   };
+
+  const selectedProductCategory = product?.category && typeof product.category === 'object'
+    ? product.category
+    : null;
+  const categoryOptions = selectedProductCategory && !categories.some(
+    (category) => String(category._id) === String(selectedProductCategory._id)
+  )
+    ? [selectedProductCategory, ...categories]
+    : categories;
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -139,12 +185,22 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
         </div>
         <div>
           <label className="label">Category *</label>
-          <select {...register('category', { required: 'Category is required' })} className="input-field">
-            <option value="">Select category</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>{cat.name}</option>
+          <select
+            {...register('category', { required: 'Category is required' })}
+            className="input-field"
+            disabled={categoriesLoading}
+          >
+            <option value="">{categoriesLoading ? 'Loading categories…' : 'Select category'}</option>
+            {categoryOptions.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}{cat.isActive === false ? ' (Inactive)' : ''}
+              </option>
             ))}
           </select>
+          {categoriesError && (
+            <p className="mt-1 text-xs text-red-500">{categoriesError} Refresh the page to retry.</p>
+          )}
+          {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category.message}</p>}
         </div>
         <div>
           <label className="label">MRP (₹) *</label>
@@ -255,7 +311,14 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
             <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {product.images.map((image, index) => (
                 <div key={image.publicId} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
-                  <Image src={image.url} alt={image.alt || product.name} fill sizes="160px" className="object-cover" />
+                  <Image
+                    src={image.url}
+                    alt={image.alt || product.name}
+                    fill
+                    sizes="160px"
+                    className="object-contain p-1"
+                    unoptimized
+                  />
                   {image.isDefault && (
                     <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white">Primary</span>
                   )}
