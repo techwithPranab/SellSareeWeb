@@ -1,9 +1,9 @@
 import api from './api';
-import { Product, PaginatedResponse } from '@/types';
+import { Product, ProductFilter, PaginatedResponse } from '@/types';
 
 export const productService = {
   async getProducts(params: {
-    filter?: Record<string, unknown>;
+    filter?: ProductFilter;
     page?: number;
     limit?: number;
     sortBy?: string;

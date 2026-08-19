@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchUserOrders } from '@/features/orders/ordersSlice';
 import { selectWishlistIds } from '@/features/wishlist/wishlistSlice';
-import { formatPrice, formatDate } from '@/utils/helpers';
+import { formatPrice, formatDate, asRoute } from '@/utils/helpers';
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
@@ -42,7 +42,7 @@ export default function DashboardPage() {
         ].map((stat) => (
           <Link
             key={stat.label}
-            href={stat.href}
+            href={asRoute(stat.href)}
             className="bg-white rounded-2xl border border-border p-5 hover:shadow-card transition-shadow"
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${stat.color}`}>

@@ -6,7 +6,7 @@ import { CURRENCIES, STORAGE_KEYS } from '@/constants';
 interface Currency {
   code: string;
   symbol: string;
-  label: string;
+  name: string;
   rate?: number;
 }
 

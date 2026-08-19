@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  typedRoutes: true,
 
   images: {
     remotePatterns: [
@@ -31,7 +31,6 @@ const nextConfig = {
 
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material', 'framer-motion'],
-    typedRoutes: true,
   },
 
   // Security headers

@@ -72,7 +72,7 @@ export default function Footer() {
             {NAV_LINKS.filter((l) => !l.children).map((link) => (
               <li key={link.href}>
                 <Link
-                  href={link.href}
+                  href={asRoute(link.href)}
                   className="text-sm text-[#b09070] hover:text-primary transition-colors"
                 >
                   {link.label}
@@ -115,7 +115,7 @@ export default function Footer() {
             ].map((item) => (
               <li key={item.href}>
                 <Link
-                  href={item.href}
+                  href={asRoute(item.href)}
                   className="text-sm text-[#b09070] hover:text-primary transition-colors"
                 >
                   {item.label}

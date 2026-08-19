@@ -10,11 +10,15 @@ import type { LoginFormData } from '@/validations/auth.schema';
 import { loginSchema } from '@/validations/auth.schema';
 import { useAuth } from '@/hooks/useAuth';
 import { APP_NAME } from '@/constants';
+import { asRoute } from '@/utils/helpers';
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') ?? '/dashboard';
+  const requestedRedirect = searchParams.get('redirect');
+  const redirect = requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
+    ? requestedRedirect
+    : '/dashboard';
   const sessionExpired = searchParams.get('session') === 'expired';
 
   const { login, isLoading, error } = useAuth();
@@ -29,7 +33,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data);
-      router.push(redirect);
+      router.push(asRoute(redirect));
     } catch {
       // error is in Redux state
     }

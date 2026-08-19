@@ -23,7 +23,7 @@ import {
 import { useAppSelector } from '@/hooks/useStore';
 import { useAuth } from '@/hooks/useAuth';
 import { NAV_LINKS, APP_NAME } from '@/constants';
-import { cn } from '@/utils/helpers';
+import { cn, asRoute } from '@/utils/helpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export default function Navbar() {
                 onMouseLeave={() => setActiveDropdown(null)}
               >
                 <Link
-                  href={link.href}
+                  href={asRoute(link.href)}
                   className={cn(
                     'flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     pathname === link.href
@@ -138,7 +138,7 @@ export default function Navbar() {
                           {link.children.map((child) => (
                             <Link
                               key={child.href}
-                              href={child.href}
+                              href={asRoute(child.href)}
                               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
                             >
                               {child.label}
@@ -291,7 +291,7 @@ export default function Navbar() {
                 {NAV_LINKS.map((link) => (
                   <div key={link.href}>
                     <Link
-                      href={link.href}
+                      href={asRoute(link.href)}
                       className={cn(
                         'block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
                         pathname === link.href
@@ -306,7 +306,7 @@ export default function Navbar() {
                         {link.children.map((child) => (
                           <Link
                             key={child.href}
-                            href={child.href}
+                            href={asRoute(child.href)}
                             className="px-4 py-2 rounded-lg text-sm text-muted hover:text-primary hover:bg-primary/5 transition-colors"
                           >
                             {child.label}

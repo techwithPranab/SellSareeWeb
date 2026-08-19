@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ContentPage from '@/components/common/ContentPage';
+import { asRoute } from '@/utils/helpers';
 
 export const metadata: Metadata = {
   title: 'Saree Guide Blog',
@@ -73,7 +74,7 @@ export default function BlogPage() {
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">{post.excerpt}</p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{post.date}</span>
-              <Link href={`/blog/${post.slug}`} className="text-sm text-primary font-medium hover:underline">
+              <Link href={asRoute(`/blog/${post.slug}`)} className="text-sm text-primary font-medium hover:underline">
                 Read More →
               </Link>
             </div>

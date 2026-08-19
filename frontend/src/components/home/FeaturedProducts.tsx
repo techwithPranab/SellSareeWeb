@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAppSelector } from '@/hooks/useStore';
 import ProductCard from '@/components/product/ProductCard';
 import { ProductGridSkeleton } from '@/components/common/LoadingSpinner';
+import { asRoute } from '@/utils/helpers';
 
 interface FeaturedProductsProps {
   title: string;
@@ -34,7 +35,7 @@ export default function FeaturedProducts({
             {subtitle && <p className="text-muted mt-2 max-w-lg">{subtitle}</p>}
           </div>
           <Link
-            href={seeAllHref}
+            href={asRoute(seeAllHref)}
             className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dark transition-colors shrink-0"
           >
             {seeAllLabel} <ArrowRight className="w-4 h-4" />
@@ -58,7 +59,7 @@ export default function FeaturedProducts({
 
         {/* Mobile See All */}
         <div className="text-center mt-8 sm:hidden">
-          <Link href={seeAllHref} className="btn-outline">
+          <Link href={asRoute(seeAllHref)} className="btn-outline">
             {seeAllLabel}
           </Link>
         </div>
