@@ -12,6 +12,14 @@ export const getCloudinaryProductFolder = (sku?: string): string => {
   return `${CLOUDINARY_ROOT_FOLDER}/products/${safeSku}`;
 };
 
+export const getCloudinaryPaymentFolder = (orderNumber: string): string => {
+  const safeOrderNumber = String(orderNumber)
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${CLOUDINARY_ROOT_FOLDER}/paymentDetails/${safeOrderNumber}`;
+};
+
 export const configureCloudinary = (): void => {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

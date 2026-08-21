@@ -310,15 +310,8 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
           {product && product.images.length > 0 && (
             <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {product.images.map((image, index) => (
-                <div key={image.publicId} className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
-                  <Image
-                    src={image.url}
-                    alt={image.alt || product.name}
-                    fill
-                    sizes="160px"
-                    className="object-contain p-1"
-                    unoptimized
-                  />
+                <div key={image.publicId || `${image.url}-${index}`} className="group relative h-40 overflow-hidden rounded-xl border border-border bg-surface sm:h-44">
+                  <ExistingProductImage src={image.url} alt={image.alt || product.name} />
                   {image.isDefault && (
                     <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white">Primary</span>
                   )}
@@ -381,5 +374,38 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
         {product ? 'Update Product' : 'Create Product'}
       </button>
     </form>
+  );
+}
+
+function ExistingProductImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center">
+        <span className="text-xs text-red-600">Image preview could not load</span>
+        <a
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-primary underline"
+        >
+          Open image
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    // Existing Cloudinary assets are rendered directly so the admin preview
+    // does not depend on the Next.js image optimization proxy.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      loading="eager"
+      onError={() => setFailed(true)}
+      className="block h-full w-full object-contain p-1"
+    />
   );
 }

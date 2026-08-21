@@ -14,6 +14,7 @@ import Order from '../models/Order';
 import User from '../models/User';
 
 export interface CreateOrderData {
+  orderNumber?: string;
   items: Array<{
     productId: string;
     quantity: number;
@@ -37,7 +38,7 @@ export interface CreateOrderData {
 
 export class OrderService {
   async createOrder(userId: string, data: CreateOrderData): Promise<IOrder> {
-    const { items, shippingAddress, paymentMethod, couponCode, loyaltyPointsToRedeem, notes } = data;
+    const { orderNumber, items, shippingAddress, paymentMethod, couponCode, loyaltyPointsToRedeem, notes } = data;
 
     // Validate and fetch all products
     const orderItems: IOrderItem[] = [];
@@ -184,6 +185,7 @@ export class OrderService {
 
     // Create order
     const order = await orderRepository.create({
+      ...(orderNumber && { orderNumber }),
       user: userId as unknown as import('mongoose').Types.ObjectId,
       items: orderItems,
       shippingAddress,

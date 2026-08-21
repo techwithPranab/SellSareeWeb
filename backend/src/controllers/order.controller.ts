@@ -6,7 +6,8 @@ import { paymentService } from '../services/payment.service';
 import { OrderStatus, PaymentMethod, PaymentStatus, UserRole } from '../constants';
 import Order from '../models/Order';
 import User from '../models/User';
-import { cloudinary, CLOUDINARY_ROOT_FOLDER } from '../config/cloudinary';
+import { cloudinary, getCloudinaryPaymentFolder } from '../config/cloudinary';
+import { generateOrderNumber } from '../utils/generateToken';
 
 // ========================= PUBLIC =========================
 
@@ -61,9 +62,10 @@ export const submitManualPaymentProof = asyncHandler(async (req: Request, res: R
 
   const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
   const uploaded = await cloudinary.uploader.upload(dataURI, {
-    folder: `${CLOUDINARY_ROOT_FOLDER}/payment-proofs`,
+    folder: getCloudinaryPaymentFolder(order.orderNumber),
     resource_type: 'image',
     transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+    context: { orderNumber: order.orderNumber, transactionReference: transactionId },
   });
 
   if (order.paymentInfo.paymentScreenshotPublicId) {
@@ -267,13 +269,15 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
     return ApiResponse.badRequest(res, 'The selected customer account is inactive');
   }
 
+  const orderNumber = generateOrderNumber();
   let uploadedProof: { url: string; publicId: string } | undefined;
   if (req.file) {
     const dataURI = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: `${CLOUDINARY_ROOT_FOLDER}/payment-proofs`,
+      folder: getCloudinaryPaymentFolder(orderNumber),
       resource_type: 'image',
       transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+      context: { orderNumber, ...(transactionId && { transactionReference: transactionId }) },
     });
     uploadedProof = { url: result.secure_url, publicId: result.public_id };
   }
@@ -281,6 +285,7 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
   let order;
   try {
     order = await orderService.createOrder(orderCustomer._id.toString(), {
+      orderNumber,
       items,
       shippingAddress: shippingAddress as unknown as Parameters<typeof orderService.createOrder>[1]['shippingAddress'],
       paymentMethod,
