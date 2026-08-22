@@ -31,7 +31,7 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, fetchCurrentUser } = useAuth();
   const {
     items,
     summary,
@@ -136,6 +136,7 @@ export default function CheckoutPage() {
         }
         order = result.payload.order;
         setPendingOrder(order);
+        await fetchCurrentUser();
       }
 
       if (data.paymentMethod === 'upi') {

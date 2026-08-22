@@ -83,6 +83,12 @@ export class OrderService {
       } as IOrderItem);
     }
 
+    // Keep checkout details available in the customer's address book. Match an
+    // existing address by its physical location so repeat orders update it
+    // instead of creating duplicates.
+    const profileUser = await userRepository.saveCheckoutAddress(userId, shippingAddress);
+    if (!profileUser) throw new CustomError('User not found', HTTP_STATUS.NOT_FOUND);
+
     // Settings are database-backed so admin changes apply to newly created orders.
     const storeSettings = await StoreSetting.findOne({ key: 'store' }).lean();
     const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? SHIPPING.FREE_SHIPPING_THRESHOLD;
@@ -324,6 +330,9 @@ export class OrderService {
     }
 
     const updates: Partial<IOrder> = { status };
+    if (status === OrderStatus.DELIVERED && !order.deliveredAt) {
+      updates.deliveredAt = new Date();
+    }
     if (trackingInfo) {
       (updates as Record<string, unknown>).trackingInfo = trackingInfo;
     }
@@ -345,8 +354,12 @@ export class OrderService {
         await emailService.sendDeliveryConfirmation(user.email, user.name, order.orderNumber).catch((error) => {
           logger.error(`Delivery email failed for order ${order.orderNumber}`, error);
         });
-        // Award loyalty points
-        await userRepository.updateLoyaltyPoints(user._id.toString(), order.loyaltyPointsEarned);
+        // Claim before awarding so repeated/concurrent delivered updates cannot
+        // credit the same order more than once.
+        const claimedOrder = await orderRepository.claimLoyaltyPointsAward(orderId);
+        if (claimedOrder && claimedOrder.loyaltyPointsEarned > 0) {
+          await userRepository.updateLoyaltyPoints(user._id.toString(), claimedOrder.loyaltyPointsEarned);
+        }
       }
     }
 

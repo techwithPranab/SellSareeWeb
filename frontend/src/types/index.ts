@@ -301,6 +301,7 @@ export interface Order {
   returnWindowDays: number;
   loyaltyPointsEarned: number;
   loyaltyPointsRedeemed: number;
+  loyaltyPointsAwarded: boolean;
   isReturnWindowOpen: boolean;
   createdAt: string;
   updatedAt: string;

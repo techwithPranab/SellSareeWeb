@@ -92,6 +92,14 @@ export class OrderRepository {
     return Order.findByIdAndUpdate(orderId, update, { new: true });
   }
 
+  async claimLoyaltyPointsAward(orderId: string): Promise<IOrder | null> {
+    return Order.findOneAndUpdate(
+      { _id: orderId, loyaltyPointsAwarded: { $ne: true } },
+      { $set: { loyaltyPointsAwarded: true } },
+      { new: true }
+    );
+  }
+
   async findByRazorpayOrderId(razorpayOrderId: string): Promise<IOrder | null> {
     return Order.findOne({ 'paymentInfo.razorpayOrderId': razorpayOrderId });
   }

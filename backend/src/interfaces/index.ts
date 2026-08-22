@@ -207,6 +207,7 @@ export interface IOrder extends Document {
   returnWindowDays: number;
   loyaltyPointsEarned: number;
   loyaltyPointsRedeemed: number;
+  loyaltyPointsAwarded: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

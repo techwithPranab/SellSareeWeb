@@ -12,14 +12,15 @@ import { ORDER_STATUS_CONFIG } from '@/constants';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, fetchCurrentUser } = useAuth();
   const dispatch = useAppDispatch();
   const { orders, isLoading } = useAppSelector((s) => s.orders);
   const wishlistCount = useAppSelector((s) => selectWishlistIds(s).length);
 
   useEffect(() => {
     dispatch(fetchUserOrders({ limit: 5 }));
-  }, [dispatch]);
+    fetchCurrentUser();
+  }, [dispatch, fetchCurrentUser]);
 
   const recentOrders = orders.slice(0, 3);
 

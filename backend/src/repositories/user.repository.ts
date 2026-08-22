@@ -1,5 +1,5 @@
 import User from '../models/User';
-import { IUser } from '../interfaces';
+import { IAddress, IUser } from '../interfaces';
 import { parsePagination, buildPaginationMeta, PaginationOptions } from '../utils/pagination';
 import { FilterQuery, Types } from 'mongoose';
 
@@ -74,6 +74,36 @@ export class UserRepository {
       { $push: { addresses: address } },
       { new: true, runValidators: true }
     );
+  }
+
+  async saveCheckoutAddress(
+    userId: string,
+    address: Omit<IAddress, '_id' | 'isDefault' | 'type'>
+  ): Promise<IUser | null> {
+    const user = await User.findById(userId);
+    if (!user) return null;
+
+    const normalize = (value?: string) => String(value ?? '').trim().toLowerCase();
+    const existing = user.addresses.find((saved) =>
+      normalize(saved.addressLine1) === normalize(address.addressLine1) &&
+      normalize(saved.city) === normalize(address.city) &&
+      normalize(saved.pincode) === normalize(address.pincode)
+    );
+
+    if (existing) {
+      Object.assign(existing, address);
+    } else {
+      user.addresses.push({
+        ...address,
+        isDefault: user.addresses.length === 0,
+        type: 'home',
+      });
+    }
+
+    if (!user.phone) user.phone = address.phone;
+    user.markModified('addresses');
+    await user.save();
+    return user;
   }
 
   async updateAddress(userId: string, addressId: string, address: object): Promise<IUser | null> {

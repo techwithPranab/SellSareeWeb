@@ -103,6 +103,7 @@ const OrderSchema = new Schema<IOrder>(
     returnWindowDays: { type: Number, default: 7 },
     loyaltyPointsEarned: { type: Number, default: 0 },
     loyaltyPointsRedeemed: { type: Number, default: 0 },
+    loyaltyPointsAwarded: { type: Boolean, default: false },
   },
   {
     timestamps: true,
