@@ -226,6 +226,7 @@ export interface IReview extends Document {
   images: string[];
   isVerifiedPurchase: boolean;
   isApproved: boolean;
+  isFeaturedOnHomepage: boolean;
   helpfulCount: number;
   helpfulUsers: Types.ObjectId[];
   adminReply?: string;

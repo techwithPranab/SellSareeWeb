@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Check, X, MessageSquare, Star } from 'lucide-react';
+import { Check, X, MessageSquare, Star, Home } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminPagination from '@/components/admin/AdminPagination';
@@ -60,6 +60,16 @@ export default function AdminReviewsPage() {
     }
   };
 
+  const handleHomepageToggle = async (review: Review) => {
+    try {
+      await adminService.toggleHomepageReview(review._id);
+      toast.success(review.isFeaturedOnHomepage ? 'Review removed from homepage' : 'Review added to homepage');
+      loadReviews();
+    } catch {
+      toast.error('Approve the review before adding it to the homepage');
+    }
+  };
+
   const handleReply = async () => {
     if (!replyModal || !replyText.trim()) return;
     setReplying(true);
@@ -78,7 +88,7 @@ export default function AdminReviewsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Review Moderation" description="Approve, reject, and reply to customer reviews" />
+      <AdminPageHeader title="Review Moderation" description="Approve, feature on the homepage, reject, and reply to customer reviews" />
 
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
         <div className="flex gap-2 overflow-x-auto border-b border-border p-4">
@@ -117,6 +127,9 @@ export default function AdminReviewsPage() {
                       {review.isVerifiedPurchase && (
                         <span className="text-xs text-muted-foreground">Verified Purchase</span>
                       )}
+                      {review.isFeaturedOnHomepage && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">On homepage</span>
+                      )}
                     </div>
                     <p className="font-semibold text-foreground">{review.title}</p>
                     <p className="text-sm text-muted-foreground mt-1">{review.comment}</p>
@@ -134,6 +147,11 @@ export default function AdminReviewsPage() {
                     {!review.isApproved && (
                       <button onClick={() => handleApprove(review._id)} className="p-2 rounded-lg hover:bg-green-50 text-green-600" title="Approve">
                         <Check className="w-4 h-4" />
+                      </button>
+                    )}
+                    {review.isApproved && (
+                      <button onClick={() => handleHomepageToggle(review)} className={`p-2 rounded-lg ${review.isFeaturedOnHomepage ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5 text-muted-foreground'}`} title={review.isFeaturedOnHomepage ? 'Remove from homepage' : 'Show on homepage'} aria-label={review.isFeaturedOnHomepage ? 'Remove review from homepage' : 'Show review on homepage'}>
+                        <Home className="w-4 h-4" />
                       </button>
                     )}
                     <button onClick={() => { setReplyModal(review); setReplyText(review.adminReply ?? ''); }} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600" title="Reply">

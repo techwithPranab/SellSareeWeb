@@ -186,6 +186,15 @@ export const getProductReviews = asyncHandler(async (req: Request, res: Response
   });
 });
 
+export const getHomepageReviews = asyncHandler(async (_req: Request, res: Response) => {
+  const reviews = await Review.find({ isApproved: true, isFeaturedOnHomepage: true })
+    .populate('user', 'name avatar')
+    .populate('product', 'name slug')
+    .sort({ createdAt: -1 })
+    .limit(6);
+  return ApiResponse.success(res, 'Homepage reviews retrieved', { reviews });
+});
+
 // ========================= ADMIN =========================
 
 export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
@@ -298,6 +307,15 @@ export const approveReview = asyncHandler(async (req: Request, res: Response) =>
   review.isApproved = true;
   await review.save();
   return ApiResponse.success(res, 'Review approved', { review });
+});
+
+export const toggleHomepageReview = asyncHandler(async (req: Request, res: Response) => {
+  const review = await Review.findById(req.params.id);
+  if (!review) return ApiResponse.notFound(res, 'Review not found');
+  if (!review.isApproved) return ApiResponse.badRequest(res, 'Approve this review before featuring it');
+  review.isFeaturedOnHomepage = !review.isFeaturedOnHomepage;
+  await review.save();
+  return ApiResponse.success(res, review.isFeaturedOnHomepage ? 'Review added to homepage' : 'Review removed from homepage', { review });
 });
 
 export const rejectReview = asyncHandler(async (req: Request, res: Response) => {

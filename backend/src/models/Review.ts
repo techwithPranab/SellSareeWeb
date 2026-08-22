@@ -39,6 +39,7 @@ const ReviewSchema = new Schema<IReview>(
     images: [{ type: String }],
     isVerifiedPurchase: { type: Boolean, default: false },
     isApproved: { type: Boolean, default: false },
+    isFeaturedOnHomepage: { type: Boolean, default: false },
     helpfulCount: { type: Number, default: 0 },
     helpfulUsers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     adminReply: { type: String },
@@ -54,6 +55,7 @@ const ReviewSchema = new Schema<IReview>(
 // Unique: One review per user per product
 ReviewSchema.index({ product: 1, user: 1 }, { unique: true });
 ReviewSchema.index({ product: 1, isApproved: 1 });
+ReviewSchema.index({ isApproved: 1, isFeaturedOnHomepage: 1, createdAt: -1 });
 ReviewSchema.index({ user: 1 });
 ReviewSchema.index({ rating: 1 });
 ReviewSchema.index({ createdAt: -1 });

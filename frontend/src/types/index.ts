@@ -320,7 +320,7 @@ export interface OrdersState {
 
 export interface Review {
   _id: string;
-  product: string;
+  product: string | Pick<Product, '_id' | 'name' | 'slug'>;
   user: Pick<User, '_id' | 'name' | 'avatar'>;
   rating: number;
   title: string;
@@ -328,6 +328,7 @@ export interface Review {
   images: string[];
   isVerifiedPurchase: boolean;
   isApproved: boolean;
+  isFeaturedOnHomepage: boolean;
   helpfulCount: number;
   adminReply?: string;
   adminReplyAt?: string;

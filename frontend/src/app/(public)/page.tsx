@@ -8,8 +8,10 @@ import {
   CalendarDays,
   CheckCircle2,
   Gift,
-  Headphones,
   Loader2,
+  Search,
+  ShoppingBag,
+  CreditCard,
   ShieldCheck,
   Sparkles,
   Star,
@@ -19,9 +21,10 @@ import toast from 'react-hot-toast';
 import HeroSlider from '@/components/home/HeroSlider';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import { launchService } from '@/services/launch.service';
+import { userService } from '@/services/user.service';
+import type { Review } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import {
-  fetchFeaturedProducts,
   fetchNewArrivals,
 } from '@/features/products/productsSlice';
 
@@ -35,69 +38,6 @@ const TRUST_BADGES = [
     icon: <ShieldCheck className="w-6 h-6 text-primary" />,
     title: '100% Authentic',
     desc: 'Genuine handcrafted sarees',
-  },
-  {
-    icon: <Headphones className="w-6 h-6 text-primary" />,
-    title: '24/7 Support',
-    desc: 'We\'re always here for you',
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    id: 1,
-    name: 'Priya Sharma',
-    location: 'Delhi',
-    rating: 5,
-    review: 'The Banarasi silk saree I ordered for my wedding was absolutely stunning. The zari work is incredible and the quality exceeded my expectations. PP’s Aura delivered exactly what they promised!',
-    avatar: '/images/testimonials/t1.jpg',
-    product: 'Bridal Banarasi Silk',
-  },
-  {
-    id: 2,
-    name: 'Meenakshi Iyer',
-    location: 'Chennai',
-    rating: 5,
-    review: 'I\'ve been buying Kanjivaram sarees for years and this is by far the most authentic one I\'ve found online. The temple border design is exquisite. Will definitely order more!',
-    avatar: '/images/testimonials/t2.jpg',
-    product: 'Kanjivaram Temple Border',
-  },
-  {
-    id: 3,
-    name: 'Ruma Chatterjee',
-    location: 'Kolkata',
-    rating: 5,
-    review: 'As a Bengali, I\'m very particular about Tant sarees. The quality from PP’s Aura is outstanding — exactly like buying from a weaver\'s home. The packaging was also beautiful!',
-    avatar: '/images/testimonials/t3.jpg',
-    product: 'Handloom Tant Cotton',
-  },
-];
-
-const UPCOMING_SAREES = [
-  {
-    name: 'Jamdani',
-    description: 'Airy, elegant weaves distinguished by intricate motifs created directly on the loom.',
-    accent: 'from-rose-100 to-orange-50',
-  },
-  {
-    name: 'Handloom',
-    description: 'Artisan-made sarees where every variation celebrates the beauty of work done by hand.',
-    accent: 'from-amber-100 to-yellow-50',
-  },
-  {
-    name: 'Bangladeshi Jamdani',
-    description: 'Heritage-inspired Jamdani featuring delicate, rhythmic motifs and a graceful drape.',
-    accent: 'from-emerald-100 to-teal-50',
-  },
-  {
-    name: 'Kardana Jamdani Silk',
-    description: 'A festive blend of Jamdani artistry, lustrous silk, and refined kardana embellishment.',
-    accent: 'from-violet-100 to-fuchsia-50',
-  },
-  {
-    name: 'Tasar',
-    description: 'Naturally textured silk with an earthy sheen, timeless character, and effortless elegance.',
-    accent: 'from-stone-200 to-amber-50',
   },
 ];
 
@@ -129,13 +69,14 @@ export default function HomePage() {
   const [registration, setRegistration] = useState({ name: '', email: '', phone: '' });
   const [isRegistering, setIsRegistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-  const { featuredProducts, newArrivals, isLoading } = useAppSelector(
+  const [homepageReviews, setHomepageReviews] = useState<Review[]>([]);
+  const { newArrivals, isLoading } = useAppSelector(
     (s) => s.products
   );
 
   useEffect(() => {
-    dispatch(fetchFeaturedProducts());
     dispatch(fetchNewArrivals());
+    userService.getHomepageReviews().then(({ reviews }) => setHomepageReviews(reviews)).catch(() => setHomepageReviews([]));
   }, [dispatch]);
 
   const handleLaunchRegistration = async (event: FormEvent<HTMLFormElement>) => {
@@ -161,7 +102,7 @@ export default function HomePage() {
 
       {/* Trust Badges */}
       <section className="border-b border-border bg-white">
-        <div className="container-custom py-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="container-custom py-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {TRUST_BADGES.map((badge) => (
             <motion.div
               key={badge.title}
@@ -314,44 +255,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Upcoming Sarees */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">The debut edit</p>
-            <h2 className="section-title">Upcoming Sarees</h2>
-            <p className="section-subtitle">
-              Our launch collection is intentionally focused on five timeless saree traditions.
-            </p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            {UPCOMING_SAREES.map((saree, index) => (
-              <motion.article
-                key={saree.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.06 }}
-                className="group overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-card-hover"
-              >
-                <div className={`flex h-32 items-center justify-center bg-gradient-to-br ${saree.accent}`}>
-                  <div className="flex h-16 w-16 rotate-45 items-center justify-center rounded-2xl border border-white/80 bg-white/60 shadow-sm backdrop-blur-sm transition-transform group-hover:rotate-[55deg]">
-                    <Sparkles className="h-7 w-7 -rotate-45 text-primary transition-transform group-hover:-rotate-[55deg]" />
-                  </div>
-                </div>
-                <div className="p-5">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-                    Coming soon
-                  </p>
-                  <h3 className="font-playfair text-xl font-bold text-foreground">{saree.name}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{saree.description}</p>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Launch Benefits */}
       <section className="section-padding bg-surface">
         <div className="container-custom">
@@ -384,16 +287,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <FeaturedProducts
-        title="Featured Sarees"
-        subtitle="Hand-picked masterpieces curated by our expert team"
-        seeAllHref="/products?featured=true"
-        seeAllLabel="View All Featured"
-        products={featuredProducts}
-        isLoading={isLoading}
-      />
-
       {/* New Arrivals */}
       <section className="bg-surface">
         <FeaturedProducts
@@ -406,26 +299,76 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Testimonials */}
-      <section className="section-padding bg-surface">
+      {/* How to Order */}
+      <section className="section-padding bg-white" aria-labelledby="how-to-order-title">
+        <div className="container-custom">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
+              Simple &amp; convenient
+            </p>
+            <h2 id="how-to-order-title" className="section-title">How to Order</h2>
+            <p className="section-subtitle">Your favourite saree is only three quick steps away.</p>
+          </div>
+
+          <ol className="relative grid gap-5 md:grid-cols-3 md:gap-8">
+            {[
+              {
+                icon: Search,
+                title: 'Choose Your Saree',
+                description: 'Explore our collection and open a saree to view its details.',
+              },
+              {
+                icon: ShoppingBag,
+                title: 'Add to Your Bag',
+                description: 'Select your preferred saree and add it to your shopping bag.',
+              },
+              {
+                icon: CreditCard,
+                title: 'Checkout Securely',
+                description: 'Enter your delivery details and complete your payment.',
+              },
+            ].map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <motion.li
+                  key={step.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  className="relative rounded-2xl border border-border bg-background p-6 text-center shadow-sm"
+                >
+                  <span className="absolute left-4 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-5 font-playfair text-xl font-bold text-foreground">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+                </motion.li>
+              );
+            })}
+          </ol>
+        </div>
+      </section>
+
+      {/* Admin-selected customer reviews. Hidden until genuine reviews are selected. */}
+      {homepageReviews.length > 0 && <section className="section-padding bg-surface">
         <div className="container-custom">
           <div className="text-center mb-12">
             <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">
               Customer Love
             </p>
             <h2 className="section-title">What Our Customers Say</h2>
-            <div className="flex items-center justify-center gap-2 mt-3">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-secondary text-secondary" />
-              ))}
-              <span className="text-sm text-muted ml-1">4.9/5 from 2,400+ reviews</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
+            {homepageReviews.map((review) => {
+              const productName = typeof review.product === 'object' ? review.product.name : undefined;
+              return (
               <motion.div
-                key={t.id}
+                key={review._id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -433,27 +376,28 @@ export default function HomePage() {
                 className="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-card transition-shadow"
               >
                 <div className="flex gap-1 mb-3">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-secondary text-secondary' : 'text-gray-300'}`} />
                   ))}
                 </div>
+                <h3 className="mb-2 text-sm font-semibold text-foreground">{review.title}</h3>
                 <p className="text-sm text-foreground leading-relaxed mb-4 italic">
-                  &quot;{t.review}&quot;
+                  &quot;{review.comment}&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">{t.name[0]}</span>
+                    <span className="text-sm font-bold text-primary">{review.user?.name?.[0] || 'C'}</span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                    <p className="text-xs text-muted">{t.location} • Purchased: {t.product}</p>
+                    <p className="text-sm font-semibold text-foreground">{review.user?.name || 'Customer'}</p>
+                    <p className="text-xs text-muted">{review.isVerifiedPurchase ? 'Verified purchase' : 'Customer review'}{productName ? ` • ${productName}` : ''}</p>
                   </div>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Newsletter */}
       <section className="section-padding bg-primary">

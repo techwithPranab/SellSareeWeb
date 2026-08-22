@@ -314,6 +314,11 @@ export const adminService = {
     return response.data;
   },
 
+  async toggleHomepageReview(reviewId: string) {
+    const response = await api.put(`/users/admin/reviews/${reviewId}/homepage`);
+    return response.data;
+  },
+
   // ── Categories ─────────────────────────────────────────────────────────────
   async getCategories() {
     const response = await api.get('/categories/admin/all');

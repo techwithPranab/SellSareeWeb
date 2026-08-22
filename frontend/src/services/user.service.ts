@@ -76,6 +76,11 @@ export const userService = {
     return response.data;
   },
 
+  async getHomepageReviews() {
+    const response = await api.get('/users/reviews/homepage');
+    return response.data.data as { reviews: Review[] };
+  },
+
   async validateCoupon(code: string, orderAmount: number) {
     const response = await api.post('/users/coupons/validate', { code, orderAmount });
     return response.data.data;

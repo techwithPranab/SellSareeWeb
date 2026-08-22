@@ -22,6 +22,8 @@ import {
   approveReview,
   rejectReview,
   replyToReview,
+  getHomepageReviews,
+  toggleHomepageReview,
 } from '../controllers/user.controller';
 import {
   getAllCoupons,
@@ -38,6 +40,7 @@ const router = Router();
 
 // Approved product reviews are public.
 router.get('/reviews/product/:productId', getProductReviews);
+router.get('/reviews/homepage', getHomepageReviews);
 
 // ========================= CUSTOMER =========================
 router.use(authenticate);
@@ -82,6 +85,7 @@ router.get('/admin/reviews', getAllReviews);
 router.put('/admin/reviews/:id/approve', approveReview);
 router.delete('/admin/reviews/:id', rejectReview);
 router.put('/admin/reviews/:id/reply', replyToReview);
+router.put('/admin/reviews/:id/homepage', toggleHomepageReview);
 
 // Coupon management
 router.get('/admin/coupons', getAllCoupons);
