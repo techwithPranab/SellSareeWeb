@@ -7,6 +7,7 @@ const defaults = {
   key: 'store',
   storeName: 'PP’s Aura',
   supportEmail: 'support@ppaura.in',
+  supportPhone: '',
   storeAddress: '12 Silk Street, Kolkata — 700001, West Bengal',
   freeShippingThreshold: 999,
   standardShippingRate: 99,
@@ -31,7 +32,7 @@ export const getStoreSettings = asyncHandler(async (_req: Request, res: Response
 });
 
 export const updateStoreSettings = asyncHandler(async (req: Request, res: Response) => {
-  const stringFields = ['storeName', 'supportEmail', 'storeAddress'] as const;
+  const stringFields = ['storeName', 'supportEmail', 'supportPhone', 'storeAddress'] as const;
   const numberFields = ['freeShippingThreshold', 'standardShippingRate', 'loyaltyPointsRate'] as const;
   const update: Record<string, unknown> = {};
 
@@ -40,6 +41,9 @@ export const updateStoreSettings = asyncHandler(async (req: Request, res: Respon
 
   if (!update.storeName || !/^\S+@\S+\.\S+$/.test(String(update.supportEmail))) {
     return ApiResponse.badRequest(res, 'A store name and valid support email are required');
+  }
+  if (update.supportPhone && !/^\+?[0-9][0-9\s-]{7,18}$/.test(String(update.supportPhone))) {
+    return ApiResponse.badRequest(res, 'Please enter a valid support phone number');
   }
   if (numberFields.some((field) => !Number.isFinite(update[field]) || Number(update[field]) < 0)) {
     return ApiResponse.badRequest(res, 'Shipping and loyalty values must be valid positive numbers');

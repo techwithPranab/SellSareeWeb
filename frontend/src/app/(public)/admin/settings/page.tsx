@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 const EMPTY_SETTINGS: StoreSettings = {
   storeName: 'PP’s Aura',
   supportEmail: 'support@ppaura.in',
+  supportPhone: '',
   storeAddress: '',
   freeShippingThreshold: 999,
   standardShippingRate: 99,
@@ -104,6 +105,7 @@ export default function AdminSettingsPage() {
           <dl className="space-y-3 text-sm">
             <SettingRow label="Store Name" value={settings.storeName} />
             <SettingRow label="Support Email" value={settings.supportEmail} />
+            <SettingRow label="Support Phone" value={settings.supportPhone || '—'} />
             <SettingRow label="Store Address" value={settings.storeAddress || '—'} />
             <SettingRow label="Free Shipping Threshold" value={`₹${settings.freeShippingThreshold}`} />
             <SettingRow label="Standard Shipping" value={`₹${settings.standardShippingRate}`} />
@@ -131,10 +133,13 @@ export default function AdminSettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             {SOCIAL_PLATFORMS.map((platform) => {
               const url = settings.socialLinks?.[platform];
+              const href = platform === 'whatsapp' && url && !/^https?:\/\//i.test(url)
+                ? `https://wa.me/${url.replace(/\D/g, '')}`
+                : url;
               return (
                 <div key={platform} className="flex items-center justify-between gap-3 p-3 bg-surface rounded-lg">
                   <span className="capitalize font-medium text-foreground">{platform}</span>
-                  {url ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary text-xs hover:underline truncate max-w-[260px]">{url}</a> : <span className="text-xs text-muted-foreground">Not set</span>}
+                  {url ? <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary text-xs hover:underline truncate max-w-[260px]">{url}</a> : <span className="text-xs text-muted-foreground">Not set</span>}
                 </div>
               );
             })}
@@ -147,6 +152,7 @@ export default function AdminSettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Store Name"><input required className="input-field mt-1.5" value={draft.storeName} onChange={(e) => setDraft({ ...draft, storeName: e.target.value })} /></Field>
             <Field label="Support Email"><input required type="email" className="input-field mt-1.5" value={draft.supportEmail} onChange={(e) => setDraft({ ...draft, supportEmail: e.target.value })} /></Field>
+            <Field label="Support Phone"><input type="tel" className="input-field mt-1.5" placeholder="+91 98765 43210" value={draft.supportPhone} onChange={(e) => setDraft({ ...draft, supportPhone: e.target.value })} /></Field>
             <Field label="Store Address" wide><textarea className="input-field mt-1.5 min-h-20" value={draft.storeAddress} onChange={(e) => setDraft({ ...draft, storeAddress: e.target.value })} /></Field>
             <NumberField label="Free Shipping Threshold (₹)" value={draft.freeShippingThreshold} onChange={(value) => setDraft({ ...draft, freeShippingThreshold: value })} />
             <NumberField label="Standard Shipping Rate (₹)" value={draft.standardShippingRate} onChange={(value) => setDraft({ ...draft, standardShippingRate: value })} />
@@ -157,8 +163,8 @@ export default function AdminSettingsPage() {
             <h3 className="mb-3 font-semibold">Social Media Links</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               {SOCIAL_PLATFORMS.map((platform) => (
-                <Field key={platform} label={platform} capitalize>
-                  <input type="url" className="input-field mt-1.5" placeholder={`https://${platform}.com/...`} value={draft.socialLinks?.[platform] ?? ''} onChange={(e) => setDraft({ ...draft, socialLinks: { ...draft.socialLinks, [platform]: e.target.value } })} />
+                <Field key={platform} label={platform === 'whatsapp' ? 'WhatsApp Number' : platform} capitalize>
+                  <input type={platform === 'whatsapp' ? 'tel' : 'url'} className="input-field mt-1.5" placeholder={platform === 'whatsapp' ? '919876543210' : `https://${platform}.com/...`} value={draft.socialLinks?.[platform] ?? ''} onChange={(e) => setDraft({ ...draft, socialLinks: { ...draft.socialLinks, [platform]: e.target.value } })} />
                 </Field>
               ))}
             </div>

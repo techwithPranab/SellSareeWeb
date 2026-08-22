@@ -40,6 +40,7 @@ export interface StoreSettings {
   _id?: string;
   storeName: string;
   supportEmail: string;
+  supportPhone: string;
   storeAddress: string;
   freeShippingThreshold: number;
   standardShippingRate: number;
