@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
   Heart,
-  Search,
   User,
   Menu,
   X,
@@ -22,14 +21,13 @@ import {
 } from 'lucide-react';
 import { useAppSelector } from '@/hooks/useStore';
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_LINKS, APP_NAME } from '@/constants';
+import { NAV_LINKS } from '@/constants';
 import { cn, asRoute } from '@/utils/helpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const cartCount = useAppSelector((s) =>
     s.cart.items.reduce((acc, i) => acc + i.quantity, 0)
@@ -38,12 +36,9 @@ export default function Navbar() {
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isDark, setIsDark] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   // Scroll detection
   useEffect(() => {
@@ -52,26 +47,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Focus search input when opened
-  useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
-  }, [searchOpen]);
-
   // Close menus on route change
   useEffect(() => {
     setIsMobileOpen(false);
     setActiveDropdown(null);
     setUserMenuOpen(false);
   }, [pathname]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-      setSearchOpen(false);
-    }
-  };
 
   const toggleDark = () => {
     setIsDark((prev) => !prev);
@@ -90,15 +71,25 @@ export default function Navbar() {
       >
         <nav className="container-custom flex items-center justify-between h-16 gap-4">
           {/* ── Logo ─────────────────────────────────────────────── */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="relative w-8 h-8">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-playfair font-bold text-sm">R</span>
-              </div>
-            </div>
-            <span className="font-playfair font-bold text-xl text-primary hidden sm:inline">
-              {APP_NAME}
-            </span>
+          <Link href="/" className="flex shrink-0 items-center" aria-label="PP's Aura home">
+            <Image
+              src="/images/pp-aura-mark.png"
+              alt="PP's Aura"
+              width={44}
+              height={44}
+              priority
+              sizes="44px"
+              className="h-11 w-11 object-contain sm:hidden"
+            />
+            <Image
+              src="/images/pp-aura-logo.png"
+              alt="PP's Aura"
+              width={150}
+              height={50}
+              priority
+              sizes="150px"
+              className="hidden h-12 w-auto object-contain sm:block"
+            />
           </Link>
 
           {/* ── Desktop Nav Links ─────────────────────────────────── */}
@@ -155,15 +146,6 @@ export default function Navbar() {
 
           {/* ── Right Actions ─────────────────────────────────────── */}
           <div className="flex items-center gap-1">
-            {/* Search */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="icon-btn"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
             {/* Wishlist */}
             <Link href="/dashboard/wishlist" className="icon-btn relative" aria-label="Wishlist">
               <Heart className="w-5 h-5" />
@@ -327,47 +309,6 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
 
-      {/* ── Global Search Overlay ──────────────────────────────────────────── */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-24 px-4"
-            onClick={(e) => e.target === e.currentTarget && setSearchOpen(false)}
-          >
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"
-            >
-              <form onSubmit={handleSearch} className="flex items-center gap-3 p-4">
-                <Search className="w-5 h-5 text-muted shrink-0" />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search sarees, fabrics, occasions…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 text-base outline-none bg-transparent text-foreground placeholder:text-muted"
-                />
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen(false)}
-                  className="p-1 rounded-md hover:bg-muted/50 transition-colors"
-                >
-                  <X className="w-5 h-5 text-muted" />
-                </button>
-              </form>
-              <div className="px-4 pb-4 text-xs text-muted">
-                Try: &quot;Jamdani&quot;, &quot;Handloom saree&quot;, &quot;Tasar silk&quot;
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
