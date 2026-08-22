@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,12 +22,19 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>({ resolver: zodResolver(registerSchema) });
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { acceptTerms: false },
+  });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await registerUser(data);
-      router.push('/dashboard');
+      const result = await registerUser({
+        ...data,
+        phone: data.phone?.trim() || undefined,
+        referralCode: data.referralCode?.trim() || undefined,
+      });
+      if (result.success) router.push('/dashboard');
     } catch {
       // error is in Redux state
     }
@@ -38,9 +46,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-playfair font-bold">R</span>
-            </div>
+            <Image src="/images/pp-aura-mark.png" alt="" width={40} height={40} sizes="40px" className="h-10 w-10 object-contain" priority />
             <span className="font-playfair font-bold text-xl text-primary">{APP_NAME}</span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Create Your Account</h1>
@@ -166,6 +172,23 @@ export default function RegisterPage() {
             />
           </div>
 
+          <div>
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-muted-foreground">
+              <input
+                {...register('acceptTerms')}
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <span>
+                I agree to the{' '}
+                <Link href="/terms" className="font-medium text-primary hover:underline">Terms</Link>
+                {' '}and{' '}
+                <Link href="/privacy-policy" className="font-medium text-primary hover:underline">Privacy Policy</Link>.
+              </span>
+            </label>
+            {errors.acceptTerms && <p className="mt-1 text-xs text-red-500">{errors.acceptTerms.message}</p>}
+          </div>
+
           <button
             type="submit"
             disabled={isLoading}
@@ -189,12 +212,6 @@ export default function RegisterPage() {
           </Link>
         </p>
 
-        <p className="text-xs text-muted text-center mt-3">
-          By creating an account, you agree to our{' '}
-          <Link href="/terms" className="text-primary hover:underline">Terms</Link>
-          {' '}and{' '}
-          <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>
-        </p>
       </div>
     </div>
   );

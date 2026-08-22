@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { APP_NAME, SOCIAL_LINKS, NAV_LINKS } from '@/constants';
 import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
 import { asRoute } from '@/utils/helpers';
@@ -14,9 +15,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-playfair font-bold text-base">R</span>
-            </div>
+            <Image src="/images/pp-aura-mark.png" alt="" width={36} height={36} sizes="36px" className="h-9 w-9 object-contain" />
             <span className="font-playfair font-bold text-xl text-white">{APP_NAME}</span>
           </div>
           <p className="text-sm leading-relaxed text-[#b09070] mb-6">

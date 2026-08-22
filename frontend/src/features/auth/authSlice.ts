@@ -156,13 +156,28 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Logout
-    builder.addCase(logoutUser.fulfilled, (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.refreshToken = null;
-      state.isAuthenticated = false;
-    });
+    // Logout must clear local UI and persisted auth immediately. A slow or failed
+    // server-side session cleanup must never leave authenticated menus visible.
+    builder
+      .addCase(logoutUser.pending, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+      });
 
     // Get Me
     builder

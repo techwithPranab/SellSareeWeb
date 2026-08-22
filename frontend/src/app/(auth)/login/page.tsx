@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,9 +46,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-playfair font-bold">R</span>
-            </div>
+            <Image src="/images/pp-aura-mark.png" alt="" width={40} height={40} sizes="40px" className="h-10 w-10 object-contain" priority />
             <span className="font-playfair font-bold text-xl text-primary">{APP_NAME}</span>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>

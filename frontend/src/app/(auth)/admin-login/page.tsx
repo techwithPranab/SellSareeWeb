@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,9 +61,7 @@ export default function AdminLoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-7 text-center">
           <Link href="/" className="inline-flex items-center gap-3 text-white">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary font-playfair text-xl font-bold">
-              P
-            </span>
+            <Image src="/images/pp-aura-mark.png" alt="" width={44} height={44} sizes="44px" className="h-11 w-11 object-contain" priority />
             <span className="font-playfair text-2xl font-bold">{APP_NAME}</span>
           </Link>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-secondary">
