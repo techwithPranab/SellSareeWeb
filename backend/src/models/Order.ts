@@ -104,6 +104,8 @@ const OrderSchema = new Schema<IOrder>(
     loyaltyPointsEarned: { type: Number, default: 0 },
     loyaltyPointsRedeemed: { type: Number, default: 0 },
     loyaltyPointsAwarded: { type: Boolean, default: false },
+    inventoryReservationExpiresAt: { type: Date },
+    inventoryRestored: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -120,6 +122,7 @@ OrderSchema.index({ 'paymentInfo.status': 1 });
 OrderSchema.index({ 'paymentInfo.status': 1, 'paymentInfo.paidAt': -1 });
 OrderSchema.index({ 'paymentInfo.razorpayOrderId': 1 });
 OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ inventoryReservationExpiresAt: 1, status: 1, inventoryRestored: 1 });
 
 // Virtual: isReturnWindowOpen
 OrderSchema.virtual('isReturnWindowOpen').get(function () {

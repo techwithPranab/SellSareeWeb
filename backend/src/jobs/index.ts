@@ -4,6 +4,28 @@ import { orderRepository } from '../repositories/order.repository';
 import { productRepository } from '../repositories/product.repository';
 import { emailService } from '../services/email.service';
 
+// Release stock held by unpaid checkout sessions. Static-QR orders with a
+// submitted proof use PROCESSING status and are intentionally excluded.
+export const inventoryReservationExpiryJob = cron.schedule(
+  '* * * * *',
+  async () => {
+    try {
+      const expiredOrders = await orderRepository.claimExpiredInventoryReservations();
+      for (const order of expiredOrders) {
+        await Promise.all(order.items.map((item) =>
+          productRepository.releaseStock(item.product.toString(), item.quantity)
+        ));
+      }
+      if (expiredOrders.length > 0) {
+        logger.info(`[CRON] Released inventory for ${expiredOrders.length} expired payment order(s)`);
+      }
+    } catch (error) {
+      logger.error('[CRON] Inventory reservation expiry job failed:', error);
+    }
+  },
+  { scheduled: false }
+);
+
 // =============================================
 // ABANDONED CART RECOVERY JOB
 // Run every hour
@@ -80,6 +102,7 @@ export const initializeJobs = (): void => {
     abandonedCartJob.start();
     orderReminderJob.start();
     inventoryAlertJob.start();
+    inventoryReservationExpiryJob.start();
     logger.info('⏰ Background jobs initialized');
   } else {
     logger.info('ℹ️  Background jobs disabled in development mode');

@@ -119,11 +119,9 @@ export default function ProductDetailPage() {
   }
 
   const isComingSoon = isProductComingSoon(product);
-  const images = isComingSoon
-    ? [{ url: '/images/product-coming-soon.svg', publicId: 'coming-soon', isDefault: true, sortOrder: 0 }]
-    : product.images?.length
-      ? product.images
-      : [{ url: getProductDefaultImage(product), publicId: '', isDefault: true, sortOrder: 0 }];
+  const images = product.images?.length
+    ? product.images
+    : [{ url: '/images/product-coming-soon.svg', publicId: 'coming-soon', isDefault: true, sortOrder: 0 }];
   const effectivePrice = getProductEffectivePrice(product);
   const discountPercent = getProductDiscountPercent(product);
   const categoryName =
@@ -172,10 +170,10 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container-custom py-8 md:py-12">
-      <script
+      {!isComingSoon && <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProductSchema(product)).replace(/</g, '\\u003c') }}
-      />
+      />}
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8 flex-wrap">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>

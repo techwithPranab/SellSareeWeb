@@ -82,6 +82,14 @@ export class PaymentService {
       throw new CustomError('Payment has not been captured for the correct order amount', HTTP_STATUS.BAD_REQUEST);
     }
 
+    if (order.inventoryRestored || order.status === OrderStatus.CANCELLED) {
+      await refundRazorpayPayment(razorpayPaymentId);
+      throw new CustomError(
+        'The payment session expired and inventory was released. Your payment has been refunded.',
+        HTTP_STATUS.CONFLICT
+      );
+    }
+
     // Update order payment status
     await orderRepository.updateById(order._id.toString(), {
       'paymentInfo.razorpayPaymentId': razorpayPaymentId,
@@ -140,6 +148,10 @@ export class PaymentService {
         if (!order_id || !paymentId) break;
         const order = await orderRepository.findByRazorpayOrderId(order_id);
         if (order) {
+          if (order.inventoryRestored || order.status === OrderStatus.CANCELLED) {
+            await refundRazorpayPayment(paymentId);
+            break;
+          }
           await orderRepository.updateById(order._id.toString(), {
             'paymentInfo.razorpayPaymentId': paymentId,
             'paymentInfo.status': PaymentStatus.COMPLETED,

@@ -100,6 +100,41 @@ export class OrderRepository {
     );
   }
 
+  async claimExpiredInventoryReservations(now = new Date()): Promise<IOrder[]> {
+    const candidates = await Order.find({
+      status: OrderStatus.PENDING,
+      inventoryRestored: { $ne: true },
+      inventoryReservationExpiresAt: { $lte: now },
+      $or: [
+        { 'paymentInfo.method': { $ne: 'upi' }, 'paymentInfo.status': { $in: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED] } },
+        { 'paymentInfo.method': 'upi', 'paymentInfo.status': PaymentStatus.PENDING },
+      ],
+    }).select('_id');
+
+    const claimed = await Promise.all(candidates.map(({ _id }) => Order.findOneAndUpdate(
+      {
+        _id,
+        status: OrderStatus.PENDING,
+        inventoryRestored: { $ne: true },
+        inventoryReservationExpiresAt: { $lte: now },
+        $or: [
+          { 'paymentInfo.method': { $ne: 'upi' }, 'paymentInfo.status': { $in: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED] } },
+          { 'paymentInfo.method': 'upi', 'paymentInfo.status': PaymentStatus.PENDING },
+        ],
+      },
+      {
+        $set: {
+          status: OrderStatus.CANCELLED,
+          inventoryRestored: true,
+          cancelReason: 'Payment window expired',
+        },
+      },
+      { new: true }
+    )));
+
+    return claimed.filter(Boolean) as IOrder[];
+  }
+
   async findByRazorpayOrderId(razorpayOrderId: string): Promise<IOrder | null> {
     return Order.findOne({ 'paymentInfo.razorpayOrderId': razorpayOrderId });
   }

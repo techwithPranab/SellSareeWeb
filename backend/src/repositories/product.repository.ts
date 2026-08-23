@@ -135,6 +135,22 @@ export class ProductRepository {
     );
   }
 
+  async reserveStock(productId: string, quantity: number): Promise<IProduct | null> {
+    return Product.findOneAndUpdate(
+      { _id: productId, isActive: true, stock: { $gte: quantity } },
+      { $inc: { stock: -quantity, soldCount: quantity } },
+      { new: true, runValidators: true }
+    );
+  }
+
+  async releaseStock(productId: string, quantity: number): Promise<IProduct | null> {
+    return Product.findByIdAndUpdate(
+      productId,
+      { $inc: { stock: quantity, soldCount: -quantity } },
+      { new: true, runValidators: true }
+    );
+  }
+
   async countDocuments(filter: FilterQuery<IProduct> = {}): Promise<number> {
     return Product.countDocuments(filter);
   }

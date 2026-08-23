@@ -189,35 +189,61 @@ export class OrderService {
     // Loyalty points earned (1 point per rupee)
     const loyaltyPointsEarned = Math.floor(totalAmount * loyaltyPointsRate);
 
-    // Create order
-    const order = await orderRepository.create({
-      ...(orderNumber && { orderNumber }),
-      user: userId as unknown as import('mongoose').Types.ObjectId,
-      items: orderItems,
-      shippingAddress,
-      paymentInfo: {
-        method: paymentMethod,
-        status: PaymentStatus.PENDING,
-      },
-      status: OrderStatus.PENDING,
-      subtotal,
-      shippingCharge: shippingCharge - (couponCode && couponDiscount === shippingCharge ? shippingCharge : 0),
-      taxAmount,
-      discount: totalDiscount,
-      couponCode: couponCodeUsed,
-      couponDiscount,
-      totalAmount,
-      loyaltyPointsEarned,
-      loyaltyPointsRedeemed,
-      notes,
-    });
+    // Atomically reserve every item. The stock predicate is evaluated by
+    // MongoDB during the update, so two simultaneous checkouts cannot both
+    // reserve the final unit.
+    const reservedItems: Array<{ productId: string; quantity: number }> = [];
+    let order: IOrder;
+    try {
+      for (const item of items) {
+        const reserved = await productRepository.reserveStock(item.productId, item.quantity);
+        if (!reserved) {
+          throw new CustomError(
+            'One or more sarees just sold out. Please review your cart and try again.',
+            HTTP_STATUS.CONFLICT
+          );
+        }
+        reservedItems.push({ productId: item.productId, quantity: item.quantity });
+      }
 
-    // Deduct stock (reserve inventory)
-    await Promise.all(
-      items.map((item) =>
-        productRepository.updateStock(item.productId, item.quantity)
-      )
-    );
+      order = await orderRepository.create({
+        ...(orderNumber && { orderNumber }),
+        user: userId as unknown as import('mongoose').Types.ObjectId,
+        items: orderItems,
+        shippingAddress,
+        paymentInfo: {
+          method: paymentMethod,
+          status: PaymentStatus.PENDING,
+        },
+        status: OrderStatus.PENDING,
+        subtotal,
+        shippingCharge: shippingCharge - (couponCode && couponDiscount === shippingCharge ? shippingCharge : 0),
+        taxAmount,
+        discount: totalDiscount,
+        couponCode: couponCodeUsed,
+        couponDiscount,
+        totalAmount,
+        loyaltyPointsEarned,
+        loyaltyPointsRedeemed,
+        inventoryReservationExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
+        inventoryRestored: false,
+        notes,
+      });
+    } catch (error) {
+      await Promise.all(reservedItems.map((item) =>
+        productRepository.releaseStock(item.productId, item.quantity)
+      ));
+      if (loyaltyPointsRedeemed > 0) {
+        await userRepository.updateLoyaltyPoints(userId, loyaltyPointsRedeemed);
+      }
+      if (couponCodeUsed) {
+        await Coupon.findOneAndUpdate(
+          { code: couponCodeUsed },
+          { $inc: { usedCount: -1 }, $pull: { usedBy: userId } }
+        );
+      }
+      throw error;
+    }
 
     // Send order confirmation email
     const user = await userRepository.findById(userId);
@@ -272,7 +298,7 @@ export class OrderService {
 
     // Restore stock
     for (const item of order.items) {
-      await productRepository.updateStock(item.product.toString(), -item.quantity);
+      await productRepository.releaseStock(item.product.toString(), item.quantity);
     }
 
     // Restore loyalty points if redeemed
@@ -283,6 +309,7 @@ export class OrderService {
     const updated = await orderRepository.updateById(orderId, {
       status: OrderStatus.CANCELLED,
       cancelReason: reason,
+      inventoryRestored: true,
     } as Partial<IOrder>);
 
     return updated!;

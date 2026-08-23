@@ -37,8 +37,8 @@ export const trackOrderGuest = asyncHandler(async (req: Request, res: Response) 
 // ========================= CUSTOMER =========================
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  if (![PaymentMethod.RAZORPAY, PaymentMethod.UPI].includes(req.body.paymentMethod)) {
-    return ApiResponse.badRequest(res, 'Please select a supported online payment method');
+  if (req.body.paymentMethod !== PaymentMethod.UPI) {
+    return ApiResponse.badRequest(res, 'Only QR code payment is currently available');
   }
   const order = await orderService.createOrder(req.user!.id, req.body);
   return ApiResponse.created(res, 'Order placed successfully', { order });

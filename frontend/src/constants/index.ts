@@ -123,12 +123,6 @@ export const RETURN_REASONS = [
 // Payment Methods
 export const PAYMENT_METHODS = [
   {
-    id: 'razorpay',
-    label: 'Online Payment',
-    description: 'Credit/Debit Card, UPI, Net Banking, Wallets',
-    icon: '💳',
-  },
-  {
     id: 'upi',
     label: 'Scan QR Code',
     description: 'Scan and pay securely using any UPI app',

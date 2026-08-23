@@ -29,10 +29,8 @@ export default function ProductCard({
   const { addItem, isInCart } = useCart();
 
   const isComingSoon = isProductComingSoon(product);
-  const primaryImage = isComingSoon
-    ? '/images/product-coming-soon.svg'
-    : product.images?.[0]?.url ?? '/images/placeholder-saree.jpg';
-  const hoverImage = isComingSoon ? primaryImage : product.images?.[1]?.url ?? primaryImage;
+  const primaryImage = product.images?.[0]?.url ?? '/images/product-coming-soon.svg';
+  const hoverImage = product.images?.[1]?.url ?? primaryImage;
   const effectivePrice = getProductEffectivePrice(product);
   const discountPercent = getProductDiscountPercent(product);
 
@@ -75,7 +73,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={cn('transition-all duration-500', isComingSoon ? 'object-contain' : 'object-cover group-hover:opacity-0')}
+            className="object-cover transition-all duration-500 group-hover:opacity-0"
             loading="lazy"
           />
           {/* Hover Image */}
@@ -84,7 +82,7 @@ export default function ProductCard({
             alt={`${product.name} — alternate view`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className={cn('absolute inset-0 object-cover opacity-0 transition-all duration-500', !isComingSoon && 'group-hover:opacity-100')}
+            className="absolute inset-0 object-cover opacity-0 transition-all duration-500 group-hover:opacity-100"
             loading="lazy"
           />
 

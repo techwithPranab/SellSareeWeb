@@ -302,6 +302,8 @@ export interface Order {
   loyaltyPointsEarned: number;
   loyaltyPointsRedeemed: number;
   loyaltyPointsAwarded: boolean;
+  inventoryReservationExpiresAt?: string;
+  inventoryRestored: boolean;
   isReturnWindowOpen: boolean;
   createdAt: string;
   updatedAt: string;

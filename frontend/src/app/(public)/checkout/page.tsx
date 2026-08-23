@@ -15,18 +15,8 @@ import { checkoutSchema, type CheckoutFormData } from '@/validations/checkout.sc
 import { INDIAN_STATES, PAYMENT_METHODS } from '@/constants';
 import { formatPrice } from '@/utils/helpers';
 import { orderService } from '@/services/order.service';
-import { RAZORPAY_KEY_ID } from '@/constants';
 import toast from 'react-hot-toast';
 import type { Order } from '@/types';
-
-declare global {
-  interface Window {
-    Razorpay: new (options: Record<string, unknown>) => {
-      open: () => void;
-      on: (event: 'payment.failed', callback: (response: { error?: { description?: string } }) => void) => void;
-    };
-  }
-}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -64,7 +54,7 @@ export default function CheckoutPage() {
         pincode: defaultAddress?.pincode ?? '',
         country: 'India',
       },
-      paymentMethod: 'razorpay',
+      paymentMethod: 'upi',
     },
   });
   const paymentMethod = watch('paymentMethod');
@@ -78,19 +68,6 @@ export default function CheckoutPage() {
       router.replace('/cart');
     }
   }, [isAuthenticated, items.length, router]);
-
-  const loadRazorpayScript = () =>
-    new Promise<boolean>((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (data.paymentMethod === 'upi') {
@@ -139,68 +116,11 @@ export default function CheckoutPage() {
         await fetchCurrentUser();
       }
 
-      if (data.paymentMethod === 'upi') {
-        await orderService.submitManualPaymentProof(order._id, transactionId.trim(), paymentScreenshot!);
-        setPendingOrder(null);
-        emptyCart();
-        toast.success('Payment proof submitted. Your order is awaiting verification.');
-        router.push(`/checkout/success?orderId=${order._id}`);
-        return;
-      }
-
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded || !RAZORPAY_KEY_ID) {
-        toast.error('Payment gateway unavailable. Please try again or contact support.');
-        return;
-      }
-
-      const paymentData = await orderService.initiatePayment(order._id);
-      const checkoutKey = paymentData.key || RAZORPAY_KEY_ID;
-      if (!checkoutKey) {
-        toast.error('Razorpay key is not configured. Please contact support.');
-        return;
-      }
-
-      const rzp = new window.Razorpay({
-        key: checkoutKey,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        name: 'PP’s Aura',
-        description: `Order #${order.orderNumber}`,
-        order_id: paymentData.razorpayOrderId,
-        handler: async (response: {
-          razorpay_order_id: string;
-          razorpay_payment_id: string;
-          razorpay_signature: string;
-        }) => {
-          try {
-            await orderService.verifyPayment({
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            });
-            setPendingOrder(null);
-            emptyCart();
-            router.push(`/checkout/success?orderId=${order._id}`);
-          } catch {
-            toast.error('Payment verification failed. Please contact support.');
-          }
-        },
-        modal: {
-          ondismiss: () => toast('Payment window closed. Click Place Order to retry the same payment.'),
-          confirm_close: true,
-        },
-        prefill: {
-          name: data.shippingAddress.fullName,
-          contact: data.shippingAddress.phone,
-          email: user?.email,
-        },
-        theme: { color: '#b5451b' },
-      });
-      rzp.on('payment.failed', (response) => {
-        toast.error(response.error?.description || 'Payment failed. Please try again.');
-      });
-      rzp.open();
+      await orderService.submitManualPaymentProof(order._id, transactionId.trim(), paymentScreenshot!);
+      setPendingOrder(null);
+      emptyCart();
+      toast.success('Payment proof submitted. Your order is awaiting verification.');
+      router.push(`/checkout/success?orderId=${order._id}`);
     } catch (error: unknown) {
       const requestError = error as { response?: { data?: { message?: string } } };
       toast.error(requestError.response?.data?.message || 'Something went wrong. Please try again.');
@@ -418,7 +338,7 @@ export default function CheckoutPage() {
                   Placing Order…
                 </>
               ) : (
-                paymentMethod === 'upi' ? 'Submit QR Payment' : 'Pay with Razorpay'
+                'Submit QR Payment'
               )}
             </button>
           </div>
