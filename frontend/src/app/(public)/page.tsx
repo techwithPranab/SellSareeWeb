@@ -12,10 +12,8 @@ import {
   Search,
   ShoppingBag,
   CreditCard,
-  ShieldCheck,
   Sparkles,
   Star,
-  Truck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import HeroSlider from '@/components/home/HeroSlider';
@@ -27,19 +25,6 @@ import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import {
   fetchNewArrivals,
 } from '@/features/products/productsSlice';
-
-const TRUST_BADGES = [
-  {
-    icon: <Truck className="w-6 h-6 text-primary" />,
-    title: 'Free Shipping',
-    desc: 'On orders above ₹1,500',
-  },
-  {
-    icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-    title: '100% Authentic',
-    desc: 'Genuine handcrafted sarees',
-  },
-];
 
 const LAUNCH_BENEFITS = [
   {
@@ -64,12 +49,26 @@ const LAUNCH_BENEFITS = [
   },
 ];
 
+const LAUNCH_TIME = new Date('2026-08-28T00:00:00+05:30').getTime();
+
+const getLaunchCountdown = () => {
+  const remaining = Math.max(0, LAUNCH_TIME - Date.now());
+  return {
+    remaining,
+    days: Math.floor(remaining / 86_400_000),
+    hours: Math.floor((remaining / 3_600_000) % 24),
+    minutes: Math.floor((remaining / 60_000) % 60),
+    seconds: Math.floor((remaining / 1_000) % 60),
+  };
+};
+
 export default function HomePage() {
   const dispatch = useAppDispatch();
   const [registration, setRegistration] = useState({ name: '', email: '', phone: '' });
   const [isRegistering, setIsRegistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [homepageReviews, setHomepageReviews] = useState<Review[]>([]);
+  const [countdown, setCountdown] = useState<ReturnType<typeof getLaunchCountdown> | null>(null);
   const { newArrivals, isLoading } = useAppSelector(
     (s) => s.products
   );
@@ -78,6 +77,13 @@ export default function HomePage() {
     dispatch(fetchNewArrivals());
     userService.getHomepageReviews().then(({ reviews }) => setHomepageReviews(reviews)).catch(() => setHomepageReviews([]));
   }, [dispatch]);
+
+  useEffect(() => {
+    const updateCountdown = () => setCountdown(getLaunchCountdown());
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const handleLaunchRegistration = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -100,27 +106,33 @@ export default function HomePage() {
       {/* Hero Slider */}
       <HeroSlider />
 
-      {/* Trust Badges */}
-      <section className="border-b border-border bg-white">
-        <div className="container-custom py-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {TRUST_BADGES.map((badge) => (
-            <motion.div
-              key={badge.title}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-              className="flex items-center gap-3"
-            >
-              <div className="p-2.5 bg-primary/10 rounded-xl shrink-0">
-                {badge.icon}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{badge.title}</p>
-                <p className="text-xs text-muted">{badge.desc}</p>
-              </div>
-            </motion.div>
+      {/* Launch Countdown */}
+      <section className="border-b border-border bg-[#24150f] text-white" aria-labelledby="launch-countdown-title">
+        <div className="container-custom py-7 text-center sm:py-9">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">Our debut collection arrives soon</p>
+          <h2 id="launch-countdown-title" className="mt-2 font-playfair text-2xl font-bold sm:text-3xl">
+            Countdown to Timeless Grace
+          </h2>
+          {countdown && (countdown.remaining > 0 ? (
+            <div className="mx-auto mt-6 grid max-w-xl grid-cols-4 gap-2 sm:gap-4" role="timer" aria-live="off" aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes and ${countdown.seconds} seconds until launch`}>
+              {[
+                ['Days', countdown.days],
+                ['Hours', countdown.hours],
+                ['Minutes', countdown.minutes],
+                ['Seconds', countdown.seconds],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm sm:py-4">
+                  <span className="block font-playfair text-2xl font-bold tabular-nums text-secondary sm:text-4xl">
+                    {String(value).padStart(2, '0')}
+                  </span>
+                  <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wider text-white/65 sm:text-xs">{label}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 font-playfair text-xl text-secondary">The PP’s Aura collection is now live.</p>
           ))}
+          <p className="mt-5 text-sm text-white/65">Launching 28th August, 2026</p>
         </div>
       </section>
 
@@ -143,7 +155,7 @@ export default function HomePage() {
               Something beautiful is being woven.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-              Our first PP’s Aura collection launches on 1st September, 2026. Register now to receive
+              Our first PP’s Aura collection launches on 28th August, 2026. Register now to receive
               an early reminder and your launch-day special discount.
             </p>
             <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
@@ -153,7 +165,7 @@ export default function HomePage() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Launch date</p>
                 <p className="font-playfair text-xl font-semibold text-white">
-                  1st September, 2026
+                  28th August, 2026
                 </p>
               </div>
             </div>
