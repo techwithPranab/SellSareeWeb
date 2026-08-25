@@ -1,6 +1,7 @@
 'use client';
 
 import React, { FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   BadgePercent,
@@ -362,6 +363,36 @@ export default function HomePage() {
               );
             })}
           </ol>
+        </div>
+      </section>
+
+      {/* Search-friendly collection discovery with useful internal links. */}
+      <section className="section-padding bg-surface" aria-labelledby="explore-sarees-title">
+        <div className="container-custom grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">Find your perfect drape</p>
+            <h2 id="explore-sarees-title" className="section-title">Explore Sarees Online by Weave &amp; Occasion</h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Discover Indian apparel rooted in textile tradition—from Bengali Jamdani and lightweight Tant to handloom, silk and cotton sarees for weddings, festivals, work and everyday wear.
+            </p>
+          </div>
+          <nav aria-label="Popular saree collections" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {([
+              ['Bengali Jamdani', '/collections/jamdani-sarees'],
+              ['Handloom Sarees', '/collections/handloom-sarees'],
+              ['Bengali Sarees', '/collections/bengali-sarees'],
+              ['Silk Sarees', '/collections/silk-sarees'],
+              ['Cotton Sarees', '/collections/cotton-sarees'],
+              ['Tant Sarees', '/collections/tant-sarees'],
+              ['Wedding Sarees', '/collections/wedding-sarees'],
+              ['Festival Sarees', '/collections/festival-sarees'],
+              ['Affordable Sarees', '/collections/affordable-sarees'],
+            ] as const).map(([label, href]) => (
+              <Link key={href} href={href} className="rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary">
+                {label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </section>
 

@@ -3,7 +3,11 @@ import { API_URL, APP_URL } from '@/constants';
 import type { Product } from '@/types';
 
 const staticPages = ['', '/products', '/about', '/shipping-policy', '/privacy-policy', '/terms'];
-const collectionPages = ['jamdani-sarees', 'handloom-sarees', 'bengali-sarees', 'indian-sarees', 'tasar-sarees'];
+const collectionPages = [
+  'jamdani-sarees', 'handloom-sarees', 'bengali-sarees', 'indian-sarees',
+  'tasar-sarees', 'silk-sarees', 'cotton-sarees', 'tant-sarees',
+  'wedding-sarees', 'festival-sarees', 'affordable-sarees',
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({
@@ -33,9 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
-        images: product.launchDate && new Date(product.launchDate).getTime() > Date.now()
-          ? [`${APP_URL}/images/product-coming-soon.svg`]
-          : product.images.map((image) => image.url),
+        images: product.images.map((image) => image.url),
       })),
     ];
   } catch {

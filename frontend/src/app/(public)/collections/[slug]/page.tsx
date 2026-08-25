@@ -39,6 +39,42 @@ const COLLECTIONS = {
     description: 'Explore Tasar sarees online at PP’s Aura. Shop elegant, naturally textured sarees for celebrations, office occasions and thoughtful gifting.',
     intro: 'Tasar sarees are loved for their distinctive texture and understated elegance, making them a refined choice across festive and formal occasions.',
   },
+  'silk-sarees': {
+    name: 'Silk Sarees', query: 'Silk',
+    title: 'Silk Sarees Online — Elegant Indian Silk Sarees',
+    description: 'Shop silk sarees online at PP’s Aura. Discover elegant Indian silk sarees for weddings, festivals, celebrations and thoughtful gifting.',
+    intro: 'Discover silk sarees selected for their graceful drape, rich texture and timeless presence at weddings, festivals and special occasions.',
+  },
+  'cotton-sarees': {
+    name: 'Cotton Sarees', query: 'Cotton',
+    title: 'Cotton Sarees Online — Comfortable Everyday Sarees',
+    description: 'Buy cotton sarees online from PP’s Aura. Explore breathable Indian and Bengali cotton sarees for work, puja and comfortable everyday wear.',
+    intro: 'Explore breathable cotton sarees that bring together everyday comfort, expressive colour and an unmistakably Indian sense of style.',
+  },
+  'tant-sarees': {
+    name: 'Tant Sarees', query: 'Tant',
+    title: 'Bengali Tant Sarees Online — Traditional Cotton Sarees',
+    description: 'Shop Bengali Tant sarees online at PP’s Aura. Find lightweight traditional cotton sarees for puja, festivals, work and daily wear.',
+    intro: 'Bengali Tant sarees are admired for their light drape and traditional character, making them a natural choice for warm days and meaningful occasions.',
+  },
+  'wedding-sarees': {
+    name: 'Wedding Sarees', query: 'Wedding',
+    title: 'Wedding Sarees Online — Elegant Sarees for Celebrations',
+    description: 'Explore wedding sarees online at PP’s Aura, with distinctive silk, Jamdani and handloom styles for ceremonies, receptions and wedding guests.',
+    intro: 'Find a memorable saree for wedding ceremonies, receptions and family celebrations, curated with colour, elegance and occasion in mind.',
+  },
+  'festival-sarees': {
+    name: 'Festival Sarees', query: 'Festival',
+    title: 'Festival Sarees Online — Sarees for Puja & Celebrations',
+    description: 'Shop festival sarees online at PP’s Aura. Discover Bengali, Jamdani, silk, cotton and handloom sarees for puja and Indian celebrations.',
+    intro: 'Celebrate puja and festivals in sarees chosen for expressive colour, comfortable drape and a joyful connection to Indian tradition.',
+  },
+  'affordable-sarees': {
+    name: 'Affordable Sarees', query: 'Saree',
+    title: 'Affordable Sarees Online — Distinctive Indian Sarees',
+    description: 'Discover affordable sarees online at PP’s Aura. Browse distinctive Indian, Bengali, Jamdani and handloom sarees at sensible prices.',
+    intro: 'Beautiful sarees can be both distinctive and sensibly priced. Explore versatile drapes curated for celebrations, work, gifting and everyday style.',
+  },
 } as const;
 
 type CollectionSlug = keyof typeof COLLECTIONS;

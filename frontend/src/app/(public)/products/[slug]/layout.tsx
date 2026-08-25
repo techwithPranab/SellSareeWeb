@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { API_URL, APP_NAME, APP_URL } from '@/constants';
+import { API_URL, APP_NAME } from '@/constants';
 import type { Product } from '@/types';
 
 async function getProduct(slug: string): Promise<Product | null> {
@@ -30,10 +30,7 @@ export async function generateMetadata({
   const description = (product.metaDescription || product.shortDescription || product.description)
     .replace(/\s+/g, ' ')
     .slice(0, 160);
-  const comingSoon = Boolean(product.launchDate && new Date(product.launchDate).getTime() > Date.now());
-  const image = comingSoon
-    ? `${APP_URL}/images/product-coming-soon.svg`
-    : product.images[0]?.url;
+  const image = product.images[0]?.url;
 
   return {
     title: product.metaTitle || `${product.name}${category ? ` — ${category} Saree` : ' — Indian Saree'}`,

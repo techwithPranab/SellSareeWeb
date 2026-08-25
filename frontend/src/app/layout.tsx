@@ -19,14 +19,15 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} — Where Every Thread Tells a Story`,
+    default: `Sarees Online — Bengali Jamdani & Handloom Sarees | ${APP_NAME}`,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
   keywords: [
     'saree', 'Indian saree', 'Jamdani saree', 'handloom saree', 'Bengali saree',
     'Bangladeshi Jamdani', 'Kardana Jamdani', 'silk saree', 'Tasar saree',
-    'saree online', 'online saree shopping India', 'PP’s Aura',
+    'saree online', 'buy sarees online', 'online saree shopping India', 'online Indian apparel',
+    'wedding saree', 'festival saree', 'cotton saree', 'Tant saree', 'PP’s Aura',
   ],
   authors: [{ name: APP_NAME, url: APP_URL }],
   creator: APP_NAME,
@@ -68,6 +69,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.svg',
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {

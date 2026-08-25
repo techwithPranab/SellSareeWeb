@@ -5,7 +5,7 @@
 export const APP_NAME = 'PP’s Aura';
 export const APP_TAGLINE = 'Where Every Thread Tells a Story';
 export const APP_DESCRIPTION =
-  'Shop distinctive Indian sarees online at PP’s Aura, including Jamdani sarees, handloom sarees, Bengali sarees, Bangladeshi Jamdani, Kardana Jamdani, silk and Tasar.';
+  'Shop sarees online at PP’s Aura. Discover Bengali Jamdani, handloom, silk, cotton, Tant and Tasar sarees for weddings, festivals, work and everyday Indian apparel.';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ppaura.in';
