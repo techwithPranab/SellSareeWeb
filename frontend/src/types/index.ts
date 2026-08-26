@@ -110,6 +110,7 @@ export interface Category {
   level: number;
   sortOrder: number;
   isActive: boolean;
+  showInHeader?: boolean;
   productCount: number;
   children?: Category[];
   metaTitle?: string;

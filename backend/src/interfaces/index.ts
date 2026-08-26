@@ -253,6 +253,7 @@ export interface ICategory extends Document {
   level: number;
   sortOrder: number;
   isActive: boolean;
+  showInHeader: boolean;
   productCount: number;
   metaTitle?: string;
   metaDescription?: string;

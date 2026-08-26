@@ -21,10 +21,21 @@ import {
 } from 'lucide-react';
 import { useAppSelector } from '@/hooks/useStore';
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_LINKS } from '@/constants';
+import { categoryService } from '@/services/category.service';
+import type { Category } from '@/types';
 import { cn, asRoute } from '@/utils/helpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+interface HeaderLink {
+  label: string;
+  href: string;
+  children?: Array<{ label: string; href: string }>;
+}
+
+const ALWAYS_VISIBLE_LINKS: HeaderLink[] = [
+  { label: 'New Arrivals', href: '/products?isNewArrival=true' },
+];
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -39,6 +50,33 @@ export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [headerCategories, setHeaderCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    categoryService.getCategories()
+      .then(({ categories }) => {
+        if (active) {
+          setHeaderCategories(categories.filter((category) => category.showInHeader !== false));
+        }
+      })
+      .catch(() => {
+        if (active) setHeaderCategories([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const headerLinks: HeaderLink[] = [
+    ...ALWAYS_VISIBLE_LINKS,
+    ...headerCategories.map((category) => ({
+      label: category.name,
+      href: `/products?category=${encodeURIComponent(category.slug)}`,
+    })),
+  ];
 
   // Scroll detection
   useEffect(() => {
@@ -94,7 +132,7 @@ export default function Navbar() {
 
           {/* ── Desktop Nav Links ─────────────────────────────────── */}
           <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
+            {headerLinks.map((link) => (
               <div
                 key={link.href}
                 className="relative"
@@ -270,7 +308,7 @@ export default function Navbar() {
               className="lg:hidden overflow-hidden border-t border-border bg-white"
             >
               <div className="container-custom py-4 flex flex-col gap-1">
-                {NAV_LINKS.map((link) => (
+                {headerLinks.map((link) => (
                   <div key={link.href}>
                     <Link
                       href={asRoute(link.href)}

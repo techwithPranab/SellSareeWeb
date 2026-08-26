@@ -50,7 +50,7 @@ const LAUNCH_BENEFITS = [
   },
 ];
 
-const LAUNCH_TIME = new Date('2026-08-28T00:00:00+05:30').getTime();
+const LAUNCH_TIME = new Date('2026-08-28T20:00:00+05:30').getTime();
 
 const getLaunchCountdown = () => {
   const remaining = Math.max(0, LAUNCH_TIME - Date.now());
@@ -133,7 +133,7 @@ export default function HomePage() {
           ) : (
             <p className="mt-5 font-playfair text-xl text-secondary">The PP’s Aura collection is now live.</p>
           ))}
-          <p className="mt-5 text-sm text-white/65">Launching 28th August, 2026</p>
+          <p className="mt-5 text-sm text-white/65">Launching 28th August, 2026 at 8:00 PM IST</p>
         </div>
       </section>
 
@@ -156,7 +156,7 @@ export default function HomePage() {
               Something beautiful is being woven.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-              Our first PP’s Aura collection launches on 28th August, 2026. Register now to receive
+              Our first PP’s Aura collection launches on 28th August, 2026 at 8:00 PM IST. Register now to receive
               an early reminder and your launch-day special discount.
             </p>
             <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
@@ -166,7 +166,7 @@ export default function HomePage() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Launch date</p>
                 <p className="font-playfair text-xl font-semibold text-white">
-                  28th August, 2026
+                  28th August, 2026 at 8:00 PM IST
                 </p>
               </div>
             </div>

@@ -13,9 +13,10 @@ interface CategoryFormState {
   description: string;
   sortOrder: string;
   isActive: boolean;
+  showInHeader: boolean;
 }
 
-const EMPTY_FORM: CategoryFormState = { name: '', description: '', sortOrder: '0', isActive: true };
+const EMPTY_FORM: CategoryFormState = { name: '', description: '', sortOrder: '0', isActive: true, showInHeader: true };
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -60,6 +61,7 @@ export default function AdminCategoriesPage() {
       description: cat.description ?? '',
       sortOrder: String(cat.sortOrder),
       isActive: cat.isActive,
+      showInHeader: cat.showInHeader !== false,
     });
     setImageFile(null);
     setImagePreview(cat.image ?? '');
@@ -86,6 +88,7 @@ export default function AdminCategoriesPage() {
       fd.append('description', form.description.trim());
       fd.append('sortOrder', form.sortOrder);
       fd.append('isActive', String(form.isActive));
+      fd.append('showInHeader', String(form.showInHeader));
       if (imageFile) fd.append('image', imageFile);
 
       if (editing) {
@@ -311,6 +314,21 @@ export default function AdminCategoriesPage() {
                   Inactive categories remain available in Admin but are hidden from public pages.
                 </p>
               </div>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4">
+                <input
+                  type="checkbox"
+                  checked={form.showInHeader}
+                  onChange={(e) => setForm((current) => ({ ...current, showInHeader: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-foreground">Show in header menu</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    Display this category in the desktop and mobile customer navigation.
+                  </span>
+                </span>
+              </label>
 
               <div>
                 <label className="label">Image</label>
