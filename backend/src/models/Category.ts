@@ -23,6 +23,7 @@ const CategorySchema = new Schema<ICategory>(
     sortOrder: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
     showInHeader: { type: Boolean, default: true },
+    showInFooter: { type: Boolean },
     productCount: { type: Number, default: 0 },
     metaTitle: { type: String },
     metaDescription: { type: String },

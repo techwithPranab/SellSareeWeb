@@ -42,7 +42,7 @@ export const getCategoryBySlug = asyncHandler(async (req: Request, res: Response
 });
 
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, parent, sortOrder, isActive, showInHeader } = req.body;
+  const { name, description, parent, sortOrder, isActive, showInHeader, showInFooter } = req.body;
   const imageFile = req.file;
 
   let imageData: { image?: string; imagePublicId?: string } = {};
@@ -72,6 +72,7 @@ export const createCategory = asyncHandler(async (req: Request, res: Response) =
     sortOrder: sortOrder || 0,
     isActive: isActive === undefined ? true : isActive === true || isActive === 'true',
     showInHeader: showInHeader === undefined ? true : showInHeader === true || showInHeader === 'true',
+    showInFooter: showInFooter === true || showInFooter === 'true',
     ...imageData,
   });
 
@@ -99,7 +100,7 @@ export const updateCategoryStatus = asyncHandler(async (req: Request, res: Respo
 });
 
 export const updateCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, parent, sortOrder, isActive, showInHeader } = req.body;
+  const { name, description, parent, sortOrder, isActive, showInHeader, showInFooter } = req.body;
   const imageFile = req.file;
 
   const category = await Category.findById(req.params.id);
@@ -134,6 +135,9 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
       showInHeader: showInHeader === undefined
         ? category.showInHeader !== false
         : showInHeader === true || showInHeader === 'true',
+      showInFooter: showInFooter === undefined
+        ? category.showInFooter === true
+        : showInFooter === true || showInFooter === 'true',
       ...imageData,
     },
     { new: true, runValidators: true }

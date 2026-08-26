@@ -14,9 +14,17 @@ interface CategoryFormState {
   sortOrder: string;
   isActive: boolean;
   showInHeader: boolean;
+  showInFooter: boolean;
 }
 
-const EMPTY_FORM: CategoryFormState = { name: '', description: '', sortOrder: '0', isActive: true, showInHeader: true };
+const EMPTY_FORM: CategoryFormState = {
+  name: '',
+  description: '',
+  sortOrder: '0',
+  isActive: true,
+  showInHeader: true,
+  showInFooter: false,
+};
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,6 +70,9 @@ export default function AdminCategoriesPage() {
       sortOrder: String(cat.sortOrder),
       isActive: cat.isActive,
       showInHeader: cat.showInHeader !== false,
+      showInFooter: cat.showInFooter === undefined
+        ? ['cotton', 'cotton-sarees', 'jamdani', 'jamdani-sarees', 'handloom', 'handloom-sarees'].includes(cat.slug)
+        : cat.showInFooter,
     });
     setImageFile(null);
     setImagePreview(cat.image ?? '');
@@ -89,6 +100,7 @@ export default function AdminCategoriesPage() {
       fd.append('sortOrder', form.sortOrder);
       fd.append('isActive', String(form.isActive));
       fd.append('showInHeader', String(form.showInHeader));
+      fd.append('showInFooter', String(form.showInFooter));
       if (imageFile) fd.append('image', imageFile);
 
       if (editing) {
@@ -326,6 +338,21 @@ export default function AdminCategoriesPage() {
                   <span className="block text-sm font-semibold text-foreground">Show in header menu</span>
                   <span className="mt-1 block text-xs text-muted-foreground">
                     Display this category in the desktop and mobile customer navigation.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4">
+                <input
+                  type="checkbox"
+                  checked={form.showInFooter}
+                  onChange={(e) => setForm((current) => ({ ...current, showInFooter: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-foreground">Show in footer menu</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    Display this category under Quick Links in the customer footer.
                   </span>
                 </span>
               </label>

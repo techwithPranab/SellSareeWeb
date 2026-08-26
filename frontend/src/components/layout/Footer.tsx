@@ -7,14 +7,32 @@ import { APP_NAME } from '@/constants';
 import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 import { asRoute } from '@/utils/helpers';
 import { settingService } from '@/services/setting.service';
+import { categoryService } from '@/services/category.service';
 import type { StoreSettings } from '@/services/admin.service';
+import type { Category } from '@/types';
+
+const LEGACY_FOOTER_CATEGORY_SLUGS = new Set([
+  'cotton',
+  'cotton-sarees',
+  'jamdani',
+  'jamdani-sarees',
+  'handloom',
+  'handloom-sarees',
+]);
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [settings, setSettings] = useState<StoreSettings | null>(null);
+  const [footerCategories, setFooterCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     settingService.getStoreSettings().then(({ settings: loaded }) => setSettings(loaded)).catch(() => setSettings(null));
+    categoryService.getCategories()
+      .then(({ categories }) => setFooterCategories(categories.filter((category) =>
+        category.showInFooter === true
+        || (category.showInFooter === undefined && LEGACY_FOOTER_CATEGORY_SLUGS.has(category.slug))
+      )))
+      .catch(() => setFooterCategories([]));
   }, []);
 
   const socialLinks = settings?.socialLinks ?? {};
@@ -58,9 +76,10 @@ export default function Footer() {
           </h3>
           <ul className="space-y-2.5">
             {[
-              { label: 'Cotton Sarees', href: '/collections/cotton-sarees' },
-              { label: 'Jamdani Sarees', href: '/collections/jamdani-sarees' },
-              { label: 'Handloom Sarees', href: '/collections/handloom-sarees' },
+              ...footerCategories.map((category) => ({
+                label: category.name,
+                href: `/products?category=${encodeURIComponent(category.slug)}`,
+              })),
               { label: 'New Arrivals', href: '/products?isNewArrival=true' },
               { label: 'Our Story', href: '/about' },
             ].map((item) => (
