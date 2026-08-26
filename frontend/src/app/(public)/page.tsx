@@ -450,7 +450,7 @@ export default function HomePage() {
               Join the PP’s Aura Family
             </h2>
             <p className="text-white/80 mb-6">
-              Subscribe to get exclusive offers, new arrival alerts, and styling tips. Get ₹100 off your first order!
+              Subscribe to get exclusive offers, new arrival alerts, and styling tips.
             </p>
             <form
               className="flex gap-3 max-w-md mx-auto"

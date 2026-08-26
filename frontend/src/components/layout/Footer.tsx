@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { APP_NAME, NAV_LINKS } from '@/constants';
+import { APP_NAME } from '@/constants';
 import { Instagram, Facebook, Youtube, MessageCircle, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 import { asRoute } from '@/utils/helpers';
 import { settingService } from '@/services/setting.service';
@@ -57,27 +57,12 @@ export default function Footer() {
             Quick Links
           </h3>
           <ul className="space-y-2.5">
-            {NAV_LINKS.filter((l) => !l.children).map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={asRoute(link.href)}
-                  className="text-sm text-[#b09070] hover:text-primary transition-colors"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/about" className="text-sm text-[#b09070] hover:text-primary transition-colors">
-                Our Story
-              </Link>
-            </li>
             {[
+              { label: 'Cotton Sarees', href: '/collections/cotton-sarees' },
               { label: 'Jamdani Sarees', href: '/collections/jamdani-sarees' },
               { label: 'Handloom Sarees', href: '/collections/handloom-sarees' },
-              { label: 'Bengali Sarees', href: '/collections/bengali-sarees' },
-              { label: 'Indian Sarees', href: '/collections/indian-sarees' },
-              { label: 'Tasar Sarees', href: '/collections/tasar-sarees' },
+              { label: 'New Arrivals', href: '/products?isNewArrival=true' },
+              { label: 'Our Story', href: '/about' },
             ].map((item) => (
               <li key={item.href}>
                 <Link href={asRoute(item.href)} className="text-sm text-[#b09070] hover:text-primary transition-colors">
