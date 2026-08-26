@@ -69,9 +69,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.svg',
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: {
+    google: 'MLTyweSCdy-8COWssVRR-RhSTn67rkWcC-UuwBEoQCA',
+  },
 };
 
 export const viewport: Viewport = {
