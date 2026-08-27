@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Loader2, RotateCcw, CreditCard, AlertTriangle, CheckCircle2, Printer } from 'lucide-react';
-import { adminService } from '@/services/admin.service';
+import { adminService, type StoreSettings } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
@@ -56,6 +56,7 @@ const escapeHtml = (value: unknown) => String(value ?? '')
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Status update state
@@ -84,6 +85,9 @@ export default function AdminOrderDetailPage() {
         .catch(() => toast.error('Failed to load order'))
         .finally(() => setLoading(false));
     }
+    adminService.getStoreSettings()
+      .then(({ settings }) => setStoreSettings(settings))
+      .catch(() => toast.error('Failed to load store settings for the dispatch label'));
   }, [id]);
 
   const handleUpdateStatus = async () => {
@@ -154,6 +158,10 @@ export default function AdminOrderDetailPage() {
 
   const handlePrintLabel = () => {
     if (!order) return;
+    if (!storeSettings) {
+      toast.error('Store settings are still loading. Please try printing again.');
+      return;
+    }
 
     const labelWindow = window.open('', '_blank', 'width=850,height=1100');
     if (!labelWindow) {
@@ -163,6 +171,8 @@ export default function AdminOrderDetailPage() {
     labelWindow.opener = null;
 
     const address = order.shippingAddress;
+    const senderAddress = escapeHtml(storeSettings.storeAddress || 'Sender address not configured')
+      .replace(/\r?\n/g, '<br>');
     const qrCodeUrl = `${window.location.origin}/images/qrcode_docs.google.com.png`;
     const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
     const itemRows = order.items.map((item) => `
@@ -184,23 +194,24 @@ export default function AdminOrderDetailPage() {
             body { margin: 0; padding: 4mm; color: #111; font-family: Arial, sans-serif; }
             .label { width: 202mm; margin: 0 auto; border: 1.5px solid #111; }
             .row { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #111; }
-            .cell { padding: 2.5mm; font-size: 10px; }
+            .cell { padding: 2.5mm; font-size: 11px; }
             .cell + .cell { border-left: 1px solid #111; }
             .brand { font-size: 17px; font-weight: 700; }
-            .muted { color: #444; font-size: 8px; line-height: 1.35; }
-            .title { margin-bottom: 1.5mm; font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
-            .recipient { padding: 3mm; border-bottom: 1px solid #111; font-size: 11px; line-height: 1.35; }
-            .recipient strong { font-size: 15px; }
-            .phone { margin-top: 1.5mm; font-size: 12px; font-weight: 700; }
-            .payment { padding: 2mm 3mm; border-bottom: 1px solid #111; font-size: 12px; font-weight: 700; text-align: center; }
-            table { width: 100%; border-collapse: collapse; font-size: 8px; }
-            th, td { padding: 1.5mm 2mm; border-bottom: 1px solid #bbb; text-align: left; }
+            .muted { color: #444; font-size: 9px; line-height: 1.4; }
+            .title { margin-bottom: 1.5mm; font-size: 9px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+            .recipient { display: flex; align-items: center; justify-content: space-between; gap: 5mm; padding: 3mm; border-bottom: 1px solid #111; font-size: 12px; line-height: 1.4; }
+            .recipient-address { min-width: 0; flex: 1; }
+            .recipient strong { font-size: 16px; }
+            .phone { margin-top: 1.5mm; font-size: 13px; font-weight: 700; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            th, td { padding: 2mm 2.5mm; border-bottom: 1px solid #bbb; text-align: left; }
+            td small { font-size: 9px; }
             th { background: #f2f2f2; }
             .center { text-align: center; }
-            .footer { padding: 2mm 3mm; font-size: 8px; color: #444; }
-            .qr-panel { display: flex; align-items: center; justify-content: space-between; gap: 3mm; padding: 2mm 3mm; border-top: 1px solid #111; }
-            .qr-copy { font-size: 9px; line-height: 1.35; }
-            .qr-code { width: 20mm; height: 20mm; flex: 0 0 auto; object-fit: contain; }
+            .footer { padding: 2mm 3mm; font-size: 9px; color: #444; }
+            .feedback-qr { flex: 0 0 auto; text-align: center; }
+            .qr-code { width: 30mm; height: 30mm; object-fit: contain; border: 1px solid #bbb; padding: 1mm; }
+            .qr-caption { margin-top: 1mm; max-width: 34mm; font-size: 9px; font-weight: 700; line-height: 1.2; }
             @page { size: 210mm 99mm; margin: 4mm; }
             @media print {
               html, body { width: 202mm; min-height: auto; }
@@ -213,8 +224,8 @@ export default function AdminOrderDetailPage() {
           <main class="label">
             <div class="row">
               <div class="cell">
-                <div class="brand">PP’s Aura</div>
-                <div class="muted">12 Silk Street, Kolkata 700001<br>West Bengal · support@ppaura.in</div>
+                <div class="brand">${escapeHtml(storeSettings.storeName || 'PP’s Aura')}</div>
+                <div class="muted">${senderAddress}${storeSettings.supportEmail ? `<br>${escapeHtml(storeSettings.supportEmail)}` : ''}${storeSettings.supportPhone ? ` · ${escapeHtml(storeSettings.supportPhone)}` : ''}</div>
               </div>
               <div class="cell">
                 <div class="title">Order</div>
@@ -223,16 +234,19 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
             <section class="recipient">
-              <div class="title">Deliver To</div>
-              <strong>${escapeHtml(address.fullName)}</strong><br>
-              ${escapeHtml(address.addressLine1)}${address.addressLine2 ? `<br>${escapeHtml(address.addressLine2)}` : ''}<br>
-              ${escapeHtml(address.city)}, ${escapeHtml(address.state)} - <strong>${escapeHtml(address.pincode)}</strong><br>
-              ${escapeHtml(address.country || 'India')}
-              <div class="phone">Phone: ${escapeHtml(address.phone)}</div>
+              <div class="recipient-address">
+                <div class="title">Deliver To</div>
+                <strong>${escapeHtml(address.fullName)}</strong><br>
+                ${escapeHtml(address.addressLine1)}${address.addressLine2 ? `<br>${escapeHtml(address.addressLine2)}` : ''}<br>
+                ${escapeHtml(address.city)}, ${escapeHtml(address.state)} - <strong>${escapeHtml(address.pincode)}</strong><br>
+                ${escapeHtml(address.country || 'India')}
+                <div class="phone">Phone: ${escapeHtml(address.phone)}</div>
+              </div>
+              <div class="feedback-qr">
+                <img id="order-qr-code" class="qr-code" src="${escapeHtml(qrCodeUrl)}" alt="PP’s Aura feedback QR code" />
+                <div class="qr-caption">Scan to submit feedback</div>
+              </div>
             </section>
-            <div class="payment">
-              PAYMENT · ${escapeHtml(order.paymentInfo.status.toUpperCase())}
-            </div>
             ${(order.trackingInfo?.courier || order.trackingInfo?.trackingNumber) ? `
               <div class="row">
                 <div class="cell"><div class="title">Courier</div>${escapeHtml(order.trackingInfo?.courier || '—')}</div>
@@ -243,10 +257,6 @@ export default function AdminOrderDetailPage() {
               <thead><tr><th>Item</th><th>SKU</th><th class="center">Qty</th></tr></thead>
               <tbody>${itemRows}</tbody>
             </table>
-            <div class="qr-panel">
-              <div class="qr-copy"><div class="title">Scan QR Code</div><strong>PP’s Aura</strong><br><span class="muted">Scan for more information.</span></div>
-              <img id="order-qr-code" class="qr-code" src="${escapeHtml(qrCodeUrl)}" alt="PP’s Aura QR code" />
-            </div>
             ${order.notes ? `<div class="footer"><strong>Dispatch note:</strong> ${escapeHtml(order.notes)}</div>` : ''}
           </main>
         </body>
