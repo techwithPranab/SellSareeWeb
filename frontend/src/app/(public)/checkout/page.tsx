@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileImage, Loader2, MapPin, CreditCard, ChevronLeft } from 'lucide-react';
+import { FileImage, Loader2, MapPin, CreditCard, ChevronLeft, Copy, Smartphone } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch } from '@/hooks/useStore';
@@ -16,8 +16,12 @@ import { INDIAN_STATES, PAYMENT_METHODS } from '@/constants';
 import { formatPrice } from '@/utils/helpers';
 import { orderService } from '@/services/order.service';
 import { userService } from '@/services/user.service';
+import { settingService } from '@/services/setting.service';
+import type { StoreSettings } from '@/services/admin.service';
 import toast from 'react-hot-toast';
 import type { Address, Order } from '@/types';
+
+const PENDING_UPI_ORDER_KEY = 'pps_aura_pending_upi_order_id';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -35,6 +39,8 @@ export default function CheckoutPage() {
   const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+  const [isOpeningUpi, setIsOpeningUpi] = useState(false);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<Address[]>(user?.addresses ?? []);
   const [selectedAddressId, setSelectedAddressId] = useState(
     defaultAddress?._id ?? 'new'
@@ -106,6 +112,28 @@ export default function CheckoutPage() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    settingService.getStoreSettings()
+      .then(({ settings }) => setStoreSettings(settings))
+      .catch(() => setStoreSettings(null));
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const pendingOrderId = window.sessionStorage.getItem(PENDING_UPI_ORDER_KEY);
+    if (!pendingOrderId) return;
+
+    orderService.getOrderById(pendingOrderId)
+      .then(({ order }) => {
+        if (order.paymentInfo.method === 'upi' && ['pending', 'processing'].includes(order.paymentInfo.status)) {
+          setPendingOrder(order);
+        } else {
+          window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY);
+        }
+      })
+      .catch(() => window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY));
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       router.replace('/login?redirect=/checkout');
       return;
@@ -114,6 +142,66 @@ export default function CheckoutPage() {
       router.replace('/cart');
     }
   }, [isAuthenticated, items.length, router]);
+
+  const ensurePendingOrder = async (data: CheckoutFormData): Promise<Order | null> => {
+    if (pendingOrder) {
+      if (pendingOrder.paymentInfo.method !== data.paymentMethod) {
+        toast.error('Please continue using the payment method selected for the pending order.');
+        return null;
+      }
+      return pendingOrder;
+    }
+
+    const orderData = {
+      items: items.map((item) => ({
+        productId: item.product._id,
+        quantity: item.quantity,
+        color: item.color,
+      })),
+      shippingAddress: data.shippingAddress,
+      paymentMethod: data.paymentMethod,
+      couponCode: coupon.code ?? undefined,
+      loyaltyPointsToRedeem: loyaltyPointsToRedeem || undefined,
+      notes: data.notes,
+    };
+
+    const result = await dispatch(createOrder(orderData));
+    if (!createOrder.fulfilled.match(result)) {
+      toast.error((result.payload as string) || 'Failed to place order');
+      return null;
+    }
+
+    const order = result.payload.order;
+    setPendingOrder(order);
+    window.sessionStorage.setItem(PENDING_UPI_ORDER_KEY, order._id);
+    await fetchCurrentUser();
+    return order;
+  };
+
+  const openUpiApp = handleSubmit(async (data) => {
+    if (!storeSettings?.upiId) {
+      toast.error('Mobile UPI payment is not configured yet. Please use the QR code or contact PP’s Aura.');
+      return;
+    }
+
+    setIsOpeningUpi(true);
+    try {
+      const order = await ensurePendingOrder(data);
+      if (!order) return;
+
+      const parameters = new URLSearchParams({
+        pa: storeSettings.upiId,
+        pn: storeSettings.upiPayeeName || storeSettings.storeName || 'PP’s Aura',
+        am: order.totalAmount.toFixed(2),
+        cu: 'INR',
+        tr: order.orderNumber,
+        tn: `Payment for ${order.orderNumber}`,
+      });
+      window.location.href = `upi://pay?${parameters.toString()}`;
+    } finally {
+      setIsOpeningUpi(false);
+    }
+  });
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (data.paymentMethod === 'upi') {
@@ -133,37 +221,12 @@ export default function CheckoutPage() {
 
     setIsPlacing(true);
     try {
-      let order = pendingOrder;
-      if (order && order.paymentInfo.method !== data.paymentMethod) {
-        toast.error('An order is already awaiting payment. Please retry using the originally selected payment method.');
-        return;
-      }
-      if (!order) {
-        const orderData = {
-          items: items.map((item) => ({
-            productId: item.product._id,
-            quantity: item.quantity,
-            color: item.color,
-          })),
-          shippingAddress: data.shippingAddress,
-          paymentMethod: data.paymentMethod,
-          couponCode: coupon.code ?? undefined,
-          loyaltyPointsToRedeem: loyaltyPointsToRedeem || undefined,
-          notes: data.notes,
-        };
-
-        const result = await dispatch(createOrder(orderData));
-        if (!createOrder.fulfilled.match(result)) {
-          toast.error((result.payload as string) || 'Failed to place order');
-          return;
-        }
-        order = result.payload.order;
-        setPendingOrder(order);
-        await fetchCurrentUser();
-      }
+      const order = await ensurePendingOrder(data);
+      if (!order) return;
 
       await orderService.submitManualPaymentProof(order._id, transactionId.trim(), paymentScreenshot!);
       setPendingOrder(null);
+      window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY);
       emptyCart();
       toast.success('Payment proof submitted. Your order is awaiting verification.');
       router.push(`/checkout/success?orderId=${order._id}`);
@@ -315,7 +378,7 @@ export default function CheckoutPage() {
             {paymentMethod === 'upi' && (
               <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-5">
                 <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                  <div className="shrink-0 rounded-xl border border-border bg-white p-2">
+                  <div className="hidden shrink-0 rounded-xl border border-border bg-white p-2 sm:block">
                     <Image
                       src="/images/qrcode_docs.google.com.png"
                       alt="PP’s Aura payment QR code"
@@ -326,9 +389,47 @@ export default function CheckoutPage() {
                   </div>
                   <div className="w-full space-y-4">
                     <div>
-                      <p className="font-semibold text-foreground">Scan and pay {formatPrice(summary.total)}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Use any UPI app, then enter the transaction reference and upload the payment screenshot.</p>
+                      <p className="font-semibold text-foreground">
+                        <span className="sm:hidden">Pay {formatPrice(pendingOrder?.totalAmount ?? summary.total)} using any UPI app</span>
+                        <span className="hidden sm:inline">Scan and pay {formatPrice(summary.total)}</span>
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {pendingOrder
+                          ? `Order ${pendingOrder.orderNumber} is awaiting payment. Complete the payment, then submit the details below.`
+                          : 'After paying, return here to enter the transaction reference and upload the payment screenshot.'}
+                      </p>
                     </div>
+                    <div className="space-y-2 sm:hidden">
+                      <button
+                        type="button"
+                        onClick={openUpiApp}
+                        disabled={isOpeningUpi || isPlacing || !storeSettings?.upiId}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isOpeningUpi ? <Loader2 className="h-5 w-5 animate-spin" /> : <Smartphone className="h-5 w-5" />}
+                        {isOpeningUpi ? 'Preparing Payment…' : 'Pay with Any UPI App'}
+                      </button>
+                      {!storeSettings?.upiId && (
+                        <p className="text-xs font-medium text-amber-700">
+                          Ask the administrator to configure the business UPI ID in Store Settings.
+                        </p>
+                      )}
+                    </div>
+                    {storeSettings?.upiId && (
+                      <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-3">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">Business UPI ID</p>
+                          <p className="truncate font-mono text-sm font-semibold text-foreground">{storeSettings.upiId}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(storeSettings.upiId).then(() => toast.success('UPI ID copied')).catch(() => toast.error('Could not copy UPI ID'))}
+                          className="btn-outline btn-sm flex shrink-0 items-center gap-1.5"
+                        >
+                          <Copy className="h-4 w-4" /> Copy
+                        </button>
+                      </div>
+                    )}
                     <div>
                       <label className="label">Transaction ID / UTR *</label>
                       <input value={transactionId} onChange={(event) => setTransactionId(event.target.value)} maxLength={150} className="input-field bg-white" placeholder="Enter transaction reference" />
@@ -416,7 +517,7 @@ export default function CheckoutPage() {
                   Placing Order…
                 </>
               ) : (
-                'Submit QR Payment'
+                pendingOrder ? 'Submit Payment Proof' : 'Submit UPI Payment'
               )}
             </button>
           </div>

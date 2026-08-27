@@ -9,6 +9,8 @@ export interface IStoreSetting {
   freeShippingThreshold: number;
   standardShippingRate: number;
   loyaltyPointsRate: number;
+  upiId: string;
+  upiPayeeName: string;
   socialLinks: Record<string, string>;
 }
 
@@ -22,6 +24,8 @@ const StoreSettingSchema = new Schema<IStoreSetting>(
     freeShippingThreshold: { type: Number, required: true, min: 0 },
     standardShippingRate: { type: Number, required: true, min: 0 },
     loyaltyPointsRate: { type: Number, required: true, min: 0 },
+    upiId: { type: String, trim: true, maxlength: 100, default: '' },
+    upiPayeeName: { type: String, trim: true, maxlength: 100, default: 'PP’s Aura' },
     socialLinks: { type: Map, of: String, default: {} },
   },
   { timestamps: true }

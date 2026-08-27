@@ -12,6 +12,8 @@ const defaults = {
   freeShippingThreshold: 999,
   standardShippingRate: 99,
   loyaltyPointsRate: 1,
+  upiId: '',
+  upiPayeeName: 'PP’s Aura',
   socialLinks: {
     instagram: 'https://instagram.com/ppaura',
     facebook: 'https://facebook.com/ppaura',
@@ -32,7 +34,7 @@ export const getStoreSettings = asyncHandler(async (_req: Request, res: Response
 });
 
 export const updateStoreSettings = asyncHandler(async (req: Request, res: Response) => {
-  const stringFields = ['storeName', 'supportEmail', 'supportPhone', 'storeAddress'] as const;
+  const stringFields = ['storeName', 'supportEmail', 'supportPhone', 'storeAddress', 'upiId', 'upiPayeeName'] as const;
   const numberFields = ['freeShippingThreshold', 'standardShippingRate', 'loyaltyPointsRate'] as const;
   const update: Record<string, unknown> = {};
 
@@ -44,6 +46,12 @@ export const updateStoreSettings = asyncHandler(async (req: Request, res: Respon
   }
   if (update.supportPhone && !/^\+?[0-9][0-9\s-]{7,18}$/.test(String(update.supportPhone))) {
     return ApiResponse.badRequest(res, 'Please enter a valid support phone number');
+  }
+  if (update.upiId && !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/.test(String(update.upiId))) {
+    return ApiResponse.badRequest(res, 'Please enter a valid business UPI ID');
+  }
+  if (update.upiId && !update.upiPayeeName) {
+    return ApiResponse.badRequest(res, 'UPI payee name is required when a UPI ID is configured');
   }
   if (numberFields.some((field) => !Number.isFinite(update[field]) || Number(update[field]) < 0)) {
     return ApiResponse.badRequest(res, 'Shipping and loyalty values must be valid positive numbers');

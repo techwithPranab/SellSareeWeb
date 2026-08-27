@@ -45,6 +45,8 @@ export interface StoreSettings {
   freeShippingThreshold: number;
   standardShippingRate: number;
   loyaltyPointsRate: number;
+  upiId: string;
+  upiPayeeName: string;
   socialLinks: Record<string, string>;
 }
 

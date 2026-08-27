@@ -18,6 +18,8 @@ const EMPTY_SETTINGS: StoreSettings = {
   freeShippingThreshold: 999,
   standardShippingRate: 99,
   loyaltyPointsRate: 1,
+  upiId: '',
+  upiPayeeName: 'PP’s Aura',
   socialLinks: {},
 };
 
@@ -36,8 +38,13 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     adminService.getStoreSettings()
       .then(({ settings: loaded }) => {
-        setSettings(loaded);
-        setDraft(loaded);
+        const normalized = {
+          ...EMPTY_SETTINGS,
+          ...loaded,
+          socialLinks: loaded.socialLinks ?? {},
+        };
+        setSettings(normalized);
+        setDraft(normalized);
       })
       .catch(() => toast.error('Failed to load store settings'))
       .finally(() => setLoading(false));
@@ -128,6 +135,30 @@ export default function AdminSettingsPage() {
           </dl>
         </div>
 
+        <div className="rounded-2xl border border-green-200 bg-green-50/60 p-6 md:col-span-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="font-semibold text-foreground">UPI Payment Configuration</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Used by the mobile “Pay with Any UPI App” checkout button.
+              </p>
+            </div>
+            <button onClick={openSettingsEditor} className="btn-outline btn-sm inline-flex items-center justify-center gap-2 bg-white">
+              <Pencil className="h-4 w-4" /> Configure UPI
+            </button>
+          </div>
+          <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+            <div className="rounded-xl border border-green-100 bg-white p-4">
+              <dt className="text-muted-foreground">Business UPI ID</dt>
+              <dd className="mt-1 font-mono font-semibold text-foreground">{settings.upiId || 'Not configured'}</dd>
+            </div>
+            <div className="rounded-xl border border-green-100 bg-white p-4">
+              <dt className="text-muted-foreground">UPI Payee Name</dt>
+              <dd className="mt-1 font-semibold text-foreground">{settings.upiPayeeName || 'Not configured'}</dd>
+            </div>
+          </dl>
+        </div>
+
         <div className="bg-white rounded-2xl border border-border p-6 md:col-span-2">
           <h2 className="font-semibold text-foreground mb-4">Social Media Links</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -157,6 +188,15 @@ export default function AdminSettingsPage() {
             <NumberField label="Free Shipping Threshold (₹)" value={draft.freeShippingThreshold} onChange={(value) => setDraft({ ...draft, freeShippingThreshold: value })} />
             <NumberField label="Standard Shipping Rate (₹)" value={draft.standardShippingRate} onChange={(value) => setDraft({ ...draft, standardShippingRate: value })} />
             <NumberField label="Loyalty Points per ₹1" value={draft.loyaltyPointsRate} onChange={(value) => setDraft({ ...draft, loyaltyPointsRate: value })} />
+          </div>
+
+          <div className="rounded-xl border border-green-200 bg-green-50/60 p-4">
+            <h3 className="font-semibold text-foreground">UPI Payment Configuration</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Enter the business account that should receive mobile checkout payments.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="Business UPI ID"><input className="input-field mt-1.5 bg-white" placeholder="business@bank" value={draft.upiId ?? ''} onChange={(e) => setDraft({ ...draft, upiId: e.target.value })} /></Field>
+              <Field label="UPI Payee Name"><input required={Boolean(draft.upiId)} className="input-field mt-1.5 bg-white" placeholder="PP’s Aura" value={draft.upiPayeeName ?? ''} onChange={(e) => setDraft({ ...draft, upiPayeeName: e.target.value })} /></Field>
+            </div>
           </div>
 
           <div>

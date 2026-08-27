@@ -124,8 +124,8 @@ export const RETURN_REASONS = [
 export const PAYMENT_METHODS = [
   {
     id: 'upi',
-    label: 'Scan QR Code',
-    description: 'Scan and pay securely using any UPI app',
+    label: 'UPI Payment',
+    description: 'Pay using any UPI app on mobile or scan the QR code on desktop',
     icon: '📱',
   },
 ];
