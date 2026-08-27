@@ -83,6 +83,24 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
   ApiResponse.paginated(res, 'Products retrieved', data, meta);
 });
 
+export const getAllProductsForAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit, sortBy, sortOrder, search, category } = req.query;
+  const filter = {
+    includeInactive: true,
+    ...(search && { search: String(search) }),
+    ...(category && Types.ObjectId.isValid(String(category)) && { category: String(category) }),
+  };
+  const options = {
+    page: Number(page) || 1,
+    limit: Number(limit) || 20,
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as 'asc' | 'desc',
+  };
+
+  const { data, meta } = await productService.getAllProducts(filter, options);
+  return ApiResponse.paginated(res, 'Admin products retrieved', data, meta);
+});
+
 export const searchProducts = asyncHandler(async (req: Request, res: Response) => {
   const { q, page, limit, ...filterParams } = req.query;
 

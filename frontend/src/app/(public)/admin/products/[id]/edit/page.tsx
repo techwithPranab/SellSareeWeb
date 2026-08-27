@@ -1,16 +1,19 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import ProductForm, { type ProductFormData } from '@/components/admin/ProductForm';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import type { Product } from '@/types';
 import toast from 'react-hot-toast';
+import { asRoute } from '@/utils/helpers';
 
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +54,12 @@ export default function EditProductPage() {
       const { product: updated } = await adminService.updateProduct(id, formData);
       setProduct(updated);
       toast.success('Product updated successfully');
+      const requestedReturn = searchParams.get('returnTo');
+      const returnTo = requestedReturn?.startsWith('/admin/products')
+        && !requestedReturn.startsWith('//')
+        ? requestedReturn
+        : '/admin/products';
+      router.replace(asRoute(returnTo));
       return true;
     } catch (error: unknown) {
       const requestError = error as { response?: { data?: { message?: string } } };

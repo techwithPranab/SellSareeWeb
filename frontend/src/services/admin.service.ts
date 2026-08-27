@@ -138,7 +138,7 @@ export const adminService = {
     sortBy?: string;
     sortOrder?: string;
   }) {
-    const response = await api.get('/products', { params: { ...params, limit: params?.limit ?? 20 } });
+    const response = await api.get('/products/admin/all', { params: { ...params, limit: params?.limit ?? 20 } });
     return response.data as PaginatedResponse<Product>;
   },
 

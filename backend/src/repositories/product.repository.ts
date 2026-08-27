@@ -17,6 +17,7 @@ export interface ProductFilter {
   search?: string;
   tags?: string[];
   isActive?: boolean;
+  includeInactive?: boolean;
 }
 
 export class ProductRepository {
@@ -165,7 +166,18 @@ export class ProductRepository {
     const query: FilterQuery<IProduct> = {};
 
     if (filter.isActive !== undefined) query.isActive = filter.isActive;
-    else query.isActive = true;
+    else if (!filter.includeInactive) query.isActive = true;
+
+    if (filter.search?.trim()) {
+      const escapedSearch = filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchPattern = new RegExp(escapedSearch, 'i');
+      query.$or = [
+        { name: searchPattern },
+        { sku: searchPattern },
+        { fabric: searchPattern },
+        { color: searchPattern },
+      ];
+    }
 
     if (filter.category) query.category = filter.category;
     if (filter.fabric) query.fabric = new RegExp(filter.fabric, 'i');

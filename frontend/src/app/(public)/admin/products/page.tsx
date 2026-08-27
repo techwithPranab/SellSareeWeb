@@ -11,13 +11,18 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { formatPrice, getProductDefaultImage, getProductEffectivePrice, isProductComingSoon, asRoute } from '@/utils/helpers';
 import type { Product, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'next/navigation';
 
 export default function AdminProductsPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '');
+  const [page, setPage] = useState(() => {
+    const requestedPage = Number(searchParams.get('page'));
+    return Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  });
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -118,7 +123,11 @@ export default function AdminProductsPage() {
                         <Link href={`/products/${product.slug}`} className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground" title="View">
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <Link href={asRoute(`/admin/products/${product._id}/edit`)} className="p-1.5 rounded-lg hover:bg-muted/50 text-primary" title="Edit">
+                        <Link
+                          href={asRoute(`/admin/products/${product._id}/edit?returnTo=${encodeURIComponent(`/admin/products?search=${encodeURIComponent(search)}&page=${page}`)}`)}
+                          className="p-1.5 rounded-lg hover:bg-muted/50 text-primary"
+                          title="Edit"
+                        >
                           <Pencil className="w-4 h-4" />
                         </Link>
                         <button onClick={() => handleDelete(product._id, product.name)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500" title="Delete">

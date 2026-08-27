@@ -13,6 +13,7 @@ import {
   deleteProduct,
   deleteProductImage,
   getProductDashboardStats,
+  getAllProductsForAdmin,
 } from '../controllers/product.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -26,6 +27,7 @@ router.get('/search', searchProducts);
 router.get('/featured', getFeaturedProducts);
 router.get('/new-arrivals', getNewArrivals);
 router.get('/best-sellers', getBestSellers);
+router.get('/admin/all', authenticate, requireAdmin, getAllProductsForAdmin);
 router.get('/:slug', getProductBySlug);
 router.get('/id/:id', getProductById);
 router.get('/:productId/related/:categoryId', getRelatedProducts);
