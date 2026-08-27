@@ -24,18 +24,24 @@ const cartSlice = createSlice({
       const existingIndex = state.items.findIndex(
         (item) => item.product._id === product._id && item.color === color
       );
+      const quantityInCart = state.items
+        .filter((item) => item.product._id === product._id)
+        .reduce((total, item) => total + item.quantity, 0);
+      const quantityToAdd = Math.min(quantity, Math.max(0, product.stock - quantityInCart));
+
+      if (quantityToAdd <= 0) return;
 
       if (existingIndex >= 0) {
-        state.items[existingIndex].quantity += quantity;
+        state.items[existingIndex].quantity += quantityToAdd;
         state.items[existingIndex].subtotal = state.items[existingIndex].quantity * price;
       } else {
         state.items.push({
           _id: `${product._id}_${color || 'default'}_${Date.now()}`,
           product,
-          quantity,
+          quantity: quantityToAdd,
           color,
           price,
-          subtotal: quantity * price,
+          subtotal: quantityToAdd * price,
         });
       }
     },
@@ -54,8 +60,12 @@ const cartSlice = createSlice({
         if (quantity <= 0) {
           state.items = state.items.filter((i) => i._id !== itemId);
         } else {
-          item.quantity = quantity;
-          item.subtotal = quantity * item.price;
+          const quantityInOtherLines = state.items
+            .filter((other) => other._id !== itemId && other.product._id === item.product._id)
+            .reduce((total, other) => total + other.quantity, 0);
+          const allowedQuantity = Math.min(quantity, Math.max(0, item.product.stock - quantityInOtherLines));
+          item.quantity = allowedQuantity;
+          item.subtotal = allowedQuantity * item.price;
         }
       }
     },

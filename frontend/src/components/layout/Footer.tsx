@@ -100,7 +100,6 @@ export default function Footer() {
           <ul className="mb-6 grid grid-cols-2 gap-x-8 gap-y-2.5">
             {[
               { label: 'Track Your Order', href: '/track-order' },
-              { label: 'Shipping Policy', href: '/shipping-policy' },
               { label: 'Privacy Policy', href: '/privacy-policy' },
               { label: 'Terms & Conditions', href: '/terms' },
               { label: 'Care Instructions', href: '/care-guide' },

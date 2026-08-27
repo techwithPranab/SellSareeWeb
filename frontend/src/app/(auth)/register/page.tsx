@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ import { APP_NAME } from '@/constants';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register: registerUser, isLoading, error } = useAuth();
+  const { register: registerUser, isLoading, error, clearAuthError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -26,6 +26,13 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: { acceptTerms: false },
   });
+
+  useEffect(() => {
+    clearAuthError();
+    return () => {
+      clearAuthError();
+    };
+  }, [clearAuthError]);
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -59,7 +66,13 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          onChangeCapture={() => {
+            if (error) clearAuthError();
+          }}
+          className="space-y-4"
+        >
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>

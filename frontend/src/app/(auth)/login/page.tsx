@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -22,7 +22,7 @@ export default function LoginPage() {
     : '/dashboard';
   const sessionExpired = searchParams.get('session') === 'expired';
 
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error, clearAuthError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -31,12 +31,17 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
+  useEffect(() => {
+    clearAuthError();
+    return () => {
+      clearAuthError();
+    };
+  }, [clearAuthError]);
+
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login(data);
+    const result = await login(data);
+    if (result.success) {
       router.push(asRoute(redirect));
-    } catch {
-      // error is in Redux state
     }
   };
 
@@ -67,7 +72,13 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          onChangeCapture={() => {
+            if (error) clearAuthError();
+          }}
+          className="space-y-5"
+        >
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">

@@ -26,7 +26,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const dispatch = useAppDispatch();
   const isWishlisted = useAppSelector(selectIsInWishlist(product._id));
-  const { addItem, isInCart } = useCart();
+  const { addItem, isInCart, getCartItemQuantity } = useCart();
 
   const isComingSoon = isProductComingSoon(product);
   const primaryImage = product.images?.[0]?.url ?? '/images/product-coming-soon.svg';
@@ -52,6 +52,8 @@ export default function ProductCard({
   );
 
   const inCart = isInCart(product._id);
+  const cartQuantity = getCartItemQuantity(product._id);
+  const stockLimitReached = cartQuantity >= product.stock;
 
   return (
     <motion.div
@@ -132,11 +134,13 @@ export default function ProductCard({
           <div className="absolute bottom-3 left-3 right-3 z-10 flex gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0 || isComingSoon}
+              disabled={product.stock === 0 || isComingSoon || stockLimitReached}
               className={cn(
                 'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md',
                 isComingSoon
                   ? 'bg-amber-100 text-amber-700 cursor-not-allowed'
+                  : stockLimitReached
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : inCart
                   ? 'bg-green-600 text-white'
                   : product.stock === 0
@@ -145,7 +149,7 @@ export default function ProductCard({
               )}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              {isComingSoon ? 'Coming Soon' : inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              {isComingSoon ? 'Coming Soon' : product.stock === 0 ? 'Out of Stock' : stockLimitReached ? 'Maximum in Cart' : inCart ? 'In Cart' : 'Add to Cart'}
             </button>
             <Link
               href={`/products/${product.slug}`}

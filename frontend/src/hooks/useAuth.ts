@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
-import { loginUser, logoutUser, registerUser, getCurrentUser } from '@/features/auth/authSlice';
+import { clearError, loginUser, logoutUser, registerUser, getCurrentUser } from '@/features/auth/authSlice';
 import { clearCart } from '@/features/cart/cartSlice';
 import { clearWishlist } from '@/features/wishlist/wishlistSlice';
 import toast from 'react-hot-toast';
@@ -62,6 +62,10 @@ export const useAuth = () => {
     return dispatch(getCurrentUser());
   }, [dispatch]);
 
+  const clearAuthError = useCallback(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const isSuperAdmin = user?.role === 'super_admin';
 
@@ -77,5 +81,6 @@ export const useAuth = () => {
     register,
     logout,
     fetchCurrentUser,
+    clearAuthError,
   };
 };

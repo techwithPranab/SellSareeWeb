@@ -17,6 +17,8 @@ import {
   Share2,
   Boxes,
   Loader2,
+  ArrowRight,
+  Trash2,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { fetchProductBySlug, addToRecentlyViewed } from '@/features/products/productsSlice';
@@ -48,7 +50,7 @@ export default function ProductDetailPage() {
   const isWishlisted = useAppSelector((s) =>
     product ? s.wishlist.productIds.includes(product._id) : false
   );
-  const { addItem, isInCart } = useCart();
+  const { addItem, removeProduct, isInCart, getCartItemQuantity } = useCart();
   const { isAuthenticated } = useAuth();
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -127,6 +129,9 @@ export default function ProductDetailPage() {
   const categoryName =
     typeof product.category === 'object' ? product.category.name : product.category;
   const inCart = isInCart(product._id);
+  const cartQuantity = getCartItemQuantity(product._id);
+  const remainingStock = Math.max(0, product.stock - cartQuantity);
+  const stockLimitReached = remainingStock === 0;
 
   const showPreviousImage = () => {
     setSelectedImage((current) => (current - 1 + images.length) % images.length);
@@ -139,6 +144,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (isComingSoon) return;
     addItem(product, quantity);
+    setQuantity(1);
   };
 
   const handleReviewSubmit = async (event: React.FormEvent) => {
@@ -361,8 +367,8 @@ export default function ProductDetailPage() {
                 {quantity}
               </span>
               <button
-                onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                disabled={quantity >= product.stock}
+                onClick={() => setQuantity((q) => Math.min(remainingStock, q + 1))}
+                disabled={stockLimitReached || quantity >= remainingStock}
                 className="p-2.5 hover:bg-muted/50 transition-colors disabled:opacity-40"
                 aria-label="Increase quantity"
               >
@@ -375,17 +381,38 @@ export default function ProductDetailPage() {
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0 || isComingSoon}
+              disabled={product.stock === 0 || isComingSoon || stockLimitReached}
               className={cn(
                 'flex-1 min-w-[200px] btn-primary flex items-center justify-center gap-2',
                 isComingSoon
                   ? 'cursor-not-allowed bg-amber-100 text-amber-700 hover:bg-amber-100'
-                  : inCart && 'bg-green-600 hover:bg-green-700'
+                  : stockLimitReached
+                    ? 'cursor-not-allowed bg-gray-300 text-gray-600 hover:bg-gray-300'
+                    : inCart && 'bg-green-600 hover:bg-green-700'
               )}
             >
               <ShoppingBag className="w-5 h-5" />
-              {isComingSoon ? 'Coming Soon' : inCart ? 'Add More to Cart' : 'Add to Cart'}
+              {isComingSoon ? 'Coming Soon' : stockLimitReached ? 'Maximum Stock in Cart' : inCart ? 'Add More to Cart' : 'Add to Cart'}
             </button>
+            {inCart && (
+              <Link
+                href="/cart"
+                className="flex min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg bg-[#24150f] px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-[#3a241a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#24150f] focus-visible:ring-offset-2"
+              >
+                Proceed to Checkout
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            )}
+            {inCart && (
+              <button
+                type="button"
+                onClick={() => removeProduct(product._id)}
+                className="flex min-w-[200px] flex-1 items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-5 py-2.5 font-semibold text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              >
+                <Trash2 className="h-5 w-5" aria-hidden="true" />
+                Remove from Cart
+              </button>
+            )}
             <button
               onClick={() => dispatch(toggleWishlist(product._id))}
               className={cn(

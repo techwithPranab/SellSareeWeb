@@ -35,14 +35,17 @@ export const useCart = () => {
         toast.error('This product is coming soon and is not available to order yet.');
         return;
       }
-      if (product.stock < quantity) {
+      const quantityInCart = items
+        .filter((item) => item.product._id === product._id)
+        .reduce((total, item) => total + item.quantity, 0);
+      if (quantityInCart + quantity > product.stock) {
         toast.error('Insufficient stock available');
         return;
       }
       dispatch(addToCart({ product, quantity, color }));
       toast.success('Added to cart! 🛒');
     },
-    [dispatch]
+    [dispatch, items]
   );
 
   const removeItem = useCallback(
@@ -50,6 +53,16 @@ export const useCart = () => {
       dispatch(removeFromCart(itemId));
     },
     [dispatch]
+  );
+
+  const removeProduct = useCallback(
+    (productId: string) => {
+      items
+        .filter((item) => item.product._id === productId)
+        .forEach((item) => dispatch(removeFromCart(item._id)));
+      toast.success('Removed from cart');
+    },
+    [dispatch, items]
   );
 
   const updateItemQuantity = useCallback(
@@ -99,8 +112,9 @@ export const useCart = () => {
 
   const getCartItemQuantity = useCallback(
     (productId: string) => {
-      const item = items.find((i) => i.product._id === productId);
-      return item?.quantity || 0;
+      return items
+        .filter((item) => item.product._id === productId)
+        .reduce((total, item) => total + item.quantity, 0);
     },
     [items]
   );
@@ -113,6 +127,7 @@ export const useCart = () => {
     loyaltyPointsToRedeem,
     addItem,
     removeItem,
+    removeProduct,
     updateItemQuantity,
     emptyCart,
     applyCouponCode,

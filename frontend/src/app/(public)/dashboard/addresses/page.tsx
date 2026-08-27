@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MapPin, Plus, Trash2, Star, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, Star, Loader2, Pencil } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/services/user.service';
 import { addressFormSchema, type AddressFormData } from '@/validations/checkout.schema';
@@ -17,6 +17,7 @@ export default function AddressesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<AddressFormData>({
     resolver: zodResolver(addressFormSchema),
@@ -39,17 +40,51 @@ export default function AddressesPage() {
   const onSubmit = async (data: AddressFormData) => {
     setSaving(true);
     try {
-      await userService.addAddress(data);
+      if (editingAddress) {
+        await userService.updateAddress(editingAddress._id, data);
+      } else {
+        await userService.addAddress(data);
+      }
       await loadAddresses();
       await fetchCurrentUser();
       reset();
       setShowForm(false);
-      toast.success('Address added successfully');
+      setEditingAddress(null);
+      toast.success(editingAddress ? 'Address updated successfully' : 'Address added successfully');
     } catch {
-      toast.error('Failed to add address');
+      toast.error(editingAddress ? 'Failed to update address' : 'Failed to add address');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddAddress = () => {
+    setEditingAddress(null);
+    reset({ country: 'India', type: 'home', isDefault: false });
+    setShowForm(true);
+  };
+
+  const handleEditAddress = (address: Address) => {
+    setEditingAddress(address);
+    reset({
+      fullName: address.fullName,
+      phone: address.phone,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2 ?? '',
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      country: address.country || 'India',
+      type: address.type || 'home',
+      isDefault: address.isDefault,
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingAddress(null);
+    reset({ country: 'India', type: 'home', isDefault: false });
   };
 
   const handleDelete = async (id: string) => {
@@ -80,7 +115,7 @@ export default function AddressesPage() {
           <h1 className="font-playfair text-2xl font-bold text-foreground">My Addresses</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage your delivery addresses</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-primary btn-sm flex items-center gap-1.5">
+        <button onClick={showForm ? closeForm : handleAddAddress} className="btn-primary btn-sm flex items-center gap-1.5">
           <Plus className="w-4 h-4" />
           Add Address
         </button>
@@ -88,8 +123,21 @@ export default function AddressesPage() {
 
       {showForm && (
         <div className="bg-white rounded-2xl border border-border p-6">
-          <h2 className="font-semibold text-foreground mb-4">New Address</h2>
+          <h2 className="font-semibold text-foreground mb-4">
+            {editingAddress ? 'Edit Address' : 'New Address'}
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="label">Address Name</label>
+              <select {...register('type')} className="input-field">
+                <option value="home">Home</option>
+                <option value="work">Work</option>
+                <option value="other">Other</option>
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose a name that will help you identify this address during checkout.
+              </p>
+            </div>
             <div className="sm:col-span-2">
               <label className="label">Full Name</label>
               <input {...register('fullName')} className="input-field" />
@@ -134,9 +182,9 @@ export default function AddressesPage() {
             <div className="sm:col-span-2 flex gap-3">
               <button type="submit" disabled={saving} className="btn-primary btn-sm flex items-center gap-2">
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save Address
+                {editingAddress ? 'Update Address' : 'Save Address'}
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="btn-outline btn-sm">Cancel</button>
+              <button type="button" onClick={closeForm} className="btn-outline btn-sm">Cancel</button>
             </div>
           </form>
         </div>
@@ -158,6 +206,9 @@ export default function AddressesPage() {
                   Default
                 </span>
               )}
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                {addr.type || 'Home'}
+              </p>
               <p className="font-semibold text-foreground">{addr.fullName}</p>
               <p className="text-sm text-muted-foreground mt-1">{addr.phone}</p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -165,6 +216,9 @@ export default function AddressesPage() {
                 <br />{addr.city}, {addr.state} — {addr.pincode}
               </p>
               <div className="flex gap-2 mt-4">
+                <button onClick={() => handleEditAddress(addr)} className="btn-outline btn-sm flex items-center gap-1 text-xs">
+                  <Pencil className="w-3 h-3" /> Edit
+                </button>
                 {!addr.isDefault && (
                   <button onClick={() => handleSetDefault(addr._id)} className="btn-outline btn-sm flex items-center gap-1 text-xs">
                     <Star className="w-3 h-3" /> Set Default

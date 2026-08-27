@@ -15,8 +15,9 @@ import { checkoutSchema, type CheckoutFormData } from '@/validations/checkout.sc
 import { INDIAN_STATES, PAYMENT_METHODS } from '@/constants';
 import { formatPrice } from '@/utils/helpers';
 import { orderService } from '@/services/order.service';
+import { userService } from '@/services/user.service';
 import toast from 'react-hot-toast';
-import type { Order } from '@/types';
+import type { Address, Order } from '@/types';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -29,17 +30,21 @@ export default function CheckoutPage() {
     loyaltyPointsToRedeem,
     emptyCart,
   } = useCart();
+  const defaultAddress = user?.addresses?.find((a) => a.isDefault) ?? user?.addresses?.[0];
   const [isPlacing, setIsPlacing] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
-
-  const defaultAddress = user?.addresses?.find((a) => a.isDefault) ?? user?.addresses?.[0];
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>(user?.addresses ?? []);
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    defaultAddress?._id ?? 'new'
+  );
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -58,6 +63,47 @@ export default function CheckoutPage() {
     },
   });
   const paymentMethod = watch('paymentMethod');
+
+  const applyAddress = (address: Address) => {
+    setValue('shippingAddress.fullName', address.fullName, { shouldValidate: true });
+    setValue('shippingAddress.phone', address.phone, { shouldValidate: true });
+    setValue('shippingAddress.addressLine1', address.addressLine1, { shouldValidate: true });
+    setValue('shippingAddress.addressLine2', address.addressLine2 ?? '', { shouldValidate: true });
+    setValue('shippingAddress.city', address.city, { shouldValidate: true });
+    setValue('shippingAddress.state', address.state, { shouldValidate: true });
+    setValue('shippingAddress.pincode', address.pincode, { shouldValidate: true });
+    setValue('shippingAddress.country', address.country || 'India');
+  };
+
+  const clearAddressForm = () => {
+    setValue('shippingAddress.fullName', user?.name ?? '');
+    setValue('shippingAddress.phone', user?.phone ?? '');
+    setValue('shippingAddress.addressLine1', '');
+    setValue('shippingAddress.addressLine2', '');
+    setValue('shippingAddress.city', '');
+    setValue('shippingAddress.state', '');
+    setValue('shippingAddress.pincode', '');
+    setValue('shippingAddress.country', 'India');
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    userService.getAddresses()
+      .then(({ addresses }) => {
+        setSavedAddresses(addresses);
+        const preferred = addresses.find((address) => address.isDefault) ?? addresses[0];
+        if (preferred) {
+          setSelectedAddressId(preferred._id);
+          applyAddress(preferred);
+        } else {
+          setSelectedAddressId('new');
+        }
+      })
+      .catch(() => setSavedAddresses(user?.addresses ?? []));
+  // Loading the authenticated customer's address book once is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -151,6 +197,38 @@ export default function CheckoutPage() {
               <MapPin className="w-5 h-5 text-primary" />
               Shipping Address
             </h2>
+            {savedAddresses.length > 0 ? (
+              <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <label htmlFor="saved-address" className="label">Choose a saved address</label>
+                <select
+                  id="saved-address"
+                  value={selectedAddressId}
+                  onChange={(event) => {
+                    const addressId = event.target.value;
+                    setSelectedAddressId(addressId);
+                    if (addressId === 'new') {
+                      clearAddressForm();
+                      return;
+                    }
+                    const selected = savedAddresses.find((address) => address._id === addressId);
+                    if (selected) applyAddress(selected);
+                  }}
+                  className="input-field bg-white"
+                >
+                  {savedAddresses.map((address) => (
+                    <option key={address._id} value={address._id}>
+                      {(address.type || 'home').replace(/^./, (letter) => letter.toUpperCase())}
+                      {address.isDefault ? ' (Default)' : ''} — {address.addressLine1}, {address.city}
+                    </option>
+                  ))}
+                  <option value="new">+ Enter a new address</option>
+                </select>
+              </div>
+            ) : (
+              <p className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                You do not have a saved address yet. Enter one below and it will be saved as your Home address.
+              </p>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="label">Full Name</label>

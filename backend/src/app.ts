@@ -31,6 +31,13 @@ configureCloudinary();
 
 const app: Application = express();
 
+// Production traffic reaches Express through the hosting provider's reverse
+// proxy. Trust only the configured number of proxy hops so rate limits use the
+// customer's IP instead of grouping every visitor under the proxy IP.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS) || 1);
+}
+
 // ============================================================
 // SECURITY MIDDLEWARE
 // ============================================================
@@ -107,16 +114,11 @@ const limiter = rateLimit({
     success: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.',
   },
+  // Read-only storefront traffic can legitimately make many API calls while a
+  // customer browses. Mutation endpoints remain protected by this limiter.
+  skip: (req) => ['GET', 'HEAD', 'OPTIONS'].includes(req.method),
 });
 app.use(`${API_PREFIX}/`, limiter);
-
-// Auth rate limiting (stricter)
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { success: false, message: 'Too many authentication attempts, please try again later.' },
-});
-app.use(`${API_PREFIX}/auth/`, authLimiter);
 
 // ============================================================
 // BODY PARSING
