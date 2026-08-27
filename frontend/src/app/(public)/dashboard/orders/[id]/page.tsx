@@ -68,6 +68,9 @@ export default function OrderDetailPage() {
   const trackingSteps = getOrderTrackingSteps(order.status);
   const canCancel = ['pending', 'confirmed'].includes(order.status);
   const canReturn = order.status === 'delivered' && order.isReturnable && order.isReturnWindowOpen;
+  const canContinuePayment = order.status === 'pending'
+    && order.paymentInfo.method === 'upi'
+    && order.paymentInfo.status === 'pending';
 
   return (
     <div className="space-y-6">
@@ -211,6 +214,14 @@ export default function OrderDetailPage() {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
+        {canContinuePayment && (
+          <Link
+            href={`/checkout?orderId=${order._id}`}
+            className="btn-primary btn-sm inline-flex items-center gap-2"
+          >
+            Continue UPI Payment
+          </Link>
+        )}
         {canCancel && (
           <button
             onClick={handleCancel}

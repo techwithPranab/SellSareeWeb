@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
@@ -25,6 +25,7 @@ const PENDING_UPI_ORDER_KEY = 'pps_aura_pending_upi_order_id';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user, fetchCurrentUser } = useAuth();
   const {
@@ -119,19 +120,21 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const pendingOrderId = window.sessionStorage.getItem(PENDING_UPI_ORDER_KEY);
+    const pendingOrderId = searchParams.get('orderId')
+      || window.sessionStorage.getItem(PENDING_UPI_ORDER_KEY);
     if (!pendingOrderId) return;
 
     orderService.getOrderById(pendingOrderId)
       .then(({ order }) => {
         if (order.paymentInfo.method === 'upi' && ['pending', 'processing'].includes(order.paymentInfo.status)) {
           setPendingOrder(order);
+          window.sessionStorage.setItem(PENDING_UPI_ORDER_KEY, order._id);
         } else {
           window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY);
         }
       })
       .catch(() => window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, searchParams]);
 
   useEffect(() => {
     if (!isAuthenticated) {

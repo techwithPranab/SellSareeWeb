@@ -37,6 +37,9 @@ export default function OrdersPage() {
         <div className="space-y-4">
           {orders.map((order) => {
             const statusConfig = ORDER_STATUS_CONFIG[order.status];
+            const isPaymentPending = order.paymentInfo.method === 'upi'
+              && order.paymentInfo.status === 'pending'
+              && order.status === 'pending';
             return (
               <Link
                 key={order._id}
@@ -52,6 +55,11 @@ export default function OrdersPage() {
                     <p className="text-sm text-muted-foreground">
                       {order.items.length} item(s) · {formatPaymentMethod(order.paymentInfo.method)}
                     </p>
+                    {isPaymentPending && (
+                      <span className="mt-2 inline-block rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                        Payment Pending — tap to continue
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-lg text-foreground">{formatPrice(order.totalAmount)}</p>

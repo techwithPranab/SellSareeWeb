@@ -32,15 +32,9 @@ export class OrderRepository {
 
   async findUserOrders(userId: string, options: PaginationOptions = {}) {
     const { skip, limit, page, sort } = parsePagination(options);
-    const filter: FilterQuery<IOrder> = {
-      user: new Types.ObjectId(userId),
-      $or: [
-        { status: { $ne: OrderStatus.PENDING } },
-        // A submitted static-QR proof is still awaiting admin confirmation, but
-        // it is a real customer order and should remain visible for tracking.
-        { status: OrderStatus.PENDING, 'paymentInfo.status': PaymentStatus.PROCESSING },
-      ],
-    };
+    // Include unpaid UPI orders so customers can recover and continue payment
+    // after refreshing or leaving the checkout page.
+    const filter: FilterQuery<IOrder> = { user: new Types.ObjectId(userId) };
 
     const [data, total] = await Promise.all([
       Order.find(filter)
