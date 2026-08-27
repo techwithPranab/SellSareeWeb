@@ -41,6 +41,7 @@ export default function CheckoutPage() {
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [isOpeningUpi, setIsOpeningUpi] = useState(false);
+  const [isRestoringPendingOrder, setIsRestoringPendingOrder] = useState(true);
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<Address[]>(user?.addresses ?? []);
   const [selectedAddressId, setSelectedAddressId] = useState(
@@ -100,7 +101,7 @@ export default function CheckoutPage() {
       .then(({ addresses }) => {
         setSavedAddresses(addresses);
         const preferred = addresses.find((address) => address.isDefault) ?? addresses[0];
-        if (preferred) {
+        if (preferred && !searchParams.get('orderId')) {
           setSelectedAddressId(preferred._id);
           applyAddress(preferred);
         } else {
@@ -122,29 +123,41 @@ export default function CheckoutPage() {
     if (!isAuthenticated) return;
     const pendingOrderId = searchParams.get('orderId')
       || window.sessionStorage.getItem(PENDING_UPI_ORDER_KEY);
-    if (!pendingOrderId) return;
+    if (!pendingOrderId) {
+      setIsRestoringPendingOrder(false);
+      return;
+    }
 
     orderService.getOrderById(pendingOrderId)
       .then(({ order }) => {
         if (order.paymentInfo.method === 'upi' && ['pending', 'processing'].includes(order.paymentInfo.status)) {
           setPendingOrder(order);
           window.sessionStorage.setItem(PENDING_UPI_ORDER_KEY, order._id);
+          setValue('shippingAddress.fullName', order.shippingAddress.fullName);
+          setValue('shippingAddress.phone', order.shippingAddress.phone);
+          setValue('shippingAddress.addressLine1', order.shippingAddress.addressLine1);
+          setValue('shippingAddress.addressLine2', order.shippingAddress.addressLine2 ?? '');
+          setValue('shippingAddress.city', order.shippingAddress.city);
+          setValue('shippingAddress.state', order.shippingAddress.state);
+          setValue('shippingAddress.pincode', order.shippingAddress.pincode);
+          setValue('shippingAddress.country', order.shippingAddress.country || 'India');
         } else {
           window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY);
         }
       })
-      .catch(() => window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY));
-  }, [isAuthenticated, searchParams]);
+      .catch(() => window.sessionStorage.removeItem(PENDING_UPI_ORDER_KEY))
+      .finally(() => setIsRestoringPendingOrder(false));
+  }, [isAuthenticated, searchParams, setValue]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace('/login?redirect=/checkout');
       return;
     }
-    if (items.length === 0) {
+    if (items.length === 0 && !pendingOrder && !isRestoringPendingOrder) {
       router.replace('/cart');
     }
-  }, [isAuthenticated, items.length, router]);
+  }, [isAuthenticated, isRestoringPendingOrder, items.length, pendingOrder, router]);
 
   const ensurePendingOrder = async (data: CheckoutFormData): Promise<Order | null> => {
     if (pendingOrder) {
@@ -241,7 +254,17 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isAuthenticated || items.length === 0) return null;
+  if (!isAuthenticated) return null;
+  if (isRestoringPendingOrder && items.length === 0) {
+    return <Loader2 className="mx-auto my-24 h-7 w-7 animate-spin text-primary" />;
+  }
+  if (items.length === 0 && !pendingOrder) return null;
+
+  const displayedSubtotal = pendingOrder?.subtotal ?? summary.subtotal;
+  const displayedShipping = pendingOrder?.shippingCharge ?? summary.shippingCharge;
+  const displayedDiscount = pendingOrder?.discount
+    ?? (summary.couponDiscount + summary.loyaltyDiscount);
+  const displayedTotal = pendingOrder?.totalAmount ?? summary.total;
 
   return (
     <div className="container-custom py-8 md:py-12">
@@ -394,7 +417,7 @@ export default function CheckoutPage() {
                     <div>
                       <p className="font-semibold text-foreground">
                         <span className="sm:hidden">Pay {formatPrice(pendingOrder?.totalAmount ?? summary.total)} using any UPI app</span>
-                        <span className="hidden sm:inline">Scan and pay {formatPrice(summary.total)}</span>
+                        <span className="hidden sm:inline">Scan and pay {formatPrice(pendingOrder?.totalAmount ?? summary.total)}</span>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {pendingOrder
@@ -470,41 +493,40 @@ export default function CheckoutPage() {
             <h2 className="font-semibold text-lg text-foreground">Order Summary</h2>
 
             <div className="space-y-3 max-h-48 overflow-y-auto">
-              {items.map((item) => (
-                <div key={item._id} className="flex justify-between text-sm gap-2">
-                  <span className="text-muted-foreground line-clamp-1 flex-1">
-                    {item.product.name} × {item.quantity}
-                  </span>
-                  <span className="font-medium shrink-0">{formatPrice(item.subtotal)}</span>
-                </div>
-              ))}
+              {pendingOrder
+                ? pendingOrder.items.map((item) => (
+                    <div key={item._id} className="flex justify-between gap-2 text-sm">
+                      <span className="line-clamp-1 flex-1 text-muted-foreground">{item.name} × {item.quantity}</span>
+                      <span className="shrink-0 font-medium">{formatPrice(item.subtotal)}</span>
+                    </div>
+                  ))
+                : items.map((item) => (
+                    <div key={item._id} className="flex justify-between gap-2 text-sm">
+                      <span className="line-clamp-1 flex-1 text-muted-foreground">{item.product.name} × {item.quantity}</span>
+                      <span className="shrink-0 font-medium">{formatPrice(item.subtotal)}</span>
+                    </div>
+                  ))}
             </div>
 
             <div className="space-y-2 text-sm border-t border-border pt-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>{formatPrice(summary.subtotal)}</span>
+                <span>{formatPrice(displayedSubtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
-                <span>{summary.shippingCharge === 0 ? 'FREE' : formatPrice(summary.shippingCharge)}</span>
+                <span>{displayedShipping === 0 ? 'FREE' : formatPrice(displayedShipping)}</span>
               </div>
-              {summary.couponDiscount > 0 && (
+              {displayedDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>−{formatPrice(summary.couponDiscount)}</span>
-                </div>
-              )}
-              {summary.loyaltyDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Loyalty points ({loyaltyPointsToRedeem})</span>
-                  <span>−{formatPrice(summary.loyaltyDiscount)}</span>
+                  <span>−{formatPrice(displayedDiscount)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-base border-t border-border pt-2">
                 <span>Total</span>
                 <span className="text-primary">
-                  {formatPrice(summary.total)}
+                  {formatPrice(displayedTotal)}
                 </span>
               </div>
             </div>
