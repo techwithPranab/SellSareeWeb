@@ -8,7 +8,7 @@ import { adminService, type StoreSettings } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
-import { ORDER_STATUS_CONFIG } from '@/constants';
+import { APP_URL, ORDER_STATUS_CONFIG } from '@/constants';
 import type { Order, OrderStatus } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -225,7 +225,7 @@ export default function AdminOrderDetailPage() {
             <div class="row">
               <div class="cell">
                 <div class="brand">${escapeHtml(storeSettings.storeName || 'PP’s Aura')}</div>
-                <div class="muted">${senderAddress}${storeSettings.supportEmail ? `<br>${escapeHtml(storeSettings.supportEmail)}` : ''}${storeSettings.supportPhone ? ` · ${escapeHtml(storeSettings.supportPhone)}` : ''}</div>
+                <div class="muted">${senderAddress}${storeSettings.supportEmail ? `<br>${escapeHtml(storeSettings.supportEmail)}` : ''}${storeSettings.supportPhone ? ` · ${escapeHtml(storeSettings.supportPhone)}` : ''}<br>Website: ${escapeHtml(APP_URL)}</div>
               </div>
               <div class="cell">
                 <div class="title">Order</div>
