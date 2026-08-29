@@ -1,0 +1,201 @@
+Create a set of 6 separate, highly photorealistic fashion photographs of ONE CONSISTENT Indian female model wearing the EXACT saree shown in my uploaded reference images.
+
+The six images will be assembled sequentially into a short Instagram/Facebook product reel, so they must look like frames from the same professional fashion photoshoot.
+
+CRITICAL: SAME MODEL IN ALL 6 IMAGES
+
+Use exactly the same woman in every image.
+
+Her face, skin tone, hairstyle, makeup, body proportions, age and jewellery must remain visually consistent across all six photographs.
+
+Do NOT create six different women.
+
+PRODUCT ACCURACY — HIGHEST PRIORITY
+
+The uploaded photographs show the actual saree being sold.
+
+Carefully study all uploaded references before generating the images.
+
+Preserve exactly:
+
+- Saree base colour
+- Colour combinations
+- Fabric appearance and texture
+- Weave
+- Motifs
+- Prints
+- Embroidery
+- Zari work, if present
+- Border design
+- Border colour and width
+- Pallu design
+- Pallu colour
+- Blouse-piece colour and design
+
+Use the uploaded blouse-piece reference to construct the blouse.
+
+Never redesign or beautify the saree by inventing details.
+
+Do NOT add new motifs, embroidery, zari, patterns, borders or decorative elements.
+
+Do NOT change the colour to make the photograph more attractive.
+
+The generated saree should represent the actual product a customer will receive.
+
+MODEL
+
+Create an elegant and realistic Bengali/Indian female fashion model approximately 25–35 years old.
+
+She should have:
+
+- Natural Indian facial features
+- Realistic skin texture
+- Natural professional makeup
+- Elegant hairstyle
+- Minimal tasteful jewellery
+- Natural body proportions
+- Warm, graceful and confident expressions
+
+Avoid an artificial, plastic or overly retouched AI appearance.
+
+SAREE DRAPING
+
+Drape the saree professionally in an elegant Bengali/Nivi-inspired style suitable for a premium saree catalogue.
+
+Maintain the SAME draping style throughout the six images.
+
+The saree should have:
+
+- Natural folds
+- Realistic fabric behaviour
+- Clearly visible border
+- Correct pallu
+- Natural pleats
+- Realistic blouse fit
+
+CREATE THESE 6 SEPARATE SHOTS
+
+IMAGE 1 — HERO FRONT VIEW
+
+Full-length front-facing photograph.
+
+The model stands gracefully and looks toward the camera.
+
+Clearly show the overall saree, blouse, pleats and border.
+
+This should be the opening hero shot of the reel.
+
+IMAGE 2 — 45° ANGLE
+
+Full-length three-quarter/45-degree view.
+
+The model turns slightly sideways while maintaining a natural elegant pose.
+
+Show how the saree falls around the body and keep the border clearly visible.
+
+IMAGE 3 — SIDE PROFILE
+
+Elegant side-profile fashion photograph.
+
+The model gently turns her face toward the camera.
+
+Show the saree silhouette, blouse and draping naturally.
+
+IMAGE 4 — PALLU SHOWCASE
+
+Create a graceful pose specifically designed to showcase the pallu.
+
+The model may gently hold or spread the pallu.
+
+The uploaded pallu design must remain extremely accurate.
+
+Make the pallu the visual focus while still showing the model.
+
+IMAGE 5 — BACK / OVER-SHOULDER VIEW
+
+Create a three-quarter back view with the model looking naturally over her shoulder.
+
+Show how the pallu falls from behind.
+
+Keep the same hairstyle, blouse, saree and accessories.
+
+IMAGE 6 — CLOSE-UP FINALE
+
+Create an elegant waist-up / three-quarter portrait.
+
+Clearly showcase:
+
+- Saree border
+- Fabric texture
+- Blouse
+- Jewellery
+- Model's face
+
+Use a warm, confident expression suitable for the final frame of a premium saree advertisement.
+
+PHOTOSHOOT CONSISTENCY
+
+All six images MUST look as though they were photographed:
+
+- On the same model
+- On the same day
+- In the same studio/location
+- With the same saree
+- With the same blouse
+- With the same hairstyle
+- With the same makeup
+- With the same jewellery
+- With the same lighting
+- With the same background
+
+Only the camera angle and model pose should change.
+
+Do NOT randomly change the environment between images.
+
+PHOTOGRAPHY STYLE
+
+Use premium Indian ethnic-fashion catalogue photography.
+
+Use:
+
+- Soft professional lighting
+- Natural shadows
+- Realistic skin
+- Sharp saree details
+- Realistic fabric texture
+- Sophisticated clean background
+- Professional DSLR-style photography
+- High-resolution appearance
+- No text
+- No logos
+- No watermark
+
+Create each image in vertical 9:16 composition, optimized for Instagram/Facebook Reels.
+
+Keep enough space around the model so the images can later be animated with slow zoom/pan effects.
+
+REEL CONTINUITY
+
+Imagine these images playing sequentially:
+
+Front → 45° → Side → Pallu → Back → Close-up
+
+Make the transition between poses feel natural, as though the model is slowly turning during one continuous fashion shoot.
+
+FINAL PRIORITY ORDER
+
+When there is any conflict, follow this priority:
+
+1. Exact saree accuracy
+2. Exact border and pallu accuracy
+3. Exact colour accuracy
+4. Blouse-piece accuracy
+5. Same model across all six images
+6. Consistent draping
+7. Natural pose progression
+8. Photorealism
+9. Background aesthetics
+
+Generate 6 separate images, not a collage or contact sheet.
+
+Before generating each subsequent image, use the first successful model image as the visual identity reference so that the 

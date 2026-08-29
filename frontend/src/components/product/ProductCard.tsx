@@ -75,7 +75,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-all duration-500 group-hover:opacity-0"
+            className="object-cover object-top transition-all duration-500 group-hover:opacity-0"
             loading="lazy"
           />
           {/* Hover Image */}
@@ -84,7 +84,7 @@ export default function ProductCard({
             alt={`${product.name} — alternate view`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="absolute inset-0 object-cover opacity-0 transition-all duration-500 group-hover:opacity-100"
+            className="absolute inset-0 object-cover object-top opacity-0 transition-all duration-500 group-hover:opacity-100"
             loading="lazy"
           />
 

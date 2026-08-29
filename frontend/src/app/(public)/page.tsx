@@ -156,7 +156,7 @@ export default function HomePage() {
               Simple &amp; convenient
             </p>
             <h2 id="how-to-order-title" className="section-title">How to Order</h2>
-            <p className="section-subtitle">Your favourite saree is only three quick steps away.</p>
+            <p className="section-subtitle">Your favourite saree is only four quick steps away.</p>
           </div>
 
           <ol className="relative grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
