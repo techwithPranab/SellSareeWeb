@@ -47,6 +47,7 @@ export interface StoreSettings {
   loyaltyPointsRate: number;
   upiId: string;
   upiPayeeName: string;
+  upcomingSareeAnnouncementDate?: string | null;
   socialLinks: Record<string, string>;
 }
 

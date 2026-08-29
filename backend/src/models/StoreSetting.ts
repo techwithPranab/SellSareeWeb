@@ -11,6 +11,7 @@ export interface IStoreSetting {
   loyaltyPointsRate: number;
   upiId: string;
   upiPayeeName: string;
+  upcomingSareeAnnouncementDate?: Date;
   socialLinks: Record<string, string>;
 }
 
@@ -26,6 +27,7 @@ const StoreSettingSchema = new Schema<IStoreSetting>(
     loyaltyPointsRate: { type: Number, required: true, min: 0 },
     upiId: { type: String, trim: true, maxlength: 100, default: '' },
     upiPayeeName: { type: String, trim: true, maxlength: 100, default: 'PP’s Aura' },
+    upcomingSareeAnnouncementDate: { type: Date },
     socialLinks: { type: Map, of: String, default: {} },
   },
   { timestamps: true }

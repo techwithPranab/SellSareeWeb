@@ -8,10 +8,18 @@ import {
   ShoppingBag,
   CreditCard,
   Star,
+  Hash,
+  MessageCircle,
+  FileCheck2,
+  Truck,
+  LogIn,
+  CalendarDays,
 } from 'lucide-react';
 import HeroSlider from '@/components/home/HeroSlider';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import { userService } from '@/services/user.service';
+import { settingService } from '@/services/setting.service';
+import type { StoreSettings } from '@/services/admin.service';
 import type { Review } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import {
@@ -21,6 +29,7 @@ import {
 export default function HomePage() {
   const dispatch = useAppDispatch();
   const [homepageReviews, setHomepageReviews] = useState<Review[]>([]);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const { newArrivals, isLoading } = useAppSelector(
     (s) => s.products
   );
@@ -28,12 +37,56 @@ export default function HomePage() {
   useEffect(() => {
     dispatch(fetchNewArrivals());
     userService.getHomepageReviews().then(({ reviews }) => setHomepageReviews(reviews)).catch(() => setHomepageReviews([]));
+    settingService.getStoreSettings().then(({ settings }) => setStoreSettings(settings)).catch(() => setStoreSettings(null));
   }, [dispatch]);
+
+  const whatsappValue = storeSettings?.socialLinks?.whatsapp?.trim() ?? '';
+  const whatsappDigits = whatsappValue.replace(/\D/g, '');
+  const quickOrderMessage = encodeURIComponent("Hi PP's Aura! I would like to place a quick order. My saree SKU code is: ");
+  const quickOrderUrl = whatsappValue
+    ? (/^https?:\/\//i.test(whatsappValue)
+        ? `${whatsappValue}${whatsappValue.includes('?') ? '&' : '?'}text=${quickOrderMessage}`
+        : whatsappDigits ? `https://wa.me/${whatsappDigits}?text=${quickOrderMessage}` : '')
+    : '';
+  const announcementDate = storeSettings?.upcomingSareeAnnouncementDate
+    ? new Date(storeSettings.upcomingSareeAnnouncementDate)
+    : null;
+  const showUpcomingAnnouncement = Boolean(
+    announcementDate
+    && !Number.isNaN(announcementDate.getTime())
+    && announcementDate.getTime() > Date.now()
+  );
 
   return (
     <>
       {/* Hero Slider */}
       <HeroSlider />
+
+      {showUpcomingAnnouncement && announcementDate && (
+        <section className="border-b border-amber-200 bg-amber-50" aria-labelledby="upcoming-saree-launch-title">
+          <div className="container-custom flex flex-col items-center justify-center gap-4 py-6 text-center sm:flex-row sm:text-left">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+              <CalendarDays className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">Coming soon</p>
+              <h2 id="upcoming-saree-launch-title" className="mt-1 font-playfair text-2xl font-bold text-foreground">
+                Upcoming Saree Launch
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Discover our next saree launch on{' '}
+                <strong className="text-foreground">
+                  {new Intl.DateTimeFormat('en-IN', {
+                    dateStyle: 'long',
+                    timeStyle: 'short',
+                    timeZone: 'Asia/Kolkata',
+                  }).format(announcementDate)} IST
+                </strong>.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* New Arrivals */}
       <section className="bg-surface">
@@ -47,6 +100,54 @@ export default function HomePage() {
         />
       </section>
 
+      {/* Quick Order via WhatsApp */}
+      <section className="section-padding bg-[#24150f] text-white" aria-labelledby="quick-order-title">
+        <div className="container-custom">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Simple WhatsApp ordering</p>
+            <h2 id="quick-order-title" className="font-playfair text-3xl font-bold sm:text-4xl">Quick Order Your Favourite Saree</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
+              Found something beautiful? Note the SKU code and complete your order directly with us on WhatsApp.
+            </p>
+          </div>
+
+          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Hash, title: 'Get the SKU Code', description: 'Open the saree details and note its unique SKU code.' },
+              { icon: MessageCircle, title: 'Check Availability', description: 'Send the SKU to PP’s Aura on WhatsApp and confirm availability.' },
+              { icon: FileCheck2, title: 'Pay & Share Proof', description: 'Complete the UPI payment and share the payment screenshot with us.' },
+              { icon: Truck, title: 'Receive Your Saree', description: 'Enjoy free shipping with delivery expected within 3–5 days.' },
+            ].map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <li key={step.title} className="relative rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+                  <span className="absolute right-4 top-4 text-xs font-bold text-white/35">0{index + 1}</span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-[#24150f]">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 font-playfair text-xl font-bold">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/65">{step.description}</p>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            {quickOrderUrl ? (
+              <a href={quickOrderUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700">
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                Order on WhatsApp
+              </a>
+            ) : (
+              <p className="rounded-lg border border-amber-300/30 bg-amber-200/10 px-4 py-3 text-sm text-amber-100">
+                WhatsApp ordering will be available once the business number is configured.
+              </p>
+            )}
+            <span className="text-sm font-semibold text-secondary">Free Shipping · Delivery in 3–5 days</span>
+          </div>
+        </div>
+      </section>
+
       {/* How to Order */}
       <section className="section-padding bg-white" aria-labelledby="how-to-order-title">
         <div className="container-custom">
@@ -58,7 +159,7 @@ export default function HomePage() {
             <p className="section-subtitle">Your favourite saree is only three quick steps away.</p>
           </div>
 
-          <ol className="relative grid gap-5 md:grid-cols-3 md:gap-8">
+          <ol className="relative grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {[
               {
                 icon: Search,
@@ -71,9 +172,14 @@ export default function HomePage() {
                 description: 'Select your preferred saree and add it to your shopping bag.',
               },
               {
+                icon: LogIn,
+                title: 'Login & Checkout Securely',
+                description: 'Sign in or create an account, then choose your delivery address at checkout.',
+              },
+              {
                 icon: CreditCard,
-                title: 'Checkout Securely',
-                description: 'Enter your delivery details and complete your payment.',
+                title: 'Complete Your Payment',
+                description: 'Pay securely using UPI and submit your payment details for verification.',
               },
             ].map((step, index) => {
               const Icon = step.icon;

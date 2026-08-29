@@ -41,6 +41,17 @@ export const updateStoreSettings = asyncHandler(async (req: Request, res: Respon
   stringFields.forEach((field) => { update[field] = String(req.body[field] ?? '').trim(); });
   numberFields.forEach((field) => { update[field] = Number(req.body[field]); });
 
+  const announcementDateValue = String(req.body.upcomingSareeAnnouncementDate ?? '').trim();
+  if (announcementDateValue) {
+    const announcementDate = new Date(announcementDateValue);
+    if (Number.isNaN(announcementDate.getTime())) {
+      return ApiResponse.badRequest(res, 'Please enter a valid upcoming saree launch date');
+    }
+    update.upcomingSareeAnnouncementDate = announcementDate;
+  } else {
+    update.upcomingSareeAnnouncementDate = null;
+  }
+
   if (!update.storeName || !/^\S+@\S+\.\S+$/.test(String(update.supportEmail))) {
     return ApiResponse.badRequest(res, 'A store name and valid support email are required');
   }

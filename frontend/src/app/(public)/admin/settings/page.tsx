@@ -20,6 +20,7 @@ const EMPTY_SETTINGS: StoreSettings = {
   loyaltyPointsRate: 1,
   upiId: '',
   upiPayeeName: 'PP’s Aura',
+  upcomingSareeAnnouncementDate: null,
   socialLinks: {},
 };
 
@@ -117,6 +118,12 @@ export default function AdminSettingsPage() {
             <SettingRow label="Free Shipping Threshold" value={`₹${settings.freeShippingThreshold}`} />
             <SettingRow label="Standard Shipping" value={`₹${settings.standardShippingRate}`} />
             <SettingRow label="Loyalty Points Rate" value={`${settings.loyaltyPointsRate} pt / ₹1`} />
+            <SettingRow
+              label="Upcoming Saree Launch"
+              value={settings.upcomingSareeAnnouncementDate
+                ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(settings.upcomingSareeAnnouncementDate))
+                : 'Not scheduled'}
+            />
           </dl>
         </div>
 
@@ -188,6 +195,18 @@ export default function AdminSettingsPage() {
             <NumberField label="Free Shipping Threshold (₹)" value={draft.freeShippingThreshold} onChange={(value) => setDraft({ ...draft, freeShippingThreshold: value })} />
             <NumberField label="Standard Shipping Rate (₹)" value={draft.standardShippingRate} onChange={(value) => setDraft({ ...draft, standardShippingRate: value })} />
             <NumberField label="Loyalty Points per ₹1" value={draft.loyaltyPointsRate} onChange={(value) => setDraft({ ...draft, loyaltyPointsRate: value })} />
+            <Field label="Upcoming Saree Launch Date" wide>
+              <input
+                type="datetime-local"
+                className="input-field mt-1.5"
+                value={toDateTimeLocal(draft.upcomingSareeAnnouncementDate)}
+                onChange={(e) => setDraft({
+                  ...draft,
+                  upcomingSareeAnnouncementDate: e.target.value ? new Date(e.target.value).toISOString() : null,
+                })}
+              />
+              <span className="mt-1 block text-xs font-normal text-muted-foreground">Clear this field to hide the homepage launch section.</span>
+            </Field>
           </div>
 
           <div className="rounded-xl border border-green-200 bg-green-50/60 p-4">
@@ -227,6 +246,14 @@ export default function AdminSettingsPage() {
 
 function SettingRow({ label, value, capitalize = false }: { label: string; value: string; capitalize?: boolean }) {
   return <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{label}</dt><dd className={`font-medium text-right ${capitalize ? 'capitalize' : ''}`}>{value}</dd></div>;
+}
+
+function toDateTimeLocal(value?: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
 }
 
 function Field({ label, children, wide = false, capitalize = false }: { label: string; children: React.ReactNode; wide?: boolean; capitalize?: boolean }) {
