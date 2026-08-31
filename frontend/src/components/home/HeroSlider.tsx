@@ -147,7 +147,7 @@ export default function HeroSlider() {
             alt={slide.title}
             fill
             priority
-            className={slide.mobileImage ? 'hidden object-cover object-center sm:block' : 'object-cover object-center'}
+            className={slide.mobileImage ? 'hidden object-contain object-center sm:block' : 'object-contain object-center'}
             sizes="100vw"
           />
           {slide.mobileImage && (
@@ -156,7 +156,7 @@ export default function HeroSlider() {
               alt={slide.title}
               fill
               priority
-              className="object-cover object-center sm:hidden"
+              className="object-contain object-center sm:hidden"
               sizes="100vw"
             />
           )}

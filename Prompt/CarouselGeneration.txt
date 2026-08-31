@@ -1,0 +1,116 @@
+Create 2 separate, highly photorealistic website carousel images using the EXACT saree shown in my uploaded reference image(s).
+
+The uploaded image shows the actual saree being sold. Carefully study every provided reference before generating the carousel images.
+
+REQUIRED OUTPUTS
+
+Generate exactly two separate images of the same scene:
+
+1. DESKTOP CAROUSEL — 1920 × 900 pixels (approximately 2.13:1)
+2. MOBILE CAROUSEL — 1080 × 1350 pixels (4:5)
+
+Do NOT create a collage, split screen, contact sheet or image containing both formats. Export them as two individual images.
+
+RANDOM BACKGROUND SELECTION
+
+Randomly choose EXACTLY ONE of the following five background concepts for this generation. Do not always choose the first option. Use the same selected background concept, model, styling and lighting for both desktop and mobile outputs.
+
+1. BENGALI HERITAGE INTERIOR
+   A refined traditional Bengali mansion interior with subtle arches, warm lime-plaster walls, dark polished wood, restrained heritage details and soft daylight through tall windows.
+
+2. LUXURY NEUTRAL STUDIO
+   A premium editorial studio with warm beige and ivory tones, lightly textured walls, soft curved architectural forms, elegant shadows and minimal décor.
+
+3. FESTIVE PALACE COURTYARD
+   An elegant Indian palace courtyard with sandstone arches, tasteful marigold accents, muted festive lamps and warm golden-hour light. Keep decorations sophisticated and uncluttered.
+
+4. ARTISAN WEAVING SETTING
+   A beautiful handloom-inspired environment with subtle wooden loom elements, natural fibres, earthy plaster walls and soft window light. The setting must feel premium, authentic and tidy—not like a workshop documentary.
+
+5. BOTANICAL TERRACE
+   A sophisticated veranda or terrace with muted stone architecture, soft greenery, filtered natural light and a calm luxury-resort atmosphere. Keep plants behind the subject and visually restrained.
+
+PRODUCT ACCURACY — HIGHEST PRIORITY
+
+Preserve exactly:
+
+- Saree base colour
+- Colour combinations
+- Fabric appearance and texture
+- Weave
+- Motifs and prints
+- Embroidery
+- Zari work, if present
+- Border design, colour and width
+- Pallu design and colour
+- Blouse-piece colour and design, when visible in the references
+
+Never redesign, recolour or beautify the saree by inventing details.
+
+Do NOT add new motifs, patterns, borders, embroidery, zari or decorative elements.
+
+The result must accurately represent the product a customer will receive.
+
+MODEL AND STYLING
+
+Present the saree on one elegant, realistic Bengali/Indian female fashion model approximately 25–35 years old.
+
+She should have natural Indian facial features, realistic skin texture, natural professional makeup, an elegant hairstyle, minimal tasteful jewellery, natural body proportions and a warm, confident expression.
+
+Use the uploaded blouse-piece reference to construct the blouse when one is supplied. Drape the saree professionally in an elegant Bengali/Nivi-inspired style with natural folds, realistic fabric behaviour, correct pleats, clearly visible border and an accurate pallu.
+
+Avoid artificial skin, distorted anatomy, extra fingers, plastic-looking fabric or an overly retouched AI appearance.
+
+COMPOSITION FOR WEBSITE TEXT
+
+The website places the carousel heading, description and buttons over the LEFT side of the image. Therefore:
+
+- Keep the LEFT 40% of the desktop image visually calm and uncluttered
+- Place the model and the most important saree details mainly in the RIGHT 55% of the desktop image
+- Do not place the model's face, border, pallu or key product details under the left-side text-safe area
+- Use gentle tonal contrast on the left so white website text remains readable
+- Do NOT generate any text, buttons, logos, labels or badges inside the image
+- Keep all important content at least 8% away from every edge
+
+For the MOBILE image:
+
+- Recompose the same scene specifically for 1080 × 1350; do not merely crop the desktop image
+- Keep the model fully visible and slightly right of centre where practical
+- Preserve clear negative space in the upper-left and left-middle areas for website text
+- Keep the face and essential saree details away from the screen edges
+- Ensure the full composition looks intentional on a narrow phone screen
+
+CONSISTENCY BETWEEN BOTH OUTPUTS
+
+Both images must show:
+
+- The same model and face
+- The same saree and blouse
+- The same draping style
+- The same hairstyle, makeup and jewellery
+- The same randomly selected background
+- The same lighting and colour treatment
+- A matching pose or two naturally related poses from the same photoshoot
+
+PHOTOGRAPHY STYLE
+
+Use premium Indian ethnic-fashion campaign photography with soft professional lighting, natural shadows, realistic skin, sharp saree details, accurate fabric texture and high-end DSLR-style realism.
+
+The saree and model must remain the visual focus. The background should add atmosphere without competing with the product.
+
+No text. No logo. No watermark. No frame. No collage.
+
+FINAL PRIORITY ORDER
+
+When there is any conflict, follow this priority:
+
+1. Exact saree, border and pallu accuracy
+2. Exact colour and fabric accuracy
+3. Correct desktop and mobile dimensions
+4. Complete visibility of the model and important saree details
+5. Safe negative space for website text
+6. Same model and styling across both outputs
+7. Same randomly chosen background across both outputs
+8. Photorealism and background aesthetics
+
+Before generating the mobile version, use the successful desktop image and the uploaded saree reference as visual references so the model, saree and environment remain consistent. Generate the desktop and mobile carousel images as two separate files.
