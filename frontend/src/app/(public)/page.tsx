@@ -14,6 +14,7 @@ import {
   Truck,
   LogIn,
   CalendarDays,
+  Loader2,
 } from 'lucide-react';
 import HeroSlider from '@/components/home/HeroSlider';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
@@ -21,6 +22,8 @@ import { userService } from '@/services/user.service';
 import { settingService } from '@/services/setting.service';
 import type { StoreSettings } from '@/services/admin.service';
 import type { Review } from '@/types';
+import { newsletterService } from '@/services/newsletter.service';
+import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import {
   fetchNewArrivals,
@@ -30,6 +33,8 @@ export default function HomePage() {
   const dispatch = useAppDispatch();
   const [homepageReviews, setHomepageReviews] = useState<Review[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const { newArrivals, isLoading } = useAppSelector(
     (s) => s.products
   );
@@ -56,6 +61,24 @@ export default function HomePage() {
     && !Number.isNaN(announcementDate.getTime())
     && announcementDate.getTime() > Date.now()
   );
+
+  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = newsletterEmail.trim();
+    if (!email) return;
+
+    setIsSubscribing(true);
+    try {
+      const response = await newsletterService.subscribe(email);
+      toast.success(response.message);
+      setNewsletterEmail('');
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Could not subscribe. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <>
@@ -295,15 +318,20 @@ export default function HomePage() {
             </p>
             <form
               className="flex gap-3 max-w-md mx-auto"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleNewsletterSubmit}
             >
               <input
                 type="email"
+                name="email"
+                value={newsletterEmail}
+                onChange={(event) => setNewsletterEmail(event.target.value)}
+                required
+                autoComplete="email"
                 placeholder="Enter your email address"
                 className="flex-1 px-4 py-3 rounded-xl text-sm bg-white/15 border border-white/30 text-white placeholder:text-white/60 focus:outline-none focus:bg-white/20 transition-colors"
               />
-              <button type="submit" className="btn-white shrink-0">
-                Subscribe
+              <button type="submit" disabled={isSubscribing} className="btn-white shrink-0 disabled:cursor-not-allowed disabled:opacity-70">
+                {isSubscribing ? <><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Subscribing…</> : 'Subscribe'}
               </button>
             </form>
             <p className="text-white/60 text-xs mt-3">No spam. Unsubscribe anytime.</p>

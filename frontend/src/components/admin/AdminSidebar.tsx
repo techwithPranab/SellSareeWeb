@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ReceiptIndianRupee,
+  Mail,
 } from 'lucide-react';
 import { cn, asRoute } from '@/utils/helpers';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
   { href: '/admin/orders', label: 'Orders', icon: Package },
   { href: '/admin/customers', label: 'Customers', icon: Users },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: Mail },
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
   { href: '/admin/banners', label: 'Homepage Carousel', icon: Image },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },

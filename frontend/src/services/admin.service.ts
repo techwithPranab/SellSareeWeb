@@ -66,6 +66,15 @@ export interface AdminExpense {
   updatedAt: string;
 }
 
+export interface NewsletterSubscriber {
+  _id: string;
+  email: string;
+  isActive: boolean;
+  subscribedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ExpenseSummary {
   asOf: string;
   totalRevenue: number;
@@ -80,6 +89,11 @@ export interface ExpenseSummary {
 }
 
 export const adminService = {
+  async getNewsletterSubscribers(params?: { page?: number; limit?: number; search?: string }) {
+    const response = await api.get('/newsletter/admin/subscribers', { params });
+    return response.data as PaginatedResponse<NewsletterSubscriber>;
+  },
+
   async getExpenses(params?: { page?: number; limit?: number; category?: string; from?: string; to?: string }) {
     const response = await api.get('/expenses', { params });
     return response.data as PaginatedResponse<AdminExpense>;
