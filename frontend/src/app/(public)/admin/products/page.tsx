@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Search, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Eye, Copy, Loader2 } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminPagination from '@/components/admin/AdminPagination';
@@ -12,12 +12,15 @@ import { formatPrice, getProductDefaultImage, getProductEffectivePrice, isProduc
 import type { Product, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function AdminProductsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copyingProductId, setCopyingProductId] = useState<string | null>(null);
   const [search, setSearch] = useState(() => searchParams.get('search') ?? '');
   const [page, setPage] = useState(() => {
     const requestedPage = Number(searchParams.get('page'));
@@ -47,6 +50,20 @@ export default function AdminProductsPage() {
       loadProducts();
     } catch {
       toast.error('Failed to delete product');
+    }
+  };
+
+  const handleCopy = async (product: Product) => {
+    setCopyingProductId(product._id);
+    try {
+      const { product: copy } = await adminService.cloneProduct(product._id);
+      toast.success('Product copied. Update its details before publishing.');
+      router.push(asRoute(`/admin/products/${copy._id}/edit`));
+    } catch (error: unknown) {
+      const requestError = error as { response?: { data?: { message?: string } } };
+      toast.error(requestError.response?.data?.message || 'Failed to copy product');
+    } finally {
+      setCopyingProductId(null);
     }
   };
 
@@ -130,6 +147,18 @@ export default function AdminProductsPage() {
                         >
                           <Pencil className="w-4 h-4" />
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(product)}
+                          disabled={copyingProductId !== null}
+                          className="p-1.5 rounded-lg hover:bg-muted/50 text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Copy product"
+                          aria-label={`Copy ${product.name}`}
+                        >
+                          {copyingProductId === product._id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Copy className="w-4 h-4" />}
+                        </button>
                         <button onClick={() => handleDelete(product._id, product.name)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>

@@ -153,6 +153,11 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
   return ApiResponse.created(res, 'Product created successfully', { product });
 });
 
+export const cloneProduct = asyncHandler(async (req: Request, res: Response) => {
+  const product = await productService.cloneProduct(req.params.id);
+  return ApiResponse.created(res, 'Product copied successfully', { product });
+});
+
 export const updateProduct = asyncHandler(async (req: Request, res: Response) => {
   const imageFiles = (req.files as Express.Multer.File[]) || [];
   const product = await productService.updateProduct(req.params.id, normalizeProductNumbers(req.body), imageFiles);

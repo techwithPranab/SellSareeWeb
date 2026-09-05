@@ -14,6 +14,7 @@ import {
   deleteProductImage,
   getProductDashboardStats,
   getAllProductsForAdmin,
+  cloneProduct,
 } from '../controllers/product.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -36,6 +37,7 @@ router.get('/:productId/related/:categoryId', getRelatedProducts);
 router.use(authenticate, requireAdmin);
 router.get('/admin/stats', getProductDashboardStats);
 router.post('/', uploadMultiple, createProduct);
+router.post('/:id/clone', cloneProduct);
 router.put('/:id', uploadMultiple, updateProduct);
 router.delete('/:id', deleteProduct);
 router.delete('/:id/images/:publicId', deleteProductImage);

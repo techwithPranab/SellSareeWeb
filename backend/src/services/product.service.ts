@@ -68,6 +68,94 @@ export class ProductService {
     return product;
   }
 
+  async cloneProduct(id: string): Promise<IProduct> {
+    const source = await productRepository.findById(id);
+    if (!source) {
+      throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    const skuBase = `${source.sku}-COPY`;
+    let sku = skuBase;
+    let suffix = 2;
+    while (await productRepository.findBySku(sku)) {
+      sku = `${skuBase}-${suffix++}`;
+    }
+
+    const copiedImages: Array<{
+      url: string;
+      publicId: string;
+      alt?: string;
+      isDefault: boolean;
+      sortOrder: number;
+    }> = [];
+
+    try {
+      for (const [index, image] of source.images.entries()) {
+        const result = await cloudinary.uploader.upload(image.url, {
+          folder: getCloudinaryProductFolder(sku),
+          transformation: [
+            { quality: 'auto:best', fetch_format: 'auto' },
+            { width: 1200, height: 1200, crop: 'limit' },
+          ],
+        });
+        copiedImages.push({
+          url: result.secure_url,
+          publicId: result.public_id,
+          alt: image.alt || source.name,
+          isDefault: index === 0,
+          sortOrder: index,
+        });
+      }
+
+      const category = source.category && typeof source.category === 'object' && '_id' in source.category
+        ? source.category._id
+        : source.category;
+
+      return await productRepository.create({
+        name: `${source.name} (Copy)`,
+        description: source.description,
+        shortDescription: source.shortDescription,
+        sku,
+        category,
+        subCategory: source.subCategory,
+        tags: [...(source.tags || [])],
+        fabric: source.fabric,
+        occasion: [...(source.occasion || [])],
+        style: source.style,
+        color: source.color,
+        colorCode: source.colorCode,
+        pattern: source.pattern,
+        blouseLength: source.blouseLength,
+        sareeLength: source.sareeLength,
+        careInstructions: [...(source.careInstructions || [])],
+        price: source.price,
+        discountedPrice: source.discountedPrice,
+        salePrice: source.salePrice,
+        isSale: source.isSale,
+        stock: source.stock,
+        images: copiedImages,
+        video: source.video,
+        variants: source.variants,
+        dimensions: source.dimensions,
+        isActive: false,
+        isFeatured: false,
+        isNewArrival: false,
+        isBestSeller: false,
+        isBridal: source.isBridal,
+        launchDate: source.launchDate,
+        metaTitle: source.metaTitle,
+        metaDescription: source.metaDescription,
+        schemaMarkup: source.schemaMarkup,
+        relatedProducts: source.relatedProducts,
+      });
+    } catch (error) {
+      await Promise.all(copiedImages.map((image) =>
+        cloudinary.uploader.destroy(image.publicId).catch(console.error)
+      ));
+      throw error;
+    }
+  }
+
   async updateProduct(
     id: string,
     data: Partial<IProduct>,

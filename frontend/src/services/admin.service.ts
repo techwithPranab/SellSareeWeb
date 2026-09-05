@@ -153,6 +153,11 @@ export const adminService = {
     return response.data.data as { product: Product };
   },
 
+  async cloneProduct(id: string) {
+    const response = await api.post(`/products/${id}/clone`);
+    return response.data.data as { product: Product };
+  },
+
   async updateProduct(id: string, formData: FormData) {
     const response = await api.put(`/products/${id}`, formData);
     return response.data.data as { product: Product };
