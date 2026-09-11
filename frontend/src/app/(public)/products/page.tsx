@@ -40,7 +40,7 @@ export default function ProductsPage() {
       .finally(() => setCategoriesLoading(false));
   }, []);
 
-  // Sync URL params → dispatch on mount
+  // Fetch the selected page whenever URL parameters change.
   useEffect(() => {
     const params: Record<string, string> = {};
     searchParams.forEach((v, k) => { params[k] = v; });
@@ -65,6 +65,7 @@ export default function ProductsPage() {
   // Debounced search
   useEffect(() => {
     const current = new URLSearchParams(window.location.search);
+    if ((current.get('search') ?? '') === debouncedSearch) return;
     if (debouncedSearch) {
       current.set('search', debouncedSearch);
     } else {
@@ -79,7 +80,7 @@ export default function ProductsPage() {
       const current = new URLSearchParams(window.location.search);
       if (value) current.set(key, value);
       else current.delete(key);
-      current.set('page', '1');
+      if (key !== 'page') current.set('page', '1');
       router.push(`/products?${current.toString()}`, { scroll: false });
     },
     [router]
@@ -313,6 +314,10 @@ export default function ProductsPage() {
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
+                  type="button"
+                  aria-label={`Go to page ${i + 1}`}
+                  aria-current={currentPage === i + 1 ? 'page' : undefined}
+                  disabled={isLoading || currentPage === i + 1}
                   onClick={() => updateParam('page', String(i + 1))}
                   className={cn(
                     'w-9 h-9 rounded-lg text-sm font-medium transition-colors',
