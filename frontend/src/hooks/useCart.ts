@@ -14,6 +14,7 @@ import {
   selectCartItemCount,
   selectCartSummary,
   selectCoupon,
+  selectCoupons,
   selectLoyaltyPointsToRedeem,
 } from '@/features/cart/cartSlice';
 import { Product } from '@/types';
@@ -26,6 +27,7 @@ export const useCart = () => {
   const items = useAppSelector(selectCartItems);
   const itemCount = useAppSelector(selectCartItemCount);
   const summary = useAppSelector(selectCartSummary);
+  const coupons = useAppSelector(selectCoupons);
   const coupon = useAppSelector(selectCoupon);
   const loyaltyPointsToRedeem = useAppSelector(selectLoyaltyPointsToRedeem);
 
@@ -78,9 +80,14 @@ export const useCart = () => {
 
   const applyCouponCode = useCallback(
     async (code: string) => {
+      code = code.trim().toUpperCase();
+      if (coupons.some((coupon) => coupon.code === code)) {
+        toast.error('This coupon is already applied');
+        return { success: false };
+      }
       try {
         const result = await userService.validateCoupon(code, summary.subtotal);
-        dispatch(applyCoupon({ code, discount: result.coupon.discountAmount }));
+        dispatch(applyCoupon({ ...result.coupon, code, discount: result.coupon.discountAmount }));
         toast.success(`Coupon "${code}" applied! You saved ₹${result.coupon.discountAmount}`);
         return { success: true, discount: result.coupon.discountAmount };
       } catch (error: unknown) {
@@ -90,11 +97,11 @@ export const useCart = () => {
         return { success: false, error: message };
       }
     },
-    [dispatch, summary.subtotal]
+    [dispatch, summary.subtotal, coupons]
   );
 
-  const removeCouponCode = useCallback(() => {
-    dispatch(removeCoupon());
+  const removeCouponCode = useCallback((code?: string) => {
+    dispatch(removeCoupon(code));
     toast.success('Coupon removed');
   }, [dispatch]);
 
@@ -124,6 +131,7 @@ export const useCart = () => {
     itemCount,
     summary,
     coupon,
+    coupons,
     loyaltyPointsToRedeem,
     addItem,
     removeItem,

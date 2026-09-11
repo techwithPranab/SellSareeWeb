@@ -209,6 +209,10 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
     if (typeof value !== 'string') return value;
     try { return JSON.parse(value); } catch { return undefined; }
   };
+  const couponCodes = req.body.couponCodes === undefined ? [] : parseJsonField(req.body.couponCodes);
+  if (!Array.isArray(couponCodes) || couponCodes.some((code) => typeof code !== 'string' || !code.trim())) {
+    return ApiResponse.badRequest(res, 'Coupon codes must be a list of non-empty strings');
+  }
   const customerId = req.body.customerId;
   const customer = parseJsonField(req.body.customer) as Record<string, unknown> | undefined;
   const items = parseJsonField(req.body.items) as Array<{ productId: string; quantity: number }>;
@@ -289,6 +293,7 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
       items,
       shippingAddress: shippingAddress as unknown as Parameters<typeof orderService.createOrder>[1]['shippingAddress'],
       paymentMethod,
+      couponCodes,
       notes: [notes, `WhatsApp order entered by admin ${req.user!.email}`].filter(Boolean).join(' — '),
     });
   } catch (error) {

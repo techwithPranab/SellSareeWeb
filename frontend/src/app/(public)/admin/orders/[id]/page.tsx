@@ -156,7 +156,7 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  const handlePrintLabel = () => {
+  const handlePrintDocument = (isInvoice = false) => {
     if (!order) return;
     if (!storeSettings) {
       toast.error('Store settings are still loading. Please try printing again.');
@@ -165,11 +165,29 @@ export default function AdminOrderDetailPage() {
 
     const labelWindow = window.open('', '_blank', 'width=850,height=1100');
     if (!labelWindow) {
-      toast.error('Please allow pop-ups to print the dispatch label');
+      toast.error(`Please allow pop-ups to print the ${isInvoice ? 'invoice' : 'dispatch label'}`);
       return;
     }
     labelWindow.opener = null;
 
+    const documentTitle = isInvoice ? 'Invoice' : 'Dispatch Label';
+    const couponCodes = order.couponCodes?.length ? order.couponCodes.join(', ') : order.couponCode;
+    const couponDiscount = order.couponDiscount || 0;
+    const totalDiscount = Math.max(order.discount || 0, couponDiscount);
+    const otherDiscount = Math.max(0, totalDiscount - couponDiscount);
+    const amount = (value: number) => escapeHtml(formatPrice(value));
+    const invoiceSummary = isInvoice ? `
+      <section class="invoice-summary">
+        <div><span>Subtotal</span><span>${amount(order.subtotal)}</span></div>
+        <div><span>Shipping</span><span>${amount(order.shippingCharge)}</span></div>
+        ${order.taxAmount > 0 ? `<div><span>Tax</span><span>${amount(order.taxAmount)}</span></div>` : ''}
+        ${couponCodes || couponDiscount > 0 ? `<div><span>Coupon discount${couponCodes ? `<br><small>Applied codes: ${escapeHtml(couponCodes)}</small>` : ''}</span><span>−${amount(couponDiscount)}</span></div>` : ''}
+        ${otherDiscount > 0 ? `<div><span>${order.loyaltyPointsRedeemed > 0 ? `Loyalty discount (${order.loyaltyPointsRedeemed} points)` : 'Other discount'}</span><span>−${amount(otherDiscount)}</span></div>` : ''}
+        ${totalDiscount > 0 ? `<div class="discount-total"><strong>Total discounts</strong><strong>−${amount(totalDiscount)}</strong></div>` : ''}
+        <div class="grand-total"><strong>Order total</strong><strong>${amount(order.totalAmount)}</strong></div>
+        <p class="muted">Payment: ${escapeHtml(formatPaymentMethod(order.paymentInfo.method))} · ${escapeHtml(order.paymentInfo.status)}</p>
+      </section>
+    ` : '';
     const address = order.shippingAddress;
     const senderAddress = escapeHtml(storeSettings.storeAddress || 'Sender address not configured')
       .replace(/\r?\n/g, '<br>');
@@ -180,6 +198,7 @@ export default function AdminOrderDetailPage() {
         <td>${escapeHtml(item.name)}${item.color ? `<br><small>Colour: ${escapeHtml(item.color)}</small>` : ''}</td>
         <td>${escapeHtml(item.sku)}</td>
         <td class="center">${item.quantity}</td>
+        ${isInvoice ? `<td class="money">${amount(item.price)}</td><td class="money">${amount(item.subtotal)}</td>` : ''}
       </tr>
     `).join('');
 
@@ -187,7 +206,7 @@ export default function AdminOrderDetailPage() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Dispatch Label - ${escapeHtml(order.orderNumber)}</title>
+          <title>${documentTitle} - ${escapeHtml(order.orderNumber)}</title>
           <style>
             * { box-sizing: border-box; }
             html, body { width: 210mm; min-height: 99mm; }
@@ -212,11 +231,20 @@ export default function AdminOrderDetailPage() {
             .feedback-qr { flex: 0 0 auto; text-align: center; }
             .qr-code { width: 30mm; height: 30mm; object-fit: contain; border: 1px solid #bbb; padding: 1mm; }
             .qr-caption { margin-top: 1mm; max-width: 34mm; font-size: 9px; font-weight: 700; line-height: 1.2; }
-            @page { size: 210mm 99mm; margin: 4mm; }
+            .money { text-align: right; white-space: nowrap; }
+            .invoice-summary { margin: 4mm 3mm 4mm auto; width: 100mm; font-size: 11px; }
+            .invoice-summary > div { display: flex; justify-content: space-between; gap: 4mm; padding: 1.5mm 0; }
+            .invoice-summary > div > span:last-child { white-space: nowrap; }
+            .invoice-summary small { display: block; overflow-wrap: anywhere; font-size: 9px; }
+            .discount-total { border-top: 1px solid #bbb; }
+            .grand-total { border-top: 1.5px solid #111; font-size: 14px; }
+            thead { display: table-header-group; }
+            tr, .invoice-summary { break-inside: avoid; }
+            @page { size: ${isInvoice ? 'A4' : '210mm 99mm'}; margin: 4mm; }
             @media print {
               html, body { width: 202mm; min-height: auto; }
               body { padding: 0; }
-              .label { width: 202mm; break-inside: avoid; }
+              .label { width: 202mm; break-inside: ${isInvoice ? 'auto' : 'avoid'}; }
             }
           </style>
         </head>
@@ -228,7 +256,7 @@ export default function AdminOrderDetailPage() {
                 <div class="muted">${senderAddress}${storeSettings.supportEmail ? `<br>${escapeHtml(storeSettings.supportEmail)}` : ''}${storeSettings.supportPhone ? ` · ${escapeHtml(storeSettings.supportPhone)}` : ''}<br>Website: ${escapeHtml(APP_URL)}</div>
               </div>
               <div class="cell">
-                <div class="title">Order</div>
+                <div class="title">${isInvoice ? 'Invoice / Order' : 'Order'}</div>
                 <strong>#${escapeHtml(order.orderNumber)}</strong><br>
                 <span class="muted">Placed: ${escapeHtml(formatDate(order.createdAt))}<br>Packages: 1 · Items: ${itemCount}</span>
               </div>
@@ -254,10 +282,11 @@ export default function AdminOrderDetailPage() {
               </div>
             ` : ''}
             <table>
-              <thead><tr><th>Item</th><th>SKU</th><th class="center">Qty</th></tr></thead>
+              <thead><tr><th>Item</th><th>SKU</th><th class="center">Qty</th>${isInvoice ? '<th class="money">Unit price</th><th class="money">Amount</th>' : ''}</tr></thead>
               <tbody>${itemRows}</tbody>
             </table>
-            ${order.notes ? `<div class="footer"><strong>Dispatch note:</strong> ${escapeHtml(order.notes)}</div>` : ''}
+            ${invoiceSummary}
+            ${!isInvoice && order.notes ? `<div class="footer"><strong>Dispatch note:</strong> ${escapeHtml(order.notes)}</div>` : ''}
           </main>
         </body>
       </html>`);
@@ -293,12 +322,20 @@ export default function AdminOrderDetailPage() {
         title={`Order #${order.orderNumber}`}
         backHref="/admin/orders"
         description={`Placed on ${formatDate(order.createdAt)}`}
-        action={LABEL_STATUSES.includes(order.status) ? (
-          <button onClick={handlePrintLabel} className="btn-primary btn-sm inline-flex items-center gap-2">
-            <Printer className="w-4 h-4" />
-            Print / Download Label
-          </button>
-        ) : undefined}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => handlePrintDocument(true)} className="btn-outline btn-sm inline-flex items-center gap-2">
+              <Printer className="w-4 h-4" />
+              Print Invoice
+            </button>
+            {LABEL_STATUSES.includes(order.status) && (
+              <button onClick={() => handlePrintDocument()} className="btn-primary btn-sm inline-flex items-center gap-2">
+                <Printer className="w-4 h-4" />
+                Print / Download Label
+              </button>
+            )}
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

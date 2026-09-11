@@ -4,6 +4,7 @@ import { calculateCartSummary, getProductEffectivePrice } from '@/utils/helpers'
 
 const initialState: CartState = {
   items: [],
+  coupons: [],
   couponCode: null,
   couponDiscount: 0,
   loyaltyPointsToRedeem: 0,
@@ -72,6 +73,7 @@ const cartSlice = createSlice({
 
     clearCart: (state) => {
       state.items = [];
+      state.coupons = [];
       state.couponCode = null;
       state.couponDiscount = 0;
       state.loyaltyPointsToRedeem = 0;
@@ -79,15 +81,19 @@ const cartSlice = createSlice({
 
     applyCoupon: (
       state,
-      action: PayloadAction<{ code: string; discount: number }>
+      action: PayloadAction<{ code: string; discount: number; type?: string; discountValue?: number; maxDiscount?: number }>
     ) => {
-      state.couponCode = action.payload.code;
-      state.couponDiscount = action.payload.discount;
+      state.coupons ??= state.couponCode ? [{ code: state.couponCode, discount: state.couponDiscount }] : [];
+      if (!state.coupons.some((coupon) => coupon.code === action.payload.code)) state.coupons.push(action.payload);
+      state.couponCode = state.coupons[0]?.code ?? null;
+      state.couponDiscount = state.coupons.reduce((sum, coupon) => sum + coupon.discount, 0);
     },
 
-    removeCoupon: (state) => {
-      state.couponCode = null;
-      state.couponDiscount = 0;
+    removeCoupon: (state, action: PayloadAction<string | undefined>) => {
+      state.coupons = (state.coupons ?? (state.couponCode ? [{ code: state.couponCode, discount: state.couponDiscount }] : []))
+        .filter((coupon) => action.payload && coupon.code !== action.payload);
+      state.couponCode = state.coupons[0]?.code ?? null;
+      state.couponDiscount = state.coupons.reduce((sum, coupon) => sum + coupon.discount, 0);
     },
 
     setLoyaltyPoints: (state, action: PayloadAction<number>) => {
@@ -115,15 +121,24 @@ export const {
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectCartItemCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);
-export const selectCartSummary = (state: { cart: CartState }) =>
-  calculateCartSummary(
-    state.cart.items,
-    state.cart.couponDiscount,
-    state.cart.loyaltyPointsToRedeem
-  );
+export const selectCoupons = (state: { cart: CartState }) => state.cart.coupons ??
+  (state.cart.couponCode ? [{ code: state.cart.couponCode, discount: state.cart.couponDiscount }] : []);
+export const selectCartSummary = (state: { cart: CartState }) => {
+  const base = calculateCartSummary(state.cart.items);
+  const coupons = selectCoupons(state);
+  const merchandiseDiscount = Math.min(base.subtotal, coupons.reduce((sum, coupon) => {
+    if (coupon.type === 'free_shipping') return sum;
+    let amount = coupon.type === 'percentage' ? base.subtotal * (coupon.discountValue ?? 0) / 100
+      : coupon.type === 'fixed' ? (coupon.discountValue ?? 0) : coupon.discount;
+    if (coupon.type === 'percentage' && coupon.maxDiscount) amount = Math.min(amount, coupon.maxDiscount);
+    return sum + amount;
+  }, 0));
+  const discount = merchandiseDiscount + (coupons.some((coupon) => coupon.type === 'free_shipping') ? base.shippingCharge : 0);
+  return calculateCartSummary(state.cart.items, discount, state.cart.loyaltyPointsToRedeem);
+};
 export const selectCoupon = (state: { cart: CartState }) => ({
-  code: state.cart.couponCode,
-  discount: state.cart.couponDiscount,
+  code: selectCoupons(state).map((coupon) => coupon.code).join(', ') || null,
+  discount: selectCartSummary(state).couponDiscount,
 });
 export const selectLoyaltyPointsToRedeem = (state: { cart: CartState }) =>
   state.cart.loyaltyPointsToRedeem;

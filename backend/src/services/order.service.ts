@@ -32,6 +32,7 @@ export interface CreateOrderData {
   };
   paymentMethod: PaymentMethod;
   couponCode?: string;
+  couponCodes?: string[];
   loyaltyPointsToRedeem?: number;
   notes?: string;
 }
@@ -100,11 +101,16 @@ export class OrderService {
 
     // Apply coupon
     let couponDiscount = 0;
-    let couponCodeUsed: string | undefined;
-
-    if (couponCode) {
+    const requestedCodes = data.couponCodes ?? (couponCode ? [couponCode] : []);
+    if (!Array.isArray(requestedCodes) || requestedCodes.some((code) => typeof code !== 'string' || !code.trim())) {
+      throw new CustomError('Coupon codes must be a list of non-empty strings', HTTP_STATUS.BAD_REQUEST);
+    }
+    const couponCodesUsed = [...new Set(requestedCodes.map((code) => code.trim().toUpperCase()))];
+    let merchandiseDiscount = 0;
+    let freeShipping = false;
+    for (const code of couponCodesUsed) {
       const coupon = await Coupon.findOne({
-        code: couponCode.toUpperCase(),
+        code,
         isActive: true,
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
@@ -130,27 +136,24 @@ export class OrderService {
         throw new CustomError('You have already used this coupon', HTTP_STATUS.BAD_REQUEST);
       }
 
+      let individualDiscount = 0;
       // Calculate discount
       const { CouponType } = await import('../constants');
       if (coupon.type === CouponType.PERCENTAGE) {
-        couponDiscount = (subtotal * coupon.discountValue) / 100;
+        individualDiscount = (subtotal * coupon.discountValue) / 100;
         if (coupon.maxDiscount) {
-          couponDiscount = Math.min(couponDiscount, coupon.maxDiscount);
+          individualDiscount = Math.min(individualDiscount, coupon.maxDiscount);
         }
       } else if (coupon.type === CouponType.FIXED) {
-        couponDiscount = Math.min(coupon.discountValue, subtotal);
+        individualDiscount = Math.min(coupon.discountValue, subtotal);
       } else if (coupon.type === CouponType.FREE_SHIPPING) {
-        couponDiscount = shippingCharge;
+        individualDiscount = shippingCharge;
       }
 
-      couponCodeUsed = coupon.code;
-
-      // Update coupon usage
-      await Coupon.findByIdAndUpdate(coupon._id, {
-        $inc: { usedCount: 1 },
-        $push: { usedBy: userId },
-      });
+      if (coupon.type === CouponType.FREE_SHIPPING) freeShipping = true;
+      else merchandiseDiscount += individualDiscount;
     }
+    couponDiscount = Math.min(subtotal, merchandiseDiscount) + (freeShipping ? shippingCharge : 0);
 
     // Apply loyalty points
     let loyaltyDiscount = 0;
@@ -194,7 +197,12 @@ export class OrderService {
     // reserve the final unit.
     const reservedItems: Array<{ productId: string; quantity: number }> = [];
     let order: IOrder;
+    const couponsReserved: string[] = [];
     try {
+      for (const code of couponCodesUsed) {
+        await Coupon.findOneAndUpdate({ code }, { $inc: { usedCount: 1 }, $push: { usedBy: userId } });
+        couponsReserved.push(code);
+      }
       for (const item of items) {
         const reserved = await productRepository.reserveStock(item.productId, item.quantity);
         if (!reserved) {
@@ -217,10 +225,11 @@ export class OrderService {
         },
         status: OrderStatus.PENDING,
         subtotal,
-        shippingCharge: shippingCharge - (couponCode && couponDiscount === shippingCharge ? shippingCharge : 0),
+        shippingCharge,
         taxAmount,
         discount: totalDiscount,
-        couponCode: couponCodeUsed,
+        couponCode: couponCodesUsed.join(", ") || undefined,
+        couponCodes: couponCodesUsed,
         couponDiscount,
         totalAmount,
         loyaltyPointsEarned,
@@ -236,9 +245,9 @@ export class OrderService {
       if (loyaltyPointsRedeemed > 0) {
         await userRepository.updateLoyaltyPoints(userId, loyaltyPointsRedeemed);
       }
-      if (couponCodeUsed) {
+      for (const code of couponsReserved) {
         await Coupon.findOneAndUpdate(
-          { code: couponCodeUsed },
+          { code },
           { $inc: { usedCount: -1 }, $pull: { usedBy: userId } }
         );
       }

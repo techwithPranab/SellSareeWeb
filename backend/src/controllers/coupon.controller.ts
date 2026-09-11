@@ -8,6 +8,7 @@ export const getAllCoupons = asyncHandler(async (req: Request, res: Response) =>
   const skip = (Number(page) - 1) * Number(limit);
   const filter: Record<string, unknown> = {};
   if (isActive !== undefined) filter.isActive = isActive === 'true';
+  if (typeof req.query.code === 'string') filter.code = req.query.code.trim().toUpperCase();
 
   const [coupons, total] = await Promise.all([
     Coupon.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
@@ -97,6 +98,7 @@ export const validateCoupon = asyncHandler(async (req: Request, res: Response) =
       code: coupon.code,
       type: coupon.type,
       discountValue: coupon.discountValue,
+      maxDiscount: coupon.maxDiscount,
       discountAmount,
       description: coupon.description,
     },

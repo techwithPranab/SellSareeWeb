@@ -6,7 +6,8 @@ import { FileImage, Loader2, Minus, Plus, Search, ShoppingBag, Trash2, UserPlus 
 import toast from 'react-hot-toast';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { adminService } from '@/services/admin.service';
+import { adminService, type AdminCoupon, type StoreSettings } from '@/services/admin.service';
+import { settingService } from '@/services/setting.service';
 import { INDIAN_STATES, SHIPPING } from '@/constants';
 import { asRoute, formatPrice, getProductEffectivePrice } from '@/utils/helpers';
 import type { Product, User } from '@/types';
@@ -41,9 +42,14 @@ export default function CreateWhatsAppOrderPage() {
   const paymentMethod = 'upi' as const;
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupons, setCoupons] = useState<AdminCoupon[]>([]);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [notes, setNotes] = useState('Order received through WhatsApp');
 
   useEffect(() => {
+    settingService.getStoreSettings().then(({ settings }) => setSettings(settings)).catch(() => toast.error('Could not load shipping rates; totals are estimated'));
     Promise.all([
       adminService.getProducts({ page: 1, limit: 100 }),
       adminService.getCustomers({ page: 1, limit: 100, role: 'customer', isActive: true }),
@@ -73,8 +79,52 @@ export default function CreateWhatsAppOrderPage() {
     const price = item.product ? getProductEffectivePrice(item.product) : 0;
     return total + price * item.quantity;
   }, 0);
-  const shippingCharge = subtotal >= SHIPPING.FREE_THRESHOLD ? 0 : SHIPPING.STANDARD_RATE;
-  const estimatedTotal = subtotal + shippingCharge;
+  const shippingCharge = subtotal >= (settings?.freeShippingThreshold ?? SHIPPING.FREE_THRESHOLD)
+    ? 0 : (settings?.standardShippingRate ?? SHIPPING.STANDARD_RATE);
+  const eligibleCoupons = coupons.filter((coupon) => subtotal >= coupon.minOrderAmount);
+  const merchandiseDiscount = Math.min(subtotal, eligibleCoupons.reduce((total, coupon) => {
+    if (coupon.type === 'fixed') return total + coupon.discountValue;
+    if (coupon.type === 'percentage') {
+      const amount = subtotal * coupon.discountValue / 100;
+      return total + (coupon.maxDiscount ? Math.min(amount, coupon.maxDiscount) : amount);
+    }
+    return total;
+  }, 0));
+  const couponDiscount = merchandiseDiscount + (eligibleCoupons.some((coupon) => coupon.type === 'free_shipping') ? shippingCharge : 0);
+  const estimatedTotal = Math.max(0, subtotal + shippingCharge - couponDiscount);
+
+  const addCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code || applyingCoupon || saving) return;
+    if (coupons.some((coupon) => coupon.code === code)) {
+      toast.error('This coupon is already added');
+      return;
+    }
+    setApplyingCoupon(true);
+    try {
+      const response = await adminService.getCoupons({ code, isActive: true, limit: 1 });
+      const coupon = response.data?.[0];
+      if (!coupon || new Date(coupon.startDate).getTime() > Date.now() || new Date(coupon.endDate).getTime() < Date.now()) {
+        toast.error('Invalid or expired coupon code');
+        return;
+      }
+      if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
+        toast.error('Coupon usage limit has been reached');
+        return;
+      }
+      if (subtotal < coupon.minOrderAmount) {
+        toast.error(`Minimum order amount for this coupon is ${formatPrice(coupon.minOrderAmount)}`);
+        return;
+      }
+      setCoupons((current) => current.some((entry) => entry.code === code) ? current : [...current, coupon]);
+      setCouponInput('');
+      toast.success(`Coupon "${code}" added`);
+    } catch {
+      toast.error('Could not check coupon. Please try again.');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   const selectCustomer = (id: string) => {
     setCustomerId(id);
@@ -112,6 +162,11 @@ export default function CreateWhatsAppOrderPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (saving || applyingCoupon) return;
+    if (coupons.some((coupon) => subtotal < coupon.minOrderAmount)) {
+      toast.error('Remove coupons whose minimum order amount is no longer met');
+      return;
+    }
 
     if (customerMode === 'existing' && !customerId) {
       toast.error('Select a customer');
@@ -141,6 +196,7 @@ export default function CreateWhatsAppOrderPage() {
         ...(customerMode === 'existing' ? { customerId } : { customer: newCustomer }),
         items,
         shippingAddress: address,
+        couponCodes: coupons.map((coupon) => coupon.code),
         paymentMethod,
         notes,
         transactionId: transactionId.trim() || undefined,
@@ -252,10 +308,33 @@ export default function CreateWhatsAppOrderPage() {
 
         <aside className="h-fit rounded-2xl border border-border bg-white p-6 xl:sticky xl:top-6">
           <h2 className="font-semibold">Order summary</h2>
+          <div className="mt-4 space-y-2">
+            <label htmlFor="admin-order-coupon" className="label">Coupon codes</label>
+            <div className="flex gap-2">
+              <input id="admin-order-coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void addCoupon(); } }}
+                disabled={saving || applyingCoupon} placeholder="Enter coupon code" className="input-field min-w-0 flex-1" />
+              <button type="button" onClick={addCoupon} disabled={saving || applyingCoupon || !couponInput.trim() || !items.length} className="btn-outline btn-sm">
+                {applyingCoupon ? 'Checking…' : 'Add'}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">Add multiple codes, one at a time. Customer usage limits are checked when creating the order.</p>
+            {coupons.map((coupon) => (
+              <div key={coupon.code} className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-green-700">{coupon.code}</span>
+                  <button type="button" disabled={saving || applyingCoupon} onClick={() => setCoupons((current) => current.filter((entry) => entry.code !== coupon.code))}
+                    aria-label={`Remove coupon ${coupon.code}`} className="text-xs text-red-500 hover:underline">Remove</button>
+                </div>
+                {subtotal < coupon.minOrderAmount && <p role="alert" className="mt-1 text-xs text-red-600">Requires a subtotal of {formatPrice(coupon.minOrderAmount)}. Add products or remove this coupon.</p>}
+              </div>
+            ))}
+          </div>
           <div className="mt-4 space-y-2 border-b border-border pb-4 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCharge ? formatPrice(shippingCharge) : 'FREE'}</span></div>
           </div>
+          {couponDiscount > 0 && <div className="mt-3 flex justify-between text-sm text-green-700"><span>Coupon discount</span><span>−{formatPrice(couponDiscount)}</span></div>}
           <div className="flex justify-between py-4 font-bold"><span>Estimated total</span><span className="text-primary">{formatPrice(estimatedTotal)}</span></div>
           <div className="space-y-4 border-t border-border pt-4">
             <div><label className="label">Payment method</label><div className="input-field bg-surface text-sm">UPI / manually collected</div></div>
@@ -280,7 +359,7 @@ export default function CreateWhatsAppOrderPage() {
                 </div>
             </div>
             <div><label className="label">Internal notes</label><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} className="input-field resize-none" /></div>
-            <button type="submit" disabled={saving} className="btn-primary w-full gap-2">{saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : <><UserPlus className="h-4 w-4" /> Create customer order</>}</button>
+            <button type="submit" disabled={saving || applyingCoupon} className="btn-primary w-full gap-2">{saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating…</> : <><UserPlus className="h-4 w-4" /> Create customer order</>}</button>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Final totals and stock are validated by the server when the order is created.</p>
         </aside>

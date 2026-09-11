@@ -233,6 +233,7 @@ export const adminService = {
       country: string;
     };
     paymentMethod: 'upi';
+    couponCodes?: string[];
     notes?: string;
     transactionId?: string;
     paymentScreenshot?: File;
@@ -241,6 +242,7 @@ export const adminService = {
     if (data.customerId) formData.append('customerId', data.customerId);
     if (data.customer) formData.append('customer', JSON.stringify(data.customer));
     formData.append('items', JSON.stringify(data.items));
+    if (data.couponCodes) formData.append('couponCodes', JSON.stringify(data.couponCodes));
     formData.append('shippingAddress', JSON.stringify(data.shippingAddress));
     formData.append('paymentMethod', data.paymentMethod);
     if (data.notes) formData.append('notes', data.notes);
@@ -274,7 +276,7 @@ export const adminService = {
   },
 
   // ── Coupons ────────────────────────────────────────────────────────────────
-  async getCoupons(params?: { page?: number; limit?: number; isActive?: boolean }) {
+  async getCoupons(params?: { page?: number; limit?: number; isActive?: boolean; code?: string }) {
     const response = await api.get('/users/admin/coupons', { params });
     return response.data as PaginatedResponse<AdminCoupon>;
   },

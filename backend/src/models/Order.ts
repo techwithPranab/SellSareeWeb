@@ -92,6 +92,7 @@ const OrderSchema = new Schema<IOrder>(
     taxAmount: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     couponCode: { type: String, uppercase: true },
+    couponCodes: [{ type: String, uppercase: true }],
     couponDiscount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
     notes: { type: String },

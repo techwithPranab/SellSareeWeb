@@ -31,11 +31,15 @@ export default function CheckoutPage() {
   const {
     items,
     summary,
-    coupon,
+    coupons,
+    applyCouponCode,
+    removeCouponCode,
     loyaltyPointsToRedeem,
     emptyCart,
   } = useCart();
   const defaultAddress = user?.addresses?.find((a) => a.isDefault) ?? user?.addresses?.[0];
+  const [couponInput, setCouponInput] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [isPlacing, setIsPlacing] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
   const [transactionId, setTransactionId] = useState('');
@@ -176,7 +180,7 @@ export default function CheckoutPage() {
       })),
       shippingAddress: data.shippingAddress,
       paymentMethod: data.paymentMethod,
-      couponCode: coupon.code ?? undefined,
+      couponCodes: coupons.map((coupon) => coupon.code),
       loyaltyPointsToRedeem: loyaltyPointsToRedeem || undefined,
       notes: data.notes,
     };
@@ -429,7 +433,7 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={openUpiApp}
-                        disabled={isOpeningUpi || isPlacing || !storeSettings?.upiId}
+                        disabled={isOpeningUpi || isPlacing || applyingCoupon || !storeSettings?.upiId}
                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isOpeningUpi ? <Loader2 className="h-5 w-5 animate-spin" /> : <Smartphone className="h-5 w-5" />}
@@ -491,6 +495,33 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl border border-border p-6 sticky top-24 space-y-4">
             <h2 className="font-semibold text-lg text-foreground">Order Summary</h2>
+            {!pendingOrder && (
+              <div className="space-y-2">
+                <label htmlFor="checkout-coupon" className="text-sm font-medium">Coupon codes</label>
+                <p className="text-xs text-muted-foreground">Add one code at a time to apply multiple coupons.</p>
+                <div className="flex gap-2">
+                  <input id="checkout-coupon" className="input-field min-w-0 flex-1" value={couponInput}
+                    disabled={isPlacing || applyingCoupon} placeholder="Enter coupon code"
+                    onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+                    onKeyDown={(event) => { if (event.key === 'Enter') event.preventDefault(); }} />
+                  <button type="button" className="btn-outline btn-sm" disabled={isPlacing || applyingCoupon || !couponInput.trim()}
+                    onClick={async () => {
+                      setApplyingCoupon(true);
+                      try {
+                        const result = await applyCouponCode(couponInput);
+                        if (result.success) setCouponInput('');
+                      } finally { setApplyingCoupon(false); }
+                    }}>{applyingCoupon ? 'Applying…' : 'Apply'}</button>
+                </div>
+                {coupons.map((coupon) => (
+                  <div key={coupon.code} className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2 text-sm">
+                    <span className="font-semibold text-green-700">{coupon.code}</span>
+                    <button type="button" disabled={isPlacing || applyingCoupon} className="text-red-500 hover:underline"
+                      aria-label={`Remove coupon ${coupon.code}`} onClick={() => removeCouponCode(coupon.code)}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {pendingOrder
@@ -533,7 +564,7 @@ export default function CheckoutPage() {
 
             <button
               type="submit"
-              disabled={isPlacing}
+              disabled={isPlacing || applyingCoupon}
               className="btn-primary w-full flex items-center justify-center gap-2"
             >
               {isPlacing ? (

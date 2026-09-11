@@ -212,6 +212,7 @@ export interface CartItem {
 
 export interface CartState {
   items: CartItem[];
+  coupons?: Array<{ code: string; discount: number; type?: string; discountValue?: number; maxDiscount?: number }>;
   couponCode: string | null;
   couponDiscount: number;
   loyaltyPointsToRedeem: number;
@@ -292,6 +293,7 @@ export interface Order {
   taxAmount: number;
   discount: number;
   couponCode?: string;
+  couponCodes?: string[];
   couponDiscount: number;
   totalAmount: number;
   notes?: string;
@@ -437,6 +439,7 @@ export interface CheckoutFormData {
   };
   paymentMethod: PaymentMethod;
   couponCode?: string;
+  couponCodes?: string[];
   loyaltyPointsToRedeem?: number;
   notes?: string;
 }

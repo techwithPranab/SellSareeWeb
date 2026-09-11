@@ -15,6 +15,7 @@ export interface CreateOrderData {
   };
   paymentMethod: string;
   couponCode?: string;
+  couponCodes?: string[];
   loyaltyPointsToRedeem?: number;
   notes?: string;
 }
