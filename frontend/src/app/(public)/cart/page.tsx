@@ -13,7 +13,7 @@ export default function CartPage() {
   const {
     items,
     summary,
-    coupon,
+    coupons,
     loyaltyPointsToRedeem,
     removeItem,
     updateItemQuantity,
@@ -39,10 +39,14 @@ export default function CartPage() {
   }, [loyaltyPointsToRedeem, maxRedeemablePoints, redeemLoyaltyPoints]);
 
   const handleApplyCoupon = async () => {
-    if (!couponInput.trim()) return;
+    if (applyingCoupon || !couponInput.trim()) return;
     setApplyingCoupon(true);
-    await applyCouponCode(couponInput.trim().toUpperCase());
-    setApplyingCoupon(false);
+    try {
+      const result = await applyCouponCode(couponInput);
+      if (result.success) setCouponInput('');
+    } finally {
+      setApplyingCoupon(false);
+    }
   };
 
   if (items.length === 0) {
@@ -147,38 +151,43 @@ export default function CartPage() {
 
             {/* Coupon */}
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+              <label htmlFor="cart-coupon" className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
                 <Tag className="w-4 h-4 text-primary" />
                 Coupon Code
               </label>
-              {coupon.code ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              {coupons.map((coupon) => (
+                <div key={coupon.code} className="mb-2 flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                   <span className="text-sm font-semibold text-green-700">{coupon.code}</span>
                   <button
-                    onClick={() => removeCouponCode()}
+                    onClick={() => removeCouponCode(coupon.code)}
+                    aria-label={`Remove coupon ${coupon.code}`}
                     className="text-xs text-red-500 hover:underline"
                   >
                     Remove
                   </button>
                 </div>
-              ) : (
-                <div className="flex gap-2">
+              ))}
+                <form className="flex gap-2" onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleApplyCoupon();
+                }}>
                   <input
+                    id="cart-coupon"
                     type="text"
+                    disabled={applyingCoupon}
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    placeholder="e.g. WELCOME100"
-                    className="input-field py-2 text-sm flex-1"
+                    placeholder={coupons.length ? 'Add another coupon' : 'e.g. WELCOME100'}
+                    className="input-field py-2 text-sm min-w-0 flex-1"
                   />
                   <button
-                    onClick={handleApplyCoupon}
+                    type="submit"
                     disabled={applyingCoupon || !couponInput.trim()}
                     className="btn-outline btn-sm shrink-0"
                   >
-                    Apply
+                    {applyingCoupon ? 'Applying...' : 'Apply'}
                   </button>
-                </div>
-              )}
+                </form>
             </div>
 
             {/* Loyalty points */}
