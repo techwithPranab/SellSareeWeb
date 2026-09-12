@@ -1,3 +1,5 @@
+import Order from '../models/Order';
+import { OrderStatus } from '../constants';
 import { Request, Response } from 'express';
 import StoreSetting from '../models/StoreSetting';
 import { ApiResponse } from '../utils/apiResponse';
@@ -78,4 +80,21 @@ export const updateStoreSettings = asyncHandler(async (req: Request, res: Respon
     { new: true, upsert: true, runValidators: true }
   );
   return ApiResponse.success(res, 'Store settings updated', { settings });
+});
+
+export const getStoreStats = asyncHandler(async (_req: Request, res: Response) => {
+  const [totals] = await Order.aggregate([
+    { $match: { status: OrderStatus.DELIVERED } },
+    { $unwind: '$items' },
+    { $group: { _id: '$user', sareesSold: { $sum: '$items.quantity' } } },
+    { $group: {
+      _id: null,
+      sareesSold: { $sum: '$sareesSold' },
+      customersServed: { $sum: { $cond: [{ $ne: ['$_id', null] }, 1, 0] } },
+    } },
+  ]);
+  res.set('Cache-Control', 'public, max-age=60');
+  return ApiResponse.success(res, 'Store statistics retrieved', {
+    stats: { sareesSold: totals?.sareesSold ?? 0, customersServed: totals?.customersServed ?? 0 },
+  });
 });

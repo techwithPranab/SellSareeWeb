@@ -16,6 +16,7 @@ import {
   CalendarDays,
   Loader2,
 } from 'lucide-react';
+import StoreStats from '@/components/home/StoreStats';
 import HeroSlider from '@/components/home/HeroSlider';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import { userService } from '@/services/user.service';
@@ -84,6 +85,7 @@ export default function HomePage() {
     <>
       {/* Hero Slider */}
       <HeroSlider />
+      <StoreStats />
 
       {showUpcomingAnnouncement && announcementDate && (
         <section className="border-b border-amber-200 bg-amber-50" aria-labelledby="upcoming-saree-launch-title">
