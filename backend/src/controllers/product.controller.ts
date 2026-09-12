@@ -59,6 +59,7 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
   }
 
   const filter = {
+    inStockOnly: true,
     ...(activeCategoryId && { category: activeCategoryId }),
     ...(minPrice && { minPrice: Number(minPrice) }),
     ...(maxPrice && { maxPrice: Number(maxPrice) }),
@@ -109,7 +110,7 @@ export const searchProducts = asyncHandler(async (req: Request, res: Response) =
   }
 
   const options = { page: Number(page) || 1, limit: Number(limit) || 12 };
-  const { data, meta } = await productService.searchProducts(q as string, filterParams, options);
+  const { data, meta } = await productService.searchProducts(q as string, { ...filterParams, inStockOnly: true }, options);
   return ApiResponse.paginated(res, 'Search results', data, meta);
 });
 

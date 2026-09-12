@@ -18,6 +18,7 @@ export interface ProductFilter {
   tags?: string[];
   isActive?: boolean;
   includeInactive?: boolean;
+  inStockOnly?: boolean;
 }
 
 export class ProductRepository {
@@ -28,7 +29,11 @@ export class ProductRepository {
   async findBySlug(slug: string): Promise<IProduct | null> {
     return Product.findOne({ slug, isActive: true })
       .populate('category', 'name slug')
-      .populate('relatedProducts', 'name slug price discountedPrice salePrice isSale images averageRating');
+      .populate({
+        path: 'relatedProducts',
+        match: { isActive: true, stock: { $gt: 0 } },
+        select: 'name slug price discountedPrice salePrice isSale images averageRating',
+      });
   }
 
   async findBySku(sku: string): Promise<IProduct | null> {
@@ -93,34 +98,35 @@ export class ProductRepository {
   }
 
   async findFeatured(limit = 8): Promise<IProduct[]> {
-    return Product.find({ isFeatured: true, isActive: true })
+    return Product.find({ isFeatured: true, isActive: true, stock: { $gt: 0 } })
       .populate('category', 'name slug')
       .sort({ createdAt: -1 })
       .limit(limit);
   }
 
   async findNewArrivals(limit = 12): Promise<IProduct[]> {
-    return Product.find({ isNewArrival: true, isActive: true })
+    return Product.find({ isNewArrival: true, isActive: true, stock: { $gt: 0 } })
       .populate('category', 'name slug')
       .sort({ createdAt: -1 })
       .limit(limit);
   }
 
   async findBestSellers(limit = 12): Promise<IProduct[]> {
-    return Product.find({ isBestSeller: true, isActive: true })
+    return Product.find({ isBestSeller: true, isActive: true, stock: { $gt: 0 } })
       .populate('category', 'name slug')
       .sort({ soldCount: -1 })
       .limit(limit);
   }
 
   async findByCategory(categoryId: string, options: PaginationOptions = {}) {
-    return this.findAll({ category: categoryId, isActive: true }, options);
+    return this.findAll({ category: categoryId, isActive: true, inStockOnly: true }, options);
   }
 
   async findRelatedProducts(productId: string, categoryId: string, limit = 6): Promise<IProduct[]> {
     return Product.find({
       category: categoryId,
       _id: { $ne: productId },
+      stock: { $gt: 0 },
       isActive: true,
     })
       .sort({ averageRating: -1, soldCount: -1 })
@@ -167,6 +173,8 @@ export class ProductRepository {
 
     if (filter.isActive !== undefined) query.isActive = filter.isActive;
     else if (!filter.includeInactive) query.isActive = true;
+
+    if (filter.inStockOnly) query.stock = { $gt: 0 };
 
     if (filter.search?.trim()) {
       const escapedSearch = filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
