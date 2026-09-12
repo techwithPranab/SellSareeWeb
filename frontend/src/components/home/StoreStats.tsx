@@ -22,7 +22,7 @@ export default function StoreStats() {
       <div className="container-custom text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">The PP’s Aura family</p>
         <h2 id="store-stats-title" className="mt-2 font-playfair text-2xl font-bold text-foreground md:text-3xl">
-          A part of your saree stories
+          Our Journey, Woven Together
         </h2>
         <dl className="mx-auto mt-8 grid max-w-2xl grid-cols-2 divide-x divide-border">
           {[
