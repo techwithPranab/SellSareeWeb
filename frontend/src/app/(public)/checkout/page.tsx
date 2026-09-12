@@ -513,8 +513,8 @@ export default function CheckoutPage() {
                       } finally { setApplyingCoupon(false); }
                     }}>{applyingCoupon ? 'Applying…' : 'Apply'}</button>
                 </div>
-                {coupons.map((coupon) => (
-                  <div key={coupon.code} className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2 text-sm">
+                {coupons.map((coupon, index) => (
+                  <div key={`${coupon.code}-${index}`} className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2 text-sm">
                     <span className="font-semibold text-green-700">{coupon.code}</span>
                     <button type="button" disabled={isPlacing || applyingCoupon} className="text-red-500 hover:underline"
                       aria-label={`Remove coupon ${coupon.code}`} onClick={() => removeCouponCode(coupon.code)}>Remove</button>

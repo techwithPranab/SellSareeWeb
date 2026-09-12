@@ -105,7 +105,7 @@ export class OrderService {
     if (!Array.isArray(requestedCodes) || requestedCodes.some((code) => typeof code !== 'string' || !code.trim())) {
       throw new CustomError('Coupon codes must be a list of non-empty strings', HTTP_STATUS.BAD_REQUEST);
     }
-    const couponCodesUsed = [...new Set(requestedCodes.map((code) => code.trim().toUpperCase()))];
+    const couponCodesUsed = requestedCodes.map((code) => code.trim().toUpperCase());
     let merchandiseDiscount = 0;
     let freeShipping = false;
     for (const code of couponCodesUsed) {
@@ -199,7 +199,8 @@ export class OrderService {
     let order: IOrder;
     const couponsReserved: string[] = [];
     try {
-      for (const code of couponCodesUsed) {
+      // Usage limits count orders; repeated applications share one reservation.
+      for (const code of new Set(couponCodesUsed)) {
         await Coupon.findOneAndUpdate({ code }, { $inc: { usedCount: 1 }, $push: { usedBy: userId } });
         couponsReserved.push(code);
       }

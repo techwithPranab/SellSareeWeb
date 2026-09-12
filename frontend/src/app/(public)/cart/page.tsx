@@ -155,8 +155,8 @@ export default function CartPage() {
                 <Tag className="w-4 h-4 text-primary" />
                 Coupon Code
               </label>
-              {coupons.map((coupon) => (
-                <div key={coupon.code} className="mb-2 flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              {coupons.map((coupon, index) => (
+                <div key={`${coupon.code}-${index}`} className="mb-2 flex items-center justify-between gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                   <span className="text-sm font-semibold text-green-700">{coupon.code}</span>
                   <button
                     onClick={() => removeCouponCode(coupon.code)}

@@ -81,10 +81,6 @@ export const useCart = () => {
   const applyCouponCode = useCallback(
     async (code: string) => {
       code = code.trim().toUpperCase();
-      if (coupons.some((coupon) => coupon.code === code)) {
-        toast.error('This coupon is already applied');
-        return { success: false };
-      }
       try {
         const result = await userService.validateCoupon(code, summary.subtotal);
         dispatch(applyCoupon({ ...result.coupon, code, discount: result.coupon.discountAmount }));
@@ -97,7 +93,7 @@ export const useCart = () => {
         return { success: false, error: message };
       }
     },
-    [dispatch, summary.subtotal, coupons]
+    [dispatch, summary.subtotal]
   );
 
   const removeCouponCode = useCallback((code?: string) => {

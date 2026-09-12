@@ -84,14 +84,19 @@ const cartSlice = createSlice({
       action: PayloadAction<{ code: string; discount: number; type?: string; discountValue?: number; maxDiscount?: number }>
     ) => {
       state.coupons ??= state.couponCode ? [{ code: state.couponCode, discount: state.couponDiscount }] : [];
-      if (!state.coupons.some((coupon) => coupon.code === action.payload.code)) state.coupons.push(action.payload);
+      state.coupons.push(action.payload);
       state.couponCode = state.coupons[0]?.code ?? null;
       state.couponDiscount = state.coupons.reduce((sum, coupon) => sum + coupon.discount, 0);
     },
 
     removeCoupon: (state, action: PayloadAction<string | undefined>) => {
-      state.coupons = (state.coupons ?? (state.couponCode ? [{ code: state.couponCode, discount: state.couponDiscount }] : []))
-        .filter((coupon) => action.payload && coupon.code !== action.payload);
+      state.coupons ??= state.couponCode ? [{ code: state.couponCode, discount: state.couponDiscount }] : [];
+      if (action.payload === undefined) {
+        state.coupons = [];
+      } else {
+        const index = state.coupons.findIndex((coupon) => coupon.code === action.payload);
+        if (index >= 0) state.coupons.splice(index, 1);
+      }
       state.couponCode = state.coupons[0]?.code ?? null;
       state.couponDiscount = state.coupons.reduce((sum, coupon) => sum + coupon.discount, 0);
     },

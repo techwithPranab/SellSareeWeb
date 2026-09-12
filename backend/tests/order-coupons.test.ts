@@ -22,11 +22,11 @@ beforeEach(() => {
     discountValue: code === 'PERCENT' ? 10 : 300, minOrderAmount: 0, usageLimit: 0, usedBy: [], userUsageLimit: 1,
   }));
 });
-it('stacks fixed and percentage discounts, normalizes and deduplicates codes', async () => {
+it('stacks repeated codes, normalizes them and counts usage once per order', async () => {
   const order = await new OrderService().createOrder('user', data([' fixed ', 'PERCENT', 'FIXED']));
-  expect(order.couponCodes).toEqual(['FIXED', 'PERCENT']);
-  expect(order.couponDiscount).toBe(350);
-  expect(order.totalAmount).toBe(200);
+  expect(order.couponCodes).toEqual(['FIXED', 'PERCENT', 'FIXED']);
+  expect(order.couponDiscount).toBe(500);
+  expect(order.totalAmount).toBe(50);
   expect(Coupon.findOneAndUpdate).toHaveBeenCalledTimes(2);
 });
 it('caps merchandise discounts and applies free shipping only once', async () => {
@@ -38,4 +38,12 @@ it('caps merchandise discounts and applies free shipping only once', async () =>
 it('does not consume earlier coupons when another coupon is invalid', async () => {
   await expect(new OrderService().createOrder('user', data(['FIXED', 'INVALID']))).rejects.toThrow('Invalid or expired');
   expect(Coupon.findOneAndUpdate).not.toHaveBeenCalled();
+});
+
+it('adds the discount for every application of the same percentage coupon', async () => {
+  const order = await new OrderService().createOrder('user', data(['PERCENT', 'percent']));
+  expect(order.couponCodes).toEqual(['PERCENT', 'PERCENT']);
+  expect(order.couponDiscount).toBe(100);
+  expect(order.totalAmount).toBe(450);
+  expect(Coupon.findOneAndUpdate).toHaveBeenCalledTimes(1);
 });
