@@ -195,6 +195,107 @@ export const getExpenseSummary = asyncHandler(async (_req: Request, res: Respons
   });
 });
 
+const pnlValues = (revenue: number, categories: Record<string, number>) => {
+  const costOfGoodsSold = categories.Inventory || 0;
+  const depreciationAndAmortization = categories['Depreciation & Amortization'] || 0;
+  const interest = categories.Interest || 0;
+  const taxes = categories.Taxes || 0;
+  const excluded = new Set(['Inventory', 'Interest', 'Taxes', 'Depreciation & Amortization']);
+  const operatingExpenses = Object.entries(categories).reduce(
+    (sum, [category, amount]) => sum + (excluded.has(category) ? 0 : amount),
+    0
+  );
+  const grossProfit = revenue - costOfGoodsSold;
+  const ebitda = grossProfit - operatingExpenses;
+  const ebit = ebitda - depreciationAndAmortization;
+  const profitBeforeTax = ebit - interest;
+  const netProfit = profitBeforeTax - taxes;
+  return {
+    revenue,
+    costOfGoodsSold,
+    grossProfit,
+    operatingExpenses,
+    ebitda,
+    depreciationAndAmortization,
+    ebit,
+    interest,
+    profitBeforeTax,
+    taxes,
+    netProfit,
+    grossMargin: revenue ? (grossProfit / revenue) * 100 : 0,
+    ebitdaMargin: revenue ? (ebitda / revenue) * 100 : 0,
+    netMargin: revenue ? (netProfit / revenue) * 100 : 0,
+  };
+};
+
+export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Response) => {
+  const indiaYear = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric' });
+  const from = parseDate(req.query.from) || new Date(`${indiaYear}-01-01T00:00:00+05:30`);
+  const to = parseDate(req.query.to, true) || endOfIndiaDay();
+  if (from > to) return ApiResponse.badRequest(res, 'From date must be before the to date');
+
+  const periodMs = to.getTime() - from.getTime() + 1;
+  const previousTo = new Date(from.getTime() - 1);
+  const previousFrom = new Date(previousTo.getTime() - periodMs + 1);
+
+  const revenuePipeline = (start: Date, end: Date) => [
+    {
+      $match: {
+        'paymentInfo.status': PaymentStatus.COMPLETED,
+        $expr: {
+          $and: [
+            { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, start] },
+            { $lte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, end] },
+          ],
+        },
+      },
+    },
+    { $group: { _id: null, amount: { $sum: '$totalAmount' }, orders: { $sum: 1 } } },
+  ];
+  const expensePipeline = (start: Date, end: Date) => [
+    { $match: { transactionType: { $ne: 'investment' }, expenseDate: { $gte: start, $lte: end } } },
+    { $group: { _id: '$category', amount: { $sum: '$amount' }, count: { $sum: 1 } } },
+    { $sort: { amount: -1 as const } },
+  ];
+
+  const [revenue, expenses, previousRevenue, previousExpenses, revenueByMonth, expensesByMonth] = await Promise.all([
+    Order.aggregate(revenuePipeline(from, to)),
+    Expense.aggregate(expensePipeline(from, to)),
+    Order.aggregate(revenuePipeline(previousFrom, previousTo)),
+    Expense.aggregate(expensePipeline(previousFrom, previousTo)),
+    Order.aggregate([
+      ...revenuePipeline(from, to).slice(0, 1),
+      { $group: { _id: { $dateToString: { format: '%Y-%m', date: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, timezone: 'Asia/Kolkata' } }, revenue: { $sum: '$totalAmount' } } },
+      { $sort: { _id: 1 } },
+    ]),
+    Expense.aggregate([
+      { $match: { transactionType: { $ne: 'investment' }, expenseDate: { $gte: from, $lte: to } } },
+      { $group: { _id: { month: { $dateToString: { format: '%Y-%m', date: '$expenseDate', timezone: 'Asia/Kolkata' } }, category: '$category' }, amount: { $sum: '$amount' } } },
+      { $sort: { '_id.month': 1 } },
+    ]),
+  ]);
+
+  const categoryMap = (rows: Array<{ _id: string; amount: number }>) => Object.fromEntries(rows.map((row) => [row._id, row.amount]));
+  const current = pnlValues(revenue[0]?.amount || 0, categoryMap(expenses));
+  const previous = pnlValues(previousRevenue[0]?.amount || 0, categoryMap(previousExpenses));
+  const months = new Map<string, { month: string; revenue: number; categories: Record<string, number> }>();
+  revenueByMonth.forEach((row: { _id: string; revenue: number }) => months.set(row._id, { month: row._id, revenue: row.revenue, categories: {} }));
+  expensesByMonth.forEach((row: { _id: { month: string; category: string }; amount: number }) => {
+    const entry = months.get(row._id.month) || { month: row._id.month, revenue: 0, categories: {} };
+    entry.categories[row._id.category] = row.amount;
+    months.set(row._id.month, entry);
+  });
+  const trend = [...months.values()].sort((a, b) => a.month.localeCompare(b.month)).map((entry) => ({ month: entry.month, ...pnlValues(entry.revenue, entry.categories) }));
+
+  return ApiResponse.success(res, 'Profit and loss analytics retrieved', {
+    period: { from, to, previousFrom, previousTo },
+    current: { ...current, orderCount: revenue[0]?.orders || 0 },
+    previous: { ...previous, orderCount: previousRevenue[0]?.orders || 0 },
+    trend,
+    expensesByCategory: expenses,
+  });
+});
+
 export const createExpense = asyncHandler(async (req: Request, res: Response) => {
   const payload = expensePayload(req.body);
   const error = validatePayload(payload);

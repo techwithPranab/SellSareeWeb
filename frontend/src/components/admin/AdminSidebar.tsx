@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ReceiptIndianRupee,
+  TrendingUp,
   Mail,
 } from 'lucide-react';
 import { cn, asRoute } from '@/utils/helpers';
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: '/admin/banners', label: 'Homepage Carousel', icon: Image },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/expenses', label: 'Expense Tracker', icon: ReceiptIndianRupee },
+  { href: '/admin/profit-loss', label: 'Profit & Loss', icon: TrendingUp },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];

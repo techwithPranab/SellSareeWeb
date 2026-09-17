@@ -89,6 +89,32 @@ export interface ExpenseSummary {
   byCategory: Array<{ _id: string; amount: number; count: number }>;
 }
 
+export interface ProfitLossMetrics {
+  revenue: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  operatingExpenses: number;
+  ebitda: number;
+  depreciationAndAmortization: number;
+  ebit: number;
+  interest: number;
+  profitBeforeTax: number;
+  taxes: number;
+  netProfit: number;
+  grossMargin: number;
+  ebitdaMargin: number;
+  netMargin: number;
+  orderCount?: number;
+}
+
+export interface ProfitLossReport {
+  period: { from: string; to: string; previousFrom: string; previousTo: string };
+  current: ProfitLossMetrics;
+  previous: ProfitLossMetrics;
+  trend: Array<ProfitLossMetrics & { month: string }>;
+  expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
+}
+
 export const adminService = {
   async getNewsletterSubscribers(params?: { page?: number; limit?: number; search?: string }) {
     const response = await api.get('/newsletter/admin/subscribers', { params });
@@ -103,6 +129,11 @@ export const adminService = {
   async getExpenseSummary() {
     const response = await api.get('/expenses/summary');
     return response.data.data as { summary: ExpenseSummary };
+  },
+
+  async getProfitLoss(params?: { from?: string; to?: string }) {
+    const response = await api.get('/expenses/profit-loss', { params });
+    return response.data.data as ProfitLossReport;
   },
 
   async exportExpenses(params?: { category?: string; from?: string; to?: string; settlement?: 'settled' | 'pending' }) {

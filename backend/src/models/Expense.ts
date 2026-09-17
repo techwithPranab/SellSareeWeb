@@ -10,6 +10,9 @@ export const EXPENSE_CATEGORIES = [
   'Utilities',
   'Professional Fees',
   'Travel',
+  'Interest',
+  'Taxes',
+  'Depreciation & Amortization',
   'Other',
 ] as const;
 export const INVESTMENT_CATEGORIES = ['Bank Deposit', 'Owner Investment', 'Other Investment'] as const;

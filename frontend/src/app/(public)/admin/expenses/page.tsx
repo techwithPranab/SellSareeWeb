@@ -13,7 +13,8 @@ import type { PaginationMeta } from '@/types';
 
 const CATEGORIES = [
   'Inventory', 'Packaging', 'Shipping', 'Marketing', 'Website & Technology',
-  'Office', 'Utilities', 'Professional Fees', 'Travel', 'Other',
+  'Office', 'Utilities', 'Professional Fees', 'Travel', 'Interest', 'Taxes',
+  'Depreciation & Amortization', 'Other',
 ];
 const PAYMENT_METHODS = ['Cash', 'UPI', 'Bank Transfer', 'Card', 'Other'] as const;
 const INVESTMENT_CATEGORIES = ['Bank Deposit', 'Owner Investment', 'Other Investment'];
