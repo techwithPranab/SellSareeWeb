@@ -29,6 +29,8 @@ const ExpenseSchema = new Schema(
     },
     reference: { type: String, trim: true, maxlength: 150 },
     notes: { type: String, trim: true, maxlength: 1000 },
+    // Expenses without an explicit status (including legacy records) need settlement.
+    isSettled: { type: Boolean, default: false, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }

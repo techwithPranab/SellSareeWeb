@@ -1,7 +1,7 @@
 'use client';
 
 import React, { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Building2, CalendarDays, Download, IndianRupee, Pencil, Plus, ReceiptIndianRupee, Trash2, WalletCards } from 'lucide-react';
+import { Building2, CalendarDays, CheckCircle2, CircleAlert, Download, IndianRupee, Pencil, Plus, ReceiptIndianRupee, Trash2, WalletCards } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminModal from '@/components/admin/AdminModal';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
@@ -34,6 +34,7 @@ const EMPTY_EXPENSE: ExpenseDraft = {
   paymentMethod: 'UPI',
   reference: '',
   notes: '',
+  isSettled: true,
 };
 
 export default function AdminExpensesPage() {
@@ -44,18 +45,20 @@ export default function AdminExpensesPage() {
   const [category, setCategory] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [settlement, setSettlement] = useState<'settled' | 'pending' | ''>('');
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<AdminExpense | null>(null);
   const [draft, setDraft] = useState<ExpenseDraft>(EMPTY_EXPENSE);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [updatingSettlementId, setUpdatingSettlementId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [expenseResponse, summaryResponse] = await Promise.all([
-        adminService.getExpenses({ page, limit: 20, category: category || undefined, from: from || undefined, to: to || undefined }),
+        adminService.getExpenses({ page, limit: 20, category: category || undefined, from: from || undefined, to: to || undefined, settlement: settlement || undefined }),
         adminService.getExpenseSummary(),
       ]);
       setExpenses(expenseResponse.data ?? []);
@@ -66,7 +69,7 @@ export default function AdminExpensesPage() {
     } finally {
       setLoading(false);
     }
-  }, [category, from, page, to]);
+  }, [category, from, page, settlement, to]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -78,6 +81,7 @@ export default function AdminExpensesPage() {
       expenseDate: indiaDate(),
       category: transactionType === 'investment' ? 'Bank Deposit' : 'Inventory',
       paymentMethod: transactionType === 'investment' ? 'Bank Transfer' : 'UPI',
+      isSettled: true,
     });
     setModalOpen(true);
   };
@@ -94,6 +98,7 @@ export default function AdminExpensesPage() {
       paymentMethod: expense.paymentMethod,
       reference: expense.reference || '',
       notes: expense.notes || '',
+      isSettled: expense.isSettled === true,
     });
     setModalOpen(true);
   };
@@ -130,10 +135,25 @@ export default function AdminExpensesPage() {
     }
   };
 
+  const toggleSettlement = async (expense: AdminExpense) => {
+    const nextStatus = expense.isSettled !== true;
+    setUpdatingSettlementId(expense._id);
+    try {
+      const { expense: updated } = await adminService.updateExpenseSettlement(expense._id, nextStatus);
+      if (settlement) await loadData();
+      else setExpenses((current) => current.map((item) => item._id === updated._id ? updated : item));
+      toast.success(nextStatus ? 'Expense marked as settled' : 'Expense marked as needing settlement');
+    } catch {
+      toast.error('Could not update settlement status');
+    } finally {
+      setUpdatingSettlementId(null);
+    }
+  };
+
   const exportLedger = async () => {
     setExporting(true);
     try {
-      const blob = await adminService.exportExpenses({ category: category || undefined, from: from || undefined, to: to || undefined });
+      const blob = await adminService.exportExpenses({ category: category || undefined, from: from || undefined, to: to || undefined, settlement: settlement || undefined });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -191,8 +211,9 @@ export default function AdminExpensesPage() {
       )}
 
       <div className="mb-6 rounded-2xl border border-border bg-white p-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div><label className="label">Category</label><select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} className="input-field"><option value="">All categories</option>{[...CATEGORIES, ...INVESTMENT_CATEGORIES].map((item) => <option key={item}>{item}</option>)}</select></div>
+          <div><label className="label">Settlement</label><select value={settlement} onChange={(event) => { setSettlement(event.target.value as typeof settlement); setPage(1); }} className="input-field"><option value="">All statuses</option><option value="pending">Needs settlement</option><option value="settled">Settled</option></select></div>
           <div><label className="label">From date</label><input type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(1); }} className="input-field" /></div>
           <div><label className="label">To date</label><input type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(1); }} className="input-field" /></div>
         </div>
@@ -203,9 +224,9 @@ export default function AdminExpensesPage() {
           <div className="p-12 text-center text-sm text-muted-foreground"><ReceiptIndianRupee className="mx-auto mb-3 h-8 w-8" />No expenses found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
-              <thead className="bg-surface text-left text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="px-5 py-3">Date</th><th className="px-5 py-3">Category</th><th className="px-5 py-3">Description</th><th className="px-5 py-3">Vendor</th><th className="px-5 py-3">Payment</th><th className="px-5 py-3 text-right">Amount</th><th className="px-5 py-3 text-right">Actions</th></tr></thead>
-              <tbody className="divide-y divide-border">{expenses.map((expense) => <tr key={expense._id} className="hover:bg-surface/40"><td className="px-5 py-4 whitespace-nowrap">{formatDate(expense.expenseDate)}</td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${expense.transactionType === 'investment' ? 'bg-green-100 text-green-700' : 'bg-primary/10 text-primary'}`}>{expense.category}</span></td><td className="max-w-[260px] px-5 py-4"><p className="font-medium text-foreground">{expense.description}</p>{expense.reference && <p className="truncate text-xs text-muted-foreground">Ref: {expense.reference}</p>}</td><td className="px-5 py-4 text-muted-foreground">{expense.vendor || '—'}</td><td className="px-5 py-4">{expense.paymentMethod}</td><td className={`px-5 py-4 text-right font-semibold ${expense.transactionType === 'investment' ? 'text-green-600' : 'text-red-600'}`}>{expense.transactionType === 'investment' ? '+' : '−'}{formatPrice(expense.amount)}</td><td className="px-5 py-4"><div className="flex justify-end gap-1"><button onClick={() => openEdit(expense)} className="rounded-lg p-2 text-blue-600 hover:bg-blue-50" aria-label="Edit transaction"><Pencil className="h-4 w-4" /></button><button onClick={() => removeExpense(expense)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label="Delete transaction"><Trash2 className="h-4 w-4" /></button></div></td></tr>)}</tbody>
+            <table className="w-full min-w-[980px] text-sm">
+              <thead className="bg-surface text-left text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="px-5 py-3">Date</th><th className="px-5 py-3">Category</th><th className="px-5 py-3">Description</th><th className="px-5 py-3">Vendor</th><th className="px-5 py-3">Payment</th><th className="px-5 py-3">Settlement</th><th className="px-5 py-3 text-right">Amount</th><th className="px-5 py-3 text-right">Actions</th></tr></thead>
+              <tbody className="divide-y divide-border">{expenses.map((expense) => { const isSettled = expense.isSettled === true; return <tr key={expense._id} className="hover:bg-surface/40"><td className="px-5 py-4 whitespace-nowrap">{formatDate(expense.expenseDate)}</td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${expense.transactionType === 'investment' ? 'bg-green-100 text-green-700' : 'bg-primary/10 text-primary'}`}>{expense.category}</span></td><td className="max-w-[260px] px-5 py-4"><p className="font-medium text-foreground">{expense.description}</p>{expense.reference && <p className="truncate text-xs text-muted-foreground">Ref: {expense.reference}</p>}</td><td className="px-5 py-4 text-muted-foreground">{expense.vendor || '—'}</td><td className="px-5 py-4">{expense.paymentMethod}</td><td className="px-5 py-4">{expense.transactionType === 'investment' ? <span className="text-xs text-muted-foreground">Not applicable</span> : <button type="button" onClick={() => toggleSettlement(expense)} disabled={updatingSettlementId === expense._id} className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-opacity disabled:opacity-50 ${isSettled ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`} aria-label={`${isSettled ? 'Unmark' : 'Mark'} ${expense.description} as settled`}>{isSettled ? <CheckCircle2 className="h-3.5 w-3.5" /> : <CircleAlert className="h-3.5 w-3.5" />}{isSettled ? 'Settled' : 'Needs settlement'}</button>}</td><td className={`px-5 py-4 text-right font-semibold ${expense.transactionType === 'investment' ? 'text-green-600' : 'text-red-600'}`}>{expense.transactionType === 'investment' ? '+' : '−'}{formatPrice(expense.amount)}</td><td className="px-5 py-4"><div className="flex justify-end gap-1"><button onClick={() => openEdit(expense)} className="rounded-lg p-2 text-blue-600 hover:bg-blue-50" aria-label="Edit transaction"><Pencil className="h-4 w-4" /></button><button onClick={() => removeExpense(expense)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label="Delete transaction"><Trash2 className="h-4 w-4" /></button></div></td></tr>; })}</tbody>
             </table>
           </div>
         )}
@@ -222,6 +243,7 @@ export default function AdminExpensesPage() {
             <div className="sm:col-span-2"><Field label="Description"><input required maxLength={250} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} className="input-field" placeholder="What was this expense for?" /></Field></div>
             <Field label="Vendor / Payee"><input maxLength={120} value={draft.vendor} onChange={(e) => setDraft({ ...draft, vendor: e.target.value })} className="input-field" /></Field>
             <Field label="Transaction reference"><input maxLength={150} value={draft.reference} onChange={(e) => setDraft({ ...draft, reference: e.target.value })} className="input-field" /></Field>
+            {draft.transactionType === 'expense' && <div className="sm:col-span-2"><label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-3"><input type="checkbox" checked={draft.isSettled} onChange={(e) => setDraft({ ...draft, isSettled: e.target.checked })} className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary" /><span><span className="block text-sm font-medium text-foreground">This expense is settled</span><span className="mt-0.5 block text-xs text-muted-foreground">Turn this off when the expense was paid from another account and still needs to be reimbursed.</span></span></label></div>}
             <div className="sm:col-span-2"><Field label="Notes"><textarea rows={3} maxLength={1000} value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} className="input-field resize-none" /></Field></div>
           </div>
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end"><button type="button" onClick={() => setModalOpen(false)} disabled={saving} className="btn-outline btn-sm">Cancel</button><button type="submit" disabled={saving} className="btn-primary btn-sm">{saving ? 'Saving…' : editing ? 'Update Transaction' : draft.transactionType === 'investment' ? 'Record Deposit' : 'Record Expense'}</button></div>

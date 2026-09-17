@@ -62,6 +62,7 @@ export interface AdminExpense {
   paymentMethod: 'Cash' | 'UPI' | 'Bank Transfer' | 'Card' | 'Other';
   reference?: string;
   notes?: string;
+  isSettled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,7 +95,7 @@ export const adminService = {
     return response.data as PaginatedResponse<NewsletterSubscriber>;
   },
 
-  async getExpenses(params?: { page?: number; limit?: number; category?: string; from?: string; to?: string }) {
+  async getExpenses(params?: { page?: number; limit?: number; category?: string; from?: string; to?: string; settlement?: 'settled' | 'pending' }) {
     const response = await api.get('/expenses', { params });
     return response.data as PaginatedResponse<AdminExpense>;
   },
@@ -104,7 +105,7 @@ export const adminService = {
     return response.data.data as { summary: ExpenseSummary };
   },
 
-  async exportExpenses(params?: { category?: string; from?: string; to?: string }) {
+  async exportExpenses(params?: { category?: string; from?: string; to?: string; settlement?: 'settled' | 'pending' }) {
     const response = await api.get('/expenses/export', { params, responseType: 'blob' });
     return response.data as Blob;
   },
@@ -116,6 +117,11 @@ export const adminService = {
 
   async updateExpense(id: string, data: Omit<AdminExpense, '_id' | 'createdAt' | 'updatedAt'>) {
     const response = await api.put(`/expenses/${id}`, data);
+    return response.data.data as { expense: AdminExpense };
+  },
+
+  async updateExpenseSettlement(id: string, isSettled: boolean) {
+    const response = await api.patch(`/expenses/${id}/settlement`, { isSettled });
     return response.data.data as { expense: AdminExpense };
   },
 

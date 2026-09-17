@@ -35,6 +35,7 @@ const expensePayload = (body: Record<string, unknown>) => ({
   paymentMethod: String(body.paymentMethod || 'UPI'),
   reference: String(body.reference || '').trim(),
   notes: String(body.notes || '').trim(),
+  isSettled: body.transactionType === 'investment' ? true : body.isSettled === true,
 });
 
 const validatePayload = (payload: ReturnType<typeof expensePayload>): string | null => {
@@ -51,6 +52,13 @@ export const getExpenses = asyncHandler(async (req: Request, res: Response) => {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   const filter: Record<string, unknown> = {};
   if (req.query.category) filter.category = String(req.query.category);
+  if (req.query.settlement === 'pending') {
+    filter.transactionType = { $ne: 'investment' };
+    filter.isSettled = { $ne: true };
+  } else if (req.query.settlement === 'settled') {
+    filter.transactionType = { $ne: 'investment' };
+    filter.isSettled = true;
+  }
 
   const from = parseDate(req.query.from);
   const to = parseDate(req.query.to, true);
@@ -81,12 +89,19 @@ const csvCell = (value: unknown): string => {
 export const exportExpenses = asyncHandler(async (req: Request, res: Response) => {
   const filter: Record<string, unknown> = {};
   if (req.query.category) filter.category = String(req.query.category);
+  if (req.query.settlement === 'pending') {
+    filter.transactionType = { $ne: 'investment' };
+    filter.isSettled = { $ne: true };
+  } else if (req.query.settlement === 'settled') {
+    filter.transactionType = { $ne: 'investment' };
+    filter.isSettled = true;
+  }
   const from = parseDate(req.query.from);
   const to = parseDate(req.query.to, true);
   if (from || to) filter.expenseDate = { ...(from && { $gte: from }), ...(to && { $lte: to }) };
 
   const expenses = await Expense.find(filter).sort({ expenseDate: -1, createdAt: -1 }).lean();
-  const header = ['Date', 'Type', 'Category', 'Description', 'Vendor / Payee', 'Payment Method', 'Reference', 'Debit', 'Credit', 'Notes'];
+  const header = ['Date', 'Type', 'Category', 'Description', 'Vendor / Payee', 'Payment Method', 'Reference', 'Settlement Status', 'Debit', 'Credit', 'Notes'];
   const rows = expenses.map((expense) => {
     const date = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -100,6 +115,7 @@ export const exportExpenses = asyncHandler(async (req: Request, res: Response) =
       expense.vendor,
       expense.paymentMethod,
       expense.reference,
+      isInvestment ? 'Not applicable' : expense.isSettled === true ? 'Settled' : 'Needs settlement',
       isInvestment ? '' : expense.amount,
       isInvestment ? expense.amount : '',
       expense.notes,
@@ -196,6 +212,20 @@ export const updateExpense = asyncHandler(async (req: Request, res: Response) =>
   const expense = await Expense.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
   if (!expense) return ApiResponse.notFound(res, 'Expense not found');
   return ApiResponse.success(res, 'Expense updated', { expense });
+});
+
+export const updateExpenseSettlement = asyncHandler(async (req: Request, res: Response) => {
+  if (typeof req.body.isSettled !== 'boolean') {
+    return ApiResponse.badRequest(res, 'Settlement status must be true or false');
+  }
+
+  const expense = await Expense.findOneAndUpdate(
+    { _id: req.params.id, transactionType: { $ne: 'investment' } },
+    { isSettled: req.body.isSettled },
+    { new: true, runValidators: true }
+  );
+  if (!expense) return ApiResponse.notFound(res, 'Expense not found');
+  return ApiResponse.success(res, req.body.isSettled ? 'Expense marked as settled' : 'Expense marked as needing settlement', { expense });
 });
 
 export const deleteExpense = asyncHandler(async (req: Request, res: Response) => {
