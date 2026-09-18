@@ -108,6 +108,7 @@ export interface IProduct extends Document {
   sareeLength: string;
   careInstructions: string[];
   price: number;
+  buyPrice?: number;
   discountedPrice?: number;
   salePrice?: number;
   isSale: boolean;

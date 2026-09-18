@@ -18,12 +18,13 @@ export interface ProductFilter {
   tags?: string[];
   isActive?: boolean;
   includeInactive?: boolean;
+  includeBuyPrice?: boolean;
   inStockOnly?: boolean;
 }
 
 export class ProductRepository {
-  async findById(id: string): Promise<IProduct | null> {
-    return Product.findById(id).populate('category', 'name slug').populate('relatedProducts', 'name slug price discountedPrice salePrice isSale images');
+  async findById(id: string, includeBuyPrice = false): Promise<IProduct | null> {
+    return Product.findById(id).select(includeBuyPrice ? '+buyPrice' : '-buyPrice').populate('category', 'name slug').populate('relatedProducts', 'name slug price discountedPrice salePrice isSale images');
   }
 
   async findBySlug(slug: string): Promise<IProduct | null> {
@@ -44,8 +45,9 @@ export class ProductRepository {
     return Product.create(data);
   }
 
-  async updateById(id: string, update: Partial<IProduct>): Promise<IProduct | null> {
+  async updateById(id: string, update: Partial<IProduct>, includeBuyPrice = false): Promise<IProduct | null> {
     return Product.findByIdAndUpdate(id, update, { new: true, runValidators: true })
+      .select(includeBuyPrice ? '+buyPrice' : '-buyPrice')
       .populate('category', 'name slug isActive');
   }
 
@@ -67,7 +69,7 @@ export class ProductRepository {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .select('-schemaMarkup'),
+        .select(filter.includeBuyPrice ? '+buyPrice -schemaMarkup' : '-buyPrice -schemaMarkup'),
       Product.countDocuments(query),
     ]);
 

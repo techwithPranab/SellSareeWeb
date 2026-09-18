@@ -99,12 +99,13 @@ export default function AdminProductsPage() {
           <div className="p-12 text-center text-muted-foreground text-sm">No products found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[760px] w-full text-sm">
+            <table className="min-w-[860px] w-full text-sm">
               <thead className="bg-surface text-left">
                 <tr>
                   <th className="px-4 py-3 font-semibold text-foreground">Product</th>
                   <th className="px-4 py-3 font-semibold text-foreground">SKU</th>
                   <th className="px-4 py-3 font-semibold text-foreground">Price</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Buy Price</th>
                   <th className="px-4 py-3 font-semibold text-foreground">Stock</th>
                   <th className="px-4 py-3 font-semibold text-foreground">Status</th>
                   <th className="px-4 py-3 font-semibold text-foreground">Actions</th>
@@ -127,6 +128,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
                     <td className="px-4 py-3 font-medium">{formatPrice(getProductEffectivePrice(product))}</td>
+                    <td className="px-4 py-3 font-medium text-muted-foreground">{product.buyPrice === undefined ? '—' : formatPrice(product.buyPrice)}</td>
                     <td className="px-4 py-3">
                       <span className={product.stock <= 5 ? 'text-red-600 font-medium' : ''}>{product.stock}</span>
                     </td>

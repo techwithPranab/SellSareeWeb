@@ -138,6 +138,7 @@ export interface Product {
   sareeLength: string;
   careInstructions: string[];
   price: number;
+  buyPrice?: number;
   discountedPrice?: number;
   salePrice?: number;
   isSale: boolean;

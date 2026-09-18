@@ -18,8 +18,8 @@ export class ProductService {
     return product;
   }
 
-  async getProductById(id: string): Promise<IProduct> {
-    const product = await productRepository.findById(id);
+  async getProductById(id: string, includeBuyPrice = false): Promise<IProduct> {
+    const product = await productRepository.findById(id, includeBuyPrice);
     if (!product) {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
@@ -69,7 +69,7 @@ export class ProductService {
   }
 
   async cloneProduct(id: string): Promise<IProduct> {
-    const source = await productRepository.findById(id);
+    const source = await productRepository.findById(id, true);
     if (!source) {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
@@ -129,6 +129,7 @@ export class ProductService {
         sareeLength: source.sareeLength,
         careInstructions: [...(source.careInstructions || [])],
         price: source.price,
+        buyPrice: source.buyPrice,
         discountedPrice: source.discountedPrice,
         salePrice: source.salePrice,
         isSale: source.isSale,
@@ -161,7 +162,7 @@ export class ProductService {
     data: Partial<IProduct>,
     newImageFiles?: Express.Multer.File[]
   ): Promise<IProduct> {
-    const product = await productRepository.findById(id);
+    const product = await productRepository.findById(id, true);
     if (!product) {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
@@ -221,7 +222,7 @@ export class ProductService {
       throw new CustomError('At least one product image is required', HTTP_STATUS.BAD_REQUEST);
     }
 
-    const updated = await productRepository.updateById(id, { ...data, images });
+    const updated = await productRepository.updateById(id, { ...data, images }, true);
     if (!updated) {
       throw new CustomError('Failed to update product', HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
@@ -246,7 +247,7 @@ export class ProductService {
   }
 
   async deleteProductImage(productId: string, publicId: string): Promise<IProduct> {
-    const product = await productRepository.findById(productId);
+    const product = await productRepository.findById(productId, true);
     if (!product) {
       throw new CustomError('Product not found', HTTP_STATUS.NOT_FOUND);
     }
@@ -267,7 +268,7 @@ export class ProductService {
         isDefault: index === 0,
         sortOrder: index,
       }));
-    const updated = await productRepository.updateById(productId, { images });
+    const updated = await productRepository.updateById(productId, { images }, true);
     if (!updated) {
       throw new CustomError('Failed to update product', HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }

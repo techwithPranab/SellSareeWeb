@@ -20,6 +20,7 @@ export interface ProductFormData {
   colorCode: string;
   pattern: string;
   price: number;
+  buyPrice?: number;
   discountedPrice?: number;
   salePrice?: number;
   isSale: boolean;
@@ -82,6 +83,7 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
       colorCode: product?.colorCode ?? '#000000',
       pattern: product?.pattern ?? '',
       price: product?.price ?? 0,
+      buyPrice: product?.buyPrice,
       discountedPrice: product?.discountedPrice,
       salePrice: product?.salePrice,
       isSale: product?.isSale ?? false,
@@ -205,6 +207,11 @@ export default function ProductForm({ product, onSubmit, onDeleteExistingImage, 
         <div>
           <label className="label">MRP (₹) *</label>
           <input type="number" {...register('price', { required: true, min: 0, valueAsNumber: true })} className="input-field" />
+        </div>
+        <div>
+          <label className="label">Buy Price (₹)</label>
+          <input type="number" step="0.01" {...register('buyPrice', { min: 0, setValueAs: (value) => value === '' ? undefined : Number(value) })} className="input-field" />
+          <p className="mt-1 text-xs text-muted-foreground">Admin only — never shown on the storefront.</p>
         </div>
         <div>
           <label className="label">Discounted Price (₹)</label>

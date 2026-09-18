@@ -4,6 +4,7 @@ import {
   searchProducts,
   getProductBySlug,
   getProductById,
+  getProductByIdForAdmin,
   getFeaturedProducts,
   getNewArrivals,
   getBestSellers,
@@ -28,14 +29,15 @@ router.get('/search', searchProducts);
 router.get('/featured', getFeaturedProducts);
 router.get('/new-arrivals', getNewArrivals);
 router.get('/best-sellers', getBestSellers);
+router.get('/admin/stats', authenticate, requireAdmin, getProductDashboardStats);
 router.get('/admin/all', authenticate, requireAdmin, getAllProductsForAdmin);
+router.get('/admin/:id', authenticate, requireAdmin, getProductByIdForAdmin);
 router.get('/:slug', getProductBySlug);
 router.get('/id/:id', getProductById);
 router.get('/:productId/related/:categoryId', getRelatedProducts);
 
 // Admin routes
 router.use(authenticate, requireAdmin);
-router.get('/admin/stats', getProductDashboardStats);
 router.post('/', uploadMultiple, createProduct);
 router.post('/:id/clone', cloneProduct);
 router.put('/:id', uploadMultiple, updateProduct);

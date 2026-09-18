@@ -23,10 +23,10 @@ const normalizeProductNumbers = (body: Record<string, unknown>): Partial<IProduc
     if (normalized[field] === 'false') normalized[field] = false;
   }
 
-  for (const field of ['price', 'stock', 'discountedPrice', 'salePrice'] as const) {
+  for (const field of ['price', 'buyPrice', 'stock', 'discountedPrice', 'salePrice'] as const) {
     const rawValue = normalized[field];
 
-    if ((field === 'salePrice' || field === 'discountedPrice') && (rawValue === undefined || rawValue === null || rawValue === '' || rawValue === 'NaN')) {
+    if ((field === 'salePrice' || field === 'discountedPrice' || field === 'buyPrice') && (rawValue === undefined || rawValue === null || rawValue === '' || rawValue === 'NaN')) {
       delete normalized[field];
       continue;
     }
@@ -88,6 +88,7 @@ export const getAllProductsForAdmin = asyncHandler(async (req: Request, res: Res
   const { page, limit, sortBy, sortOrder, search, category } = req.query;
   const filter = {
     includeInactive: true,
+    includeBuyPrice: true,
     ...(search && { search: String(search) }),
     ...(category && Types.ObjectId.isValid(String(category)) && { category: String(category) }),
   };
@@ -122,6 +123,11 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
 export const getProductById = asyncHandler(async (req: Request, res: Response) => {
   const product = await productService.getProductById(req.params.id);
   ApiResponse.success(res, 'Product retrieved', { product });
+});
+
+export const getProductByIdForAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const product = await productService.getProductById(req.params.id, true);
+  ApiResponse.success(res, 'Admin product retrieved', { product });
 });
 
 export const getFeaturedProducts = asyncHandler(async (_req: Request, res: Response) => {

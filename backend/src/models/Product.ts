@@ -75,6 +75,11 @@ const ProductSchema = new Schema<IProduct>(
       required: [true, 'Price is required'],
       min: [0, 'Price cannot be negative'],
     },
+    buyPrice: {
+      type: Number,
+      min: [0, 'Buy price cannot be negative'],
+      select: false,
+    },
     discountedPrice: {
       type: Number,
       min: [0, 'Discounted price cannot be negative'],

@@ -195,7 +195,7 @@ export const adminService = {
   },
 
   async getProduct(id: string) {
-    const response = await api.get(`/products/id/${id}`);
+    const response = await api.get(`/products/admin/${id}`);
     return response.data.data as { product: Product };
   },
 
