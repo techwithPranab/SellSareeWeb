@@ -14,6 +14,8 @@ const OrderItemSchema = new Schema(
     sku: { type: String, required: true },
     discount: { type: Number, default: 0 },
     subtotal: { type: Number, required: true },
+    // Internal cost snapshot used for profit reporting; never exposed to customers.
+    unitBuyPrice: { type: Number, min: 0, select: false },
   },
   { _id: true }
 );
@@ -67,6 +69,15 @@ const TrackingInfoSchema = new Schema(
   { _id: false }
 );
 
+const hideInternalOrderCosts = (_doc: unknown, ret: Record<string, unknown>) => {
+  if (Array.isArray(ret.items)) {
+    ret.items.forEach((item) => {
+      if (item && typeof item === 'object') delete (item as Record<string, unknown>).unitBuyPrice;
+    });
+  }
+  return ret;
+};
+
 const OrderSchema = new Schema<IOrder>(
   {
     orderNumber: {
@@ -110,8 +121,8 @@ const OrderSchema = new Schema<IOrder>(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: true, transform: hideInternalOrderCosts },
+    toObject: { virtuals: true, transform: hideInternalOrderCosts },
   }
 );
 

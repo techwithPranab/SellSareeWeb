@@ -46,7 +46,7 @@ export class OrderService {
     let subtotal = 0;
 
     for (const item of items) {
-      const product = await productRepository.findById(item.productId);
+      const product = await productRepository.findById(item.productId, true);
       if (!product) {
         throw new CustomError(`Product ${item.productId} not found`, HTTP_STATUS.NOT_FOUND);
       }
@@ -81,6 +81,7 @@ export class OrderService {
         sku: product.sku,
         discount: product.price - price,
         subtotal: subtotalItem,
+        ...(product.buyPrice !== undefined && { unitBuyPrice: product.buyPrice }),
       } as IOrderItem);
     }
 

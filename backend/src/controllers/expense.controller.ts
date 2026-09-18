@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import Expense, { EXPENSE_CATEGORIES, INVESTMENT_CATEGORIES } from '../models/Expense';
 import Order from '../models/Order';
+import Product from '../models/Product';
 import { PaymentStatus } from '../constants';
 import { ApiResponse } from '../utils/apiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -195,8 +196,7 @@ export const getExpenseSummary = asyncHandler(async (_req: Request, res: Respons
   });
 });
 
-const pnlValues = (revenue: number, categories: Record<string, number>) => {
-  const costOfGoodsSold = categories.Inventory || 0;
+const pnlValues = (revenue: number, categories: Record<string, number>, costOfGoodsSold = 0) => {
   const depreciationAndAmortization = categories['Depreciation & Amortization'] || 0;
   const interest = categories.Interest || 0;
   const taxes = categories.Taxes || 0;
@@ -257,12 +257,34 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     { $group: { _id: '$category', amount: { $sum: '$amount' }, count: { $sum: 1 } } },
     { $sort: { amount: -1 as const } },
   ];
+  const soldCostPipeline = (start: Date, end: Date, groupByMonth = false) => [
+    ...revenuePipeline(start, end).slice(0, 1),
+    { $unwind: '$items' },
+    { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'costProduct' } },
+    { $unwind: { path: '$costProduct', preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: groupByMonth
+          ? { $dateToString: { format: '%Y-%m', date: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, timezone: 'Asia/Kolkata' } }
+          : null,
+        costOfGoodsSold: {
+          $sum: { $multiply: ['$items.quantity', { $ifNull: ['$items.unitBuyPrice', { $ifNull: ['$costProduct.buyPrice', 0] }] }] },
+        },
+        missingBuyPriceUnits: {
+          $sum: { $cond: [{ $eq: [{ $ifNull: ['$items.unitBuyPrice', { $ifNull: ['$costProduct.buyPrice', null] }] }, null] }, '$items.quantity', 0] },
+        },
+      },
+    },
+    { $sort: { _id: 1 as const } },
+  ];
 
-  const [revenue, expenses, previousRevenue, previousExpenses, revenueByMonth, expensesByMonth] = await Promise.all([
+  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory] = await Promise.all([
     Order.aggregate(revenuePipeline(from, to)),
     Expense.aggregate(expensePipeline(from, to)),
+    Order.aggregate(soldCostPipeline(from, to)),
     Order.aggregate(revenuePipeline(previousFrom, previousTo)),
     Expense.aggregate(expensePipeline(previousFrom, previousTo)),
+    Order.aggregate(soldCostPipeline(previousFrom, previousTo)),
     Order.aggregate([
       ...revenuePipeline(from, to).slice(0, 1),
       { $group: { _id: { $dateToString: { format: '%Y-%m', date: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, timezone: 'Asia/Kolkata' } }, revenue: { $sum: '$totalAmount' } } },
@@ -273,26 +295,42 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $group: { _id: { month: { $dateToString: { format: '%Y-%m', date: '$expenseDate', timezone: 'Asia/Kolkata' } }, category: '$category' }, amount: { $sum: '$amount' } } },
       { $sort: { '_id.month': 1 } },
     ]),
+    Order.aggregate(soldCostPipeline(from, to, true)),
+    Product.aggregate([
+      { $match: { stock: { $gt: 0 } } },
+      { $group: { _id: null, value: { $sum: { $multiply: ['$stock', { $ifNull: ['$buyPrice', 0] }] } }, units: { $sum: '$stock' }, products: { $sum: 1 }, missingBuyPriceProducts: { $sum: { $cond: [{ $eq: [{ $ifNull: ['$buyPrice', null] }, null] }, 1, 0] } } } },
+    ]),
   ]);
 
   const categoryMap = (rows: Array<{ _id: string; amount: number }>) => Object.fromEntries(rows.map((row) => [row._id, row.amount]));
-  const current = pnlValues(revenue[0]?.amount || 0, categoryMap(expenses));
-  const previous = pnlValues(previousRevenue[0]?.amount || 0, categoryMap(previousExpenses));
-  const months = new Map<string, { month: string; revenue: number; categories: Record<string, number> }>();
-  revenueByMonth.forEach((row: { _id: string; revenue: number }) => months.set(row._id, { month: row._id, revenue: row.revenue, categories: {} }));
+  const current = pnlValues(revenue[0]?.amount || 0, categoryMap(expenses), soldCost[0]?.costOfGoodsSold || 0);
+  const previous = pnlValues(previousRevenue[0]?.amount || 0, categoryMap(previousExpenses), previousSoldCost[0]?.costOfGoodsSold || 0);
+  const months = new Map<string, { month: string; revenue: number; costOfGoodsSold: number; categories: Record<string, number> }>();
+  revenueByMonth.forEach((row: { _id: string; revenue: number }) => months.set(row._id, { month: row._id, revenue: row.revenue, costOfGoodsSold: 0, categories: {} }));
   expensesByMonth.forEach((row: { _id: { month: string; category: string }; amount: number }) => {
-    const entry = months.get(row._id.month) || { month: row._id.month, revenue: 0, categories: {} };
+    const entry = months.get(row._id.month) || { month: row._id.month, revenue: 0, costOfGoodsSold: 0, categories: {} };
     entry.categories[row._id.category] = row.amount;
     months.set(row._id.month, entry);
   });
-  const trend = [...months.values()].sort((a, b) => a.month.localeCompare(b.month)).map((entry) => ({ month: entry.month, ...pnlValues(entry.revenue, entry.categories) }));
+  soldCostByMonth.forEach((row: { _id: string; costOfGoodsSold: number }) => {
+    const entry = months.get(row._id) || { month: row._id, revenue: 0, costOfGoodsSold: 0, categories: {} };
+    entry.costOfGoodsSold = row.costOfGoodsSold;
+    months.set(row._id, entry);
+  });
+  const trend = [...months.values()].sort((a, b) => a.month.localeCompare(b.month)).map((entry) => ({ month: entry.month, ...pnlValues(entry.revenue, entry.categories, entry.costOfGoodsSold) }));
 
   return ApiResponse.success(res, 'Profit and loss analytics retrieved', {
     period: { from, to, previousFrom, previousTo },
-    current: { ...current, orderCount: revenue[0]?.orders || 0 },
-    previous: { ...previous, orderCount: previousRevenue[0]?.orders || 0 },
+    current: { ...current, orderCount: revenue[0]?.orders || 0, missingBuyPriceSoldUnits: soldCost[0]?.missingBuyPriceUnits || 0 },
+    previous: { ...previous, orderCount: previousRevenue[0]?.orders || 0, missingBuyPriceSoldUnits: previousSoldCost[0]?.missingBuyPriceUnits || 0 },
     trend,
     expensesByCategory: expenses,
+    inventory: {
+      value: inventory[0]?.value || 0,
+      units: inventory[0]?.units || 0,
+      products: inventory[0]?.products || 0,
+      missingBuyPriceProducts: inventory[0]?.missingBuyPriceProducts || 0,
+    },
   });
 });
 

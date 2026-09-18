@@ -149,6 +149,7 @@ export interface IOrderItem {
   sku: string;
   discount: number;
   subtotal: number;
+  unitBuyPrice?: number;
 }
 
 export interface IShippingInfo {

@@ -62,11 +62,12 @@ export default function ProfitLossPage() {
       </section>
 
       {current && previous && <>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard label="Revenue" value={current.revenue} previous={previous.revenue} icon={TrendingUp} />
           <MetricCard label="Gross Profit" value={current.grossProfit} previous={previous.grossProfit} icon={Scale} margin={current.grossMargin} />
           <MetricCard label="EBITDA" value={current.ebitda} previous={previous.ebitda} icon={Calculator} margin={current.ebitdaMargin} />
           <MetricCard label={current.netProfit >= 0 ? 'Net Profit' : 'Net Loss'} value={current.netProfit} previous={previous.netProfit} icon={current.netProfit >= 0 ? TrendingUp : TrendingDown} margin={current.netMargin} highlight />
+          <div className="rounded-2xl border border-border bg-white p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">Inventory Value</p><Scale className="h-4 w-4" /></div><p className="mt-2 text-2xl font-bold">{formatPrice(report!.inventory.value)}</p><p className="mt-2 text-xs text-muted-foreground">{report!.inventory.units} units across {report!.inventory.products} products</p></div>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-5">
@@ -96,7 +97,7 @@ export default function ProfitLossPage() {
 
         <section className="rounded-2xl border border-border bg-white p-5">
           <h2 className="font-semibold">Expense Breakdown</h2>
-          <p className="mb-4 mt-1 text-xs text-muted-foreground">Investments and bank deposits are excluded from P&amp;L</p>
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">Investments and inventory purchases are excluded from operating expenses</p>
           {report!.expensesByCategory.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{report!.expensesByCategory.map((item) => {
             const total = report!.expensesByCategory.reduce((sum, row) => sum + row.amount, 0);
             const percent = total ? (item.amount / total) * 100 : 0;
@@ -104,7 +105,8 @@ export default function ProfitLossPage() {
           })}</div> : <EmptyState />}
         </section>
 
-        <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-5 text-blue-800"><strong>Calculation:</strong> Inventory expenses are treated as cost of goods sold. EBITDA excludes interest, taxes, depreciation, and amortization. Net profit includes all recorded expenses. For reliable results, keep the Expense Tracker complete and categorize each transaction correctly.</p>
+        {(report!.inventory.missingBuyPriceProducts > 0 || (current.missingBuyPriceSoldUnits || 0) > 0) && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800"><strong>Buy prices missing:</strong> {report!.inventory.missingBuyPriceProducts} stocked {report!.inventory.missingBuyPriceProducts === 1 ? 'product has' : 'products have'} no buy price, and {current.missingBuyPriceSoldUnits || 0} sold {(current.missingBuyPriceSoldUnits || 0) === 1 ? 'unit has' : 'units have'} no recorded cost. Inventory value or gross profit may be understated.</p>}
+        <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-5 text-blue-800"><strong>Calculation:</strong> Cost of goods sold is the quantity sold multiplied by each product’s buy price. Inventory purchases remain outside operating expenses. EBITDA excludes interest, taxes, depreciation, and amortization. Future orders preserve the buy price at the time of sale.</p>
       </>}
     </div>
   );
@@ -117,7 +119,7 @@ function MetricCard({ label, value, previous, icon: Icon, margin, highlight = fa
 }
 
 function Statement({ metrics }: { metrics: ProfitLossMetrics }) {
-  return <div className="text-sm"><StatementRow label="Revenue" value={metrics.revenue} strong /><StatementRow label="Cost of goods sold (Inventory)" value={-metrics.costOfGoodsSold} /><StatementRow label="Gross profit" value={metrics.grossProfit} strong divider /><StatementRow label="Operating expenses" value={-metrics.operatingExpenses} /><StatementRow label="EBITDA" value={metrics.ebitda} strong divider /><StatementRow label="Depreciation & amortization" value={-metrics.depreciationAndAmortization} /><StatementRow label="EBIT" value={metrics.ebit} strong divider /><StatementRow label="Interest" value={-metrics.interest} /><StatementRow label="Profit before tax" value={metrics.profitBeforeTax} strong divider /><StatementRow label="Taxes" value={-metrics.taxes} /><StatementRow label="Net profit / loss" value={metrics.netProfit} strong final /></div>;
+  return <div className="text-sm"><StatementRow label="Revenue" value={metrics.revenue} strong /><StatementRow label="Cost of sold products" value={-metrics.costOfGoodsSold} /><StatementRow label="Gross profit" value={metrics.grossProfit} strong divider /><StatementRow label="Operating expenses" value={-metrics.operatingExpenses} /><StatementRow label="EBITDA" value={metrics.ebitda} strong divider /><StatementRow label="Depreciation & amortization" value={-metrics.depreciationAndAmortization} /><StatementRow label="EBIT" value={metrics.ebit} strong divider /><StatementRow label="Interest" value={-metrics.interest} /><StatementRow label="Profit before tax" value={metrics.profitBeforeTax} strong divider /><StatementRow label="Taxes" value={-metrics.taxes} /><StatementRow label="Net profit / loss" value={metrics.netProfit} strong final /></div>;
 }
 
 function StatementRow({ label, value, strong = false, divider = false, final = false }: { label: string; value: number; strong?: boolean; divider?: boolean; final?: boolean }) {

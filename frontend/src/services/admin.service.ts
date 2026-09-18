@@ -105,6 +105,7 @@ export interface ProfitLossMetrics {
   ebitdaMargin: number;
   netMargin: number;
   orderCount?: number;
+  missingBuyPriceSoldUnits?: number;
 }
 
 export interface ProfitLossReport {
@@ -113,6 +114,7 @@ export interface ProfitLossReport {
   previous: ProfitLossMetrics;
   trend: Array<ProfitLossMetrics & { month: string }>;
   expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
+  inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number };
 }
 
 export const adminService = {
