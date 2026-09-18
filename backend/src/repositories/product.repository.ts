@@ -20,6 +20,7 @@ export interface ProductFilter {
   includeInactive?: boolean;
   includeBuyPrice?: boolean;
   inStockOnly?: boolean;
+  outOfStockOnly?: boolean;
 }
 
 export class ProductRepository {
@@ -177,6 +178,7 @@ export class ProductRepository {
     else if (!filter.includeInactive) query.isActive = true;
 
     if (filter.inStockOnly) query.stock = { $gt: 0 };
+    if (filter.outOfStockOnly) query.stock = 0;
 
     if (filter.search?.trim()) {
       const escapedSearch = filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

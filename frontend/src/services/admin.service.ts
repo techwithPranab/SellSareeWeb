@@ -189,6 +189,8 @@ export const adminService = {
     limit?: number;
     search?: string;
     category?: string;
+    status?: 'active' | 'inactive';
+    stockStatus?: 'in_stock' | 'out_of_stock';
     sortBy?: string;
     sortOrder?: string;
   }) {

@@ -85,9 +85,11 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const getAllProductsForAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, sortBy, sortOrder, search, category } = req.query;
+  const { page, limit, sortBy, sortOrder, search, category, status, stockStatus } = req.query;
   const filter = {
-    includeInactive: true,
+    ...(status === 'active' ? { isActive: true } : status === 'inactive' ? { isActive: false } : { includeInactive: true }),
+    ...(stockStatus === 'in_stock' && { inStockOnly: true }),
+    ...(stockStatus === 'out_of_stock' && { outOfStockOnly: true }),
     includeBuyPrice: true,
     ...(search && { search: String(search) }),
     ...(category && Types.ObjectId.isValid(String(category)) && { category: String(category) }),

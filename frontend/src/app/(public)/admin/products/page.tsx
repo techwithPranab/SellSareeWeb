@@ -22,6 +22,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [copyingProductId, setCopyingProductId] = useState<string | null>(null);
   const [search, setSearch] = useState(() => searchParams.get('search') ?? '');
+  const [status, setStatus] = useState<'active' | 'inactive' | ''>('');
+  const [stockStatus, setStockStatus] = useState<'in_stock' | 'out_of_stock' | ''>('');
   const [page, setPage] = useState(() => {
     const requestedPage = Number(searchParams.get('page'));
     return Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
@@ -30,7 +32,7 @@ export default function AdminProductsPage() {
   const loadProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getProducts({ page, limit: 15, search: search || undefined });
+      const res = await adminService.getProducts({ page, limit: 15, search: search || undefined, status: status || undefined, stockStatus: stockStatus || undefined });
       setProducts(res.data ?? []);
       setPagination(res.meta?.pagination ?? null);
     } catch {
@@ -38,7 +40,7 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, status, stockStatus]);
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
@@ -80,16 +82,22 @@ export default function AdminProductsPage() {
       />
 
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="p-4 border-b border-border">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search products…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="input-field pl-9 py-2 text-sm"
-            />
+        <div className="border-b border-border p-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_200px_200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input type="text" placeholder="Search products…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="input-field py-2 pl-9 text-sm" />
+            </div>
+            <select value={stockStatus} onChange={(event) => { setStockStatus(event.target.value as typeof stockStatus); setPage(1); }} className="input-field py-2 text-sm" aria-label="Filter by stock status">
+              <option value="">All stock</option>
+              <option value="in_stock">In stock</option>
+              <option value="out_of_stock">Out of stock</option>
+            </select>
+            <select value={status} onChange={(event) => { setStatus(event.target.value as typeof status); setPage(1); }} className="input-field py-2 text-sm" aria-label="Filter by product status">
+              <option value="">Active &amp; inactive</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
         </div>
 
