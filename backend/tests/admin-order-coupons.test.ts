@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 it('decodes form coupon codes and creates the order for the customer, not the admin', async () => {
   expect(await submit({ ...body, couponCodes: JSON.stringify(['SAVE100', 'SHIP']) })).toBe(201);
-  expect(orderService.createOrder).toHaveBeenCalledWith('customer', expect.objectContaining({ couponCodes: ['SAVE100', 'SHIP'] }));
+  expect(orderService.createOrder).toHaveBeenCalledWith('customer', expect.objectContaining({ couponCodes: ['SAVE100', 'SHIP'], bypassCouponUserUsageLimit: true }));
 });
 it.each(['invalid-json', '{}', '[123]', '[""]'])('rejects malformed coupon input %s before creating the order', async (couponCodes) => {
   expect(await submit({ ...body, couponCodes })).toBe(400);

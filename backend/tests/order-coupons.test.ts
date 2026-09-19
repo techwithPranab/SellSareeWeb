@@ -47,3 +47,12 @@ it('adds the discount for every application of the same percentage coupon', asyn
   expect(order.totalAmount).toBe(450);
   expect(Coupon.findOneAndUpdate).toHaveBeenCalledTimes(1);
 });
+
+it('allows an admin-created order to bypass the customer coupon usage limit', async () => {
+  (Coupon.findOne as jest.Mock).mockResolvedValue({
+    code: 'FIXED', type: 'fixed', discountValue: 100, minOrderAmount: 0,
+    usageLimit: 0, usedBy: [{ toString: () => 'user' }], userUsageLimit: 1,
+  });
+  const order = await new OrderService().createOrder('user', { ...data(['FIXED', 'FIXED']), bypassCouponUserUsageLimit: true });
+  expect(order.couponDiscount).toBe(200);
+});

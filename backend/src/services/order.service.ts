@@ -33,6 +33,7 @@ export interface CreateOrderData {
   paymentMethod: PaymentMethod;
   couponCode?: string;
   couponCodes?: string[];
+  bypassCouponUserUsageLimit?: boolean;
   loyaltyPointsToRedeem?: number;
   notes?: string;
 }
@@ -132,9 +133,11 @@ export class OrderService {
         throw new CustomError('Coupon usage limit has been reached', HTTP_STATUS.BAD_REQUEST);
       }
 
-      const userUsageCount = coupon.usedBy.filter((id) => id.toString() === userId).length;
-      if (userUsageCount >= coupon.userUsageLimit) {
-        throw new CustomError('You have already used this coupon', HTTP_STATUS.BAD_REQUEST);
+      if (!data.bypassCouponUserUsageLimit) {
+        const userUsageCount = coupon.usedBy.filter((id) => id.toString() === userId).length;
+        if (userUsageCount >= coupon.userUsageLimit) {
+          throw new CustomError('You have already used this coupon', HTTP_STATUS.BAD_REQUEST);
+        }
       }
 
       let individualDiscount = 0;

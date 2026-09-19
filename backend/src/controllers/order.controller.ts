@@ -294,6 +294,7 @@ export const createOrderForCustomer = asyncHandler(async (req: Request, res: Res
       shippingAddress: shippingAddress as unknown as Parameters<typeof orderService.createOrder>[1]['shippingAddress'],
       paymentMethod,
       couponCodes,
+      bypassCouponUserUsageLimit: true,
       notes: [notes, `WhatsApp order entered by admin ${req.user!.email}`].filter(Boolean).join(' — '),
     });
   } catch (error) {
