@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import Expense, { EXPENSE_CATEGORIES, INVESTMENT_CATEGORIES } from '../models/Expense';
 import Order from '../models/Order';
 import Product from '../models/Product';
-import { PaymentStatus } from '../constants';
+import { OrderStatus, PaymentStatus } from '../constants';
 import { ApiResponse } from '../utils/apiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 
@@ -142,6 +142,7 @@ export const getExpenseSummary = asyncHandler(async (_req: Request, res: Respons
       {
         $match: {
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          status: { $ne: OrderStatus.CANCELLED },
           $expr: { $lte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, todayEnd] },
         },
       },
@@ -242,6 +243,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     {
       $match: {
         'paymentInfo.status': PaymentStatus.COMPLETED,
+        status: { $ne: OrderStatus.CANCELLED },
         $expr: {
           $and: [
             { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, start] },

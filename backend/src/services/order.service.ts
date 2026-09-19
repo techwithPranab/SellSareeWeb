@@ -440,6 +440,7 @@ export class OrderService {
       Order.aggregate([
         { $match: {
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          status: { $ne: OrderStatus.CANCELLED },
           $expr: { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, last30Days] },
         } },
         { $unwind: '$items' },
@@ -450,6 +451,7 @@ export class OrderService {
       Order.aggregate([
         { $match: {
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          status: { $ne: OrderStatus.CANCELLED },
           'paymentInfo.method': { $in: Object.values(PaymentMethod) },
         } },
         { $group: { _id: '$paymentInfo.method', count: { $sum: 1 }, amount: { $sum: '$totalAmount' } } },

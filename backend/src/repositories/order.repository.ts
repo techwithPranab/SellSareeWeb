@@ -139,6 +139,7 @@ export class OrderRepository {
       {
         $match: {
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          status: { $ne: OrderStatus.CANCELLED },
           $expr: {
             $and: [
               { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, startDate] },
@@ -165,6 +166,7 @@ export class OrderRepository {
       {
         $match: {
           'paymentInfo.status': PaymentStatus.COMPLETED,
+          status: { $ne: OrderStatus.CANCELLED },
           $expr: {
             $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, startDate],
           },
