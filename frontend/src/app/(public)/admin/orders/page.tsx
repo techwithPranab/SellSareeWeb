@@ -86,7 +86,7 @@ export default function AdminOrdersPage() {
                   <th className="px-4 py-3 font-semibold">Order #</th>
                   <th className="px-4 py-3 font-semibold">Customer</th>
                   <th className="px-4 py-3 font-semibold">Date</th>
-                  <th className="px-4 py-3 font-semibold">Items</th>
+                  <th className="px-4 py-3 font-semibold">Total Sarees</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Payment</th>
@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
                         <p className="text-xs text-muted-foreground">{customer?.email ?? ''}</p>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{formatDate(order.createdAt)}</td>
-                      <td className="px-4 py-3">{order.items.length}</td>
+                      <td className="px-4 py-3 font-medium">{order.items.reduce((total, item) => total + item.quantity, 0)}</td>
                       <td className="px-4 py-3 font-semibold">{formatPrice(order.totalAmount)}</td>
                       <td className="px-4 py-3">
                         {config && (
