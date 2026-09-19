@@ -96,10 +96,6 @@ export default function CreateWhatsAppOrderPage() {
   const addCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code || applyingCoupon || saving) return;
-    if (coupons.some((coupon) => coupon.code === code)) {
-      toast.error('This coupon is already added');
-      return;
-    }
     setApplyingCoupon(true);
     try {
       const response = await adminService.getCoupons({ code, isActive: true, limit: 1 });
@@ -116,7 +112,7 @@ export default function CreateWhatsAppOrderPage() {
         toast.error(`Minimum order amount for this coupon is ${formatPrice(coupon.minOrderAmount)}`);
         return;
       }
-      setCoupons((current) => current.some((entry) => entry.code === code) ? current : [...current, coupon]);
+      setCoupons((current) => [...current, coupon]);
       setCouponInput('');
       toast.success(`Coupon "${code}" added`);
     } catch {
@@ -318,12 +314,12 @@ export default function CreateWhatsAppOrderPage() {
                 {applyingCoupon ? 'Checking…' : 'Add'}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">Add multiple codes, one at a time. Customer usage limits are checked when creating the order.</p>
-            {coupons.map((coupon) => (
-              <div key={coupon.code} className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm">
+            <p className="text-xs text-muted-foreground">Add multiple codes, including the same code more than once. Customer usage limits are checked when creating the order.</p>
+            {coupons.map((coupon, couponIndex) => (
+              <div key={`${coupon._id}-${couponIndex}`} className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-green-700">{coupon.code}</span>
-                  <button type="button" disabled={saving || applyingCoupon} onClick={() => setCoupons((current) => current.filter((entry) => entry.code !== coupon.code))}
+                  <button type="button" disabled={saving || applyingCoupon} onClick={() => setCoupons((current) => current.filter((_, index) => index !== couponIndex))}
                     aria-label={`Remove coupon ${coupon.code}`} className="text-xs text-red-500 hover:underline">Remove</button>
                 </div>
                 {subtotal < coupon.minOrderAmount && <p role="alert" className="mt-1 text-xs text-red-600">Requires a subtotal of {formatPrice(coupon.minOrderAmount)}. Add products or remove this coupon.</p>}

@@ -16,6 +16,7 @@ import {
   getProductDashboardStats,
   getAllProductsForAdmin,
   cloneProduct,
+  bulkCreateProducts,
 } from '../controllers/product.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -39,6 +40,7 @@ router.get('/:productId/related/:categoryId', getRelatedProducts);
 // Admin routes
 router.use(authenticate, requireAdmin);
 router.post('/', uploadMultiple, createProduct);
+router.post('/bulk', bulkCreateProducts);
 router.post('/:id/clone', cloneProduct);
 router.put('/:id', uploadMultiple, updateProduct);
 router.delete('/:id', deleteProduct);

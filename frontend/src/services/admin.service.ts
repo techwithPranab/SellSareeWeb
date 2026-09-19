@@ -36,6 +36,14 @@ export interface ProductStats {
   lowStockCount: number;
 }
 
+export interface BulkProductResult {
+  row: number;
+  sku: string;
+  success: boolean;
+  productId?: string;
+  error?: string;
+}
+
 export interface StoreSettings {
   _id?: string;
   storeName: string;
@@ -206,6 +214,11 @@ export const adminService = {
   async createProduct(formData: FormData) {
     const response = await api.post('/products', formData);
     return response.data.data as { product: Product };
+  },
+
+  async bulkCreateProducts(products: Array<Record<string, string>>) {
+    const response = await api.post('/products/bulk', { products });
+    return response.data.data as { created: number; failed: number; results: BulkProductResult[] };
   },
 
   async cloneProduct(id: string) {

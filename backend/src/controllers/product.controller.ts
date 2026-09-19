@@ -162,6 +162,45 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
   return ApiResponse.created(res, 'Product created successfully', { product });
 });
 
+export const bulkCreateProducts = asyncHandler(async (req: Request, res: Response) => {
+  const rows = req.body.products;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return ApiResponse.badRequest(res, 'Products must be a non-empty array');
+  }
+  if (rows.length > 100) return ApiResponse.badRequest(res, 'A maximum of 100 products can be uploaded at once');
+
+  const results: Array<{ row: number; sku: string; success: boolean; productId?: string; error?: string }> = [];
+  for (const [index, rawRow] of rows.entries()) {
+    const rowNumber = index + 2;
+    try {
+      if (!rawRow || typeof rawRow !== 'object') throw new Error('Invalid row');
+      const raw = rawRow as Record<string, unknown>;
+      const categoryValue = String(raw.category || '').trim();
+      const category = Types.ObjectId.isValid(categoryValue)
+        ? await Category.findOne({ _id: categoryValue })
+        : await Category.findOne({ $or: [{ slug: categoryValue.toLowerCase() }, { name: new RegExp(`^${categoryValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }] });
+      if (!category) throw new Error(`Category "${categoryValue}" was not found`);
+
+      const data = normalizeProductNumbers({
+        ...raw,
+        category: category._id,
+        isActive: raw.isActive === undefined || raw.isActive === '' ? false : raw.isActive,
+        description: String(raw.description || raw.name || '').trim(),
+        colorCode: String(raw.colorCode || '#000000'),
+        stock: raw.stock === undefined || raw.stock === '' ? 0 : raw.stock,
+      });
+      const product = await productService.createProductWithPlaceholder(data);
+      results.push({ row: rowNumber, sku: product.sku, success: true, productId: product._id.toString() });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not create product';
+      results.push({ row: rowNumber, sku: String((rawRow as Record<string, unknown>)?.sku || ''), success: false, error: message });
+    }
+  }
+
+  const created = results.filter((result) => result.success).length;
+  return ApiResponse.success(res, `Created ${created} of ${rows.length} products`, { created, failed: rows.length - created, results });
+});
+
 export const cloneProduct = asyncHandler(async (req: Request, res: Response) => {
   const product = await productService.cloneProduct(req.params.id);
   return ApiResponse.created(res, 'Product copied successfully', { product });

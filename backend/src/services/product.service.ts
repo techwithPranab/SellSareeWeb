@@ -68,6 +68,26 @@ export class ProductService {
     return product;
   }
 
+  async createProductWithPlaceholder(data: Partial<IProduct>): Promise<IProduct> {
+    if (data.sku) {
+      const existingSku = await productRepository.findBySku(data.sku);
+      if (existingSku) {
+        throw new CustomError(`Product with SKU ${data.sku} already exists`, HTTP_STATUS.CONFLICT);
+      }
+    }
+
+    return productRepository.create({
+      ...data,
+      images: [{
+        url: '/images/product-coming-soon.svg',
+        publicId: `placeholder:${String(data.sku || 'product')}`,
+        alt: data.name || 'Product image coming soon',
+        isDefault: true,
+        sortOrder: 0,
+      }],
+    });
+  }
+
   async cloneProduct(id: string): Promise<IProduct> {
     const source = await productRepository.findById(id, true);
     if (!source) {
@@ -91,6 +111,16 @@ export class ProductService {
 
     try {
       for (const [index, image] of source.images.entries()) {
+        if (image.publicId.startsWith('placeholder:')) {
+          copiedImages.push({
+            url: image.url,
+            publicId: `placeholder:${sku}`,
+            alt: image.alt || source.name,
+            isDefault: index === 0,
+            sortOrder: index,
+          });
+          continue;
+        }
         const result = await cloudinary.uploader.upload(image.url, {
           folder: getCloudinaryProductFolder(sku),
           transformation: [
@@ -151,7 +181,9 @@ export class ProductService {
       });
     } catch (error) {
       await Promise.all(copiedImages.map((image) =>
-        cloudinary.uploader.destroy(image.publicId).catch(console.error)
+        image.publicId.startsWith('placeholder:')
+          ? Promise.resolve()
+          : cloudinary.uploader.destroy(image.publicId).catch(console.error)
       ));
       throw error;
     }
@@ -239,7 +271,9 @@ export class ProductService {
     // Delete images from Cloudinary
     await Promise.all(
       product.images.map((img) =>
-        cloudinary.uploader.destroy(img.publicId).catch(console.error)
+        img.publicId.startsWith('placeholder:')
+          ? Promise.resolve()
+          : cloudinary.uploader.destroy(img.publicId).catch(console.error)
       )
     );
 
@@ -257,7 +291,9 @@ export class ProductService {
       throw new CustomError('Product image not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    await cloudinary.uploader.destroy(targetImage.publicId);
+    if (!targetImage.publicId.startsWith('placeholder:')) {
+      await cloudinary.uploader.destroy(targetImage.publicId);
+    }
 
     const images = product.images
       .filter((img) => img.publicId !== publicId)

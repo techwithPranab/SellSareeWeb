@@ -7,6 +7,7 @@ import { Plus, Search, Pencil, Trash2, Eye, Copy, Loader2 } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminPagination from '@/components/admin/AdminPagination';
+import BulkProductUpload from '@/components/admin/BulkProductUpload';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { formatPrice, getProductDefaultImage, getProductEffectivePrice, isProductComingSoon, asRoute } from '@/utils/helpers';
 import type { Product, PaginationMeta } from '@/types';
@@ -75,9 +76,9 @@ export default function AdminProductsPage() {
         title="Products"
         description="Manage your saree catalogue"
         action={
-          <Link href={asRoute('/admin/products/new')} className="btn-primary btn-sm flex items-center gap-1.5">
+          <div className="flex flex-wrap gap-2"><BulkProductUpload onComplete={loadProducts} /><Link href={asRoute('/admin/products/new')} className="btn-primary btn-sm flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Add Product
-          </Link>
+          </Link></div>
         }
       />
 
