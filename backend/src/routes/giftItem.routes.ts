@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { authenticate } from '../middlewares/auth.middleware';
+import { requireAdmin } from '../middlewares/role.middleware';
+import { createGiftItem, deleteGiftItem, getGiftItems, updateGiftItem } from '../controllers/giftItem.controller';
+const router = Router();
+router.use(authenticate, requireAdmin);
+router.get('/', getGiftItems);
+router.post('/', createGiftItem);
+router.put('/:id', updateGiftItem);
+router.delete('/:id', deleteGiftItem);
+export default router;

@@ -23,6 +23,7 @@ import launchRoutes from './routes/launch.routes';
 import settingRoutes from './routes/setting.routes';
 import expenseRoutes from './routes/expense.routes';
 import newsletterRoutes from './routes/newsletter.routes';
+import giftItemRoutes from './routes/giftItem.routes';
 
 // Load environment variables
 dotenv.config();
@@ -185,6 +186,7 @@ app.use(`${API_PREFIX}/launch`, launchRoutes);
 app.use(`${API_PREFIX}/settings`, settingRoutes);
 app.use(`${API_PREFIX}/expenses`, expenseRoutes);
 app.use(`${API_PREFIX}/newsletter`, newsletterRoutes);
+app.use(`${API_PREFIX}/gift-items`, giftItemRoutes);
 
 // ============================================================
 // ERROR HANDLING

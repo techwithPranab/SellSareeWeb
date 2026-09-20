@@ -67,7 +67,7 @@ export default function ProfitLossPage() {
           <MetricCard label="Gross Profit" value={current.grossProfit} previous={previous.grossProfit} icon={Scale} margin={current.grossMargin} />
           <MetricCard label="EBITDA" value={current.ebitda} previous={previous.ebitda} icon={Calculator} margin={current.ebitdaMargin} />
           <MetricCard label={current.netProfit >= 0 ? 'Net Profit' : 'Net Loss'} value={current.netProfit} previous={previous.netProfit} icon={current.netProfit >= 0 ? TrendingUp : TrendingDown} margin={current.netMargin} highlight />
-          <div className="rounded-2xl border border-border bg-white p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">Inventory Value</p><Scale className="h-4 w-4" /></div><p className="mt-2 text-2xl font-bold">{formatPrice(report!.inventory.value)}</p><p className="mt-2 text-xs text-muted-foreground">{report!.inventory.units} units across {report!.inventory.products} products</p></div>
+          <div className="rounded-2xl border border-border bg-white p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">Inventory Value</p><Scale className="h-4 w-4" /></div><p className="mt-2 text-2xl font-bold">{formatPrice(report!.inventory.value)}</p><div className="mt-2 space-y-1 text-xs text-muted-foreground"><p>Sarees: {report!.inventory.units} units · {formatPrice(report!.inventory.sareeValue)}</p><p>Gifts: {report!.inventory.giftUnits} units · {formatPrice(report!.inventory.giftValue)}</p></div></div>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-5">

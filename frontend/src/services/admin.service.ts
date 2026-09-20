@@ -36,6 +36,18 @@ export interface ProductStats {
   lowStockCount: number;
 }
 
+export interface GiftItem {
+  _id: string;
+  name: string;
+  sku: string;
+  stock: number;
+  unitCost: number;
+  isActive: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BulkProductResult {
   row: number;
   sku: string;
@@ -122,10 +134,27 @@ export interface ProfitLossReport {
   previous: ProfitLossMetrics;
   trend: Array<ProfitLossMetrics & { month: string }>;
   expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
-  inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number };
+  inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number; sareeValue: number; giftValue: number; giftUnits: number; giftItems: number };
 }
 
 export const adminService = {
+  async getGiftItems(activeOnly = false) {
+    const response = await api.get('/gift-items', { params: activeOnly ? { active: true } : undefined });
+    return response.data.data as { items: GiftItem[] };
+  },
+
+  async createGiftItem(data: Omit<GiftItem, '_id' | 'createdAt' | 'updatedAt'>) {
+    const response = await api.post('/gift-items', data);
+    return response.data.data as { item: GiftItem };
+  },
+
+  async updateGiftItem(id: string, data: Omit<GiftItem, '_id' | 'createdAt' | 'updatedAt'>) {
+    const response = await api.put(`/gift-items/${id}`, data);
+    return response.data.data as { item: GiftItem };
+  },
+
+  async deleteGiftItem(id: string) { await api.delete(`/gift-items/${id}`); },
+
   async getNewsletterSubscribers(params?: { page?: number; limit?: number; search?: string }) {
     const response = await api.get('/newsletter/admin/subscribers', { params });
     return response.data as PaginatedResponse<NewsletterSubscriber>;
@@ -259,6 +288,11 @@ export const adminService = {
     trackingInfo?: { courier: string; trackingNumber: string; trackingUrl?: string }
   ) {
     const response = await api.put(`/orders/${orderId}/status`, { status, trackingInfo });
+    return response.data.data as { order: Order };
+  },
+
+  async updateOrderGiftItems(orderId: string, giftItems: Array<{ giftItemId: string; quantity: number }>) {
+    const response = await api.put(`/orders/${orderId}/gift-items`, { giftItems });
     return response.data.data as { order: Order };
   },
 

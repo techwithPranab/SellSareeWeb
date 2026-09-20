@@ -12,6 +12,7 @@ import { logger } from '../middlewares/logger.middleware';
 import StoreSetting from '../models/StoreSetting';
 import Order from '../models/Order';
 import User from '../models/User';
+import GiftItem from '../models/GiftItem';
 
 export interface CreateOrderData {
   orderNumber?: string;
@@ -314,6 +315,9 @@ export class OrderService {
     for (const item of order.items) {
       await productRepository.releaseStock(item.product.toString(), item.quantity);
     }
+    for (const gift of order.giftItems || []) {
+      await GiftItem.findByIdAndUpdate(gift.giftItem, { $inc: { stock: gift.quantity } });
+    }
 
     // Restore loyalty points if redeemed
     if (order.loyaltyPointsRedeemed > 0) {
@@ -324,6 +328,7 @@ export class OrderService {
       status: OrderStatus.CANCELLED,
       cancelReason: reason,
       inventoryRestored: true,
+      giftItems: [],
     } as Partial<IOrder>);
 
     return updated!;
@@ -371,6 +376,10 @@ export class OrderService {
     }
 
     const updates: Partial<IOrder> = { status };
+    if (status === OrderStatus.CANCELLED && (order.giftItems || []).length > 0) {
+      await Promise.all(order.giftItems.map((gift) => GiftItem.findByIdAndUpdate(gift.giftItem, { $inc: { stock: gift.quantity } })));
+      updates.giftItems = [];
+    }
     if (status === OrderStatus.DELIVERED && !order.deliveredAt) {
       updates.deliveredAt = new Date();
     }

@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import Expense, { EXPENSE_CATEGORIES, INVESTMENT_CATEGORIES } from '../models/Expense';
 import Order from '../models/Order';
 import Product from '../models/Product';
+import GiftItem from '../models/GiftItem';
 import { OrderStatus, PaymentStatus } from '../constants';
 import { ApiResponse } from '../utils/apiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -280,7 +281,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     { $sort: { _id: 1 as const } },
   ];
 
-  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory] = await Promise.all([
+  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory] = await Promise.all([
     Order.aggregate(revenuePipeline(from, to)),
     Expense.aggregate(expensePipeline(from, to)),
     Order.aggregate(soldCostPipeline(from, to)),
@@ -301,6 +302,10 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     Product.aggregate([
       { $match: { stock: { $gt: 0 } } },
       { $group: { _id: null, value: { $sum: { $multiply: ['$stock', { $ifNull: ['$buyPrice', 0] }] } }, units: { $sum: '$stock' }, products: { $sum: 1 }, missingBuyPriceProducts: { $sum: { $cond: [{ $eq: [{ $ifNull: ['$buyPrice', null] }, null] }, 1, 0] } } } },
+    ]),
+    GiftItem.aggregate([
+      { $match: { stock: { $gt: 0 } } },
+      { $group: { _id: null, value: { $sum: { $multiply: ['$stock', '$unitCost'] } }, units: { $sum: '$stock' }, items: { $sum: 1 } } },
     ]),
   ]);
 
@@ -328,10 +333,14 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     trend,
     expensesByCategory: expenses,
     inventory: {
-      value: inventory[0]?.value || 0,
+      value: (inventory[0]?.value || 0) + (giftInventory[0]?.value || 0),
       units: inventory[0]?.units || 0,
       products: inventory[0]?.products || 0,
       missingBuyPriceProducts: inventory[0]?.missingBuyPriceProducts || 0,
+      sareeValue: inventory[0]?.value || 0,
+      giftValue: giftInventory[0]?.value || 0,
+      giftUnits: giftInventory[0]?.units || 0,
+      giftItems: giftInventory[0]?.items || 0,
     },
   });
 });

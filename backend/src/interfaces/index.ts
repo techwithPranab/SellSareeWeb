@@ -152,6 +152,14 @@ export interface IOrderItem {
   unitBuyPrice?: number;
 }
 
+export interface IOrderGiftItem {
+  giftItem: Types.ObjectId;
+  name: string;
+  sku: string;
+  quantity: number;
+  unitCost: number;
+}
+
 export interface IShippingInfo {
   fullName: string;
   phone: string;
@@ -189,6 +197,7 @@ export interface IOrder extends Document {
   orderNumber: string;
   user: Types.ObjectId;
   items: IOrderItem[];
+  giftItems: IOrderGiftItem[];
   shippingAddress: IShippingInfo;
   paymentInfo: IPaymentInfo;
   trackingInfo?: ITrackingInfo;

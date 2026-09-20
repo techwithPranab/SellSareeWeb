@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Loader2, RotateCcw, CreditCard, AlertTriangle, CheckCircle2, Printer } from 'lucide-react';
-import { adminService, type StoreSettings } from '@/services/admin.service';
+import { adminService, type GiftItem, type StoreSettings } from '@/services/admin.service';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { formatPrice, formatDate, formatPaymentMethod } from '@/utils/helpers';
@@ -70,6 +70,9 @@ export default function AdminOrderDetailPage() {
   const [refundAmount, setRefundAmount] = useState<number>(0);
   const [initiatingRefund, setInitiatingRefund] = useState(false);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [giftInventory, setGiftInventory] = useState<GiftItem[]>([]);
+  const [giftQuantities, setGiftQuantities] = useState<Record<string, number>>({});
+  const [savingGifts, setSavingGifts] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -81,6 +84,7 @@ export default function AdminOrderDetailPage() {
           setCourier(res.order.trackingInfo?.courier ?? '');
           setTrackingNumber(res.order.trackingInfo?.trackingNumber ?? '');
           setRefundAmount(res.order.totalAmount);
+          setGiftQuantities(Object.fromEntries((res.order.giftItems || []).map((item) => [item.giftItem, item.quantity])));
         })
         .catch(() => toast.error('Failed to load order'))
         .finally(() => setLoading(false));
@@ -88,7 +92,23 @@ export default function AdminOrderDetailPage() {
     adminService.getStoreSettings()
       .then(({ settings }) => setStoreSettings(settings))
       .catch(() => toast.error('Failed to load store settings for the dispatch label'));
+    adminService.getGiftItems(true).then(({ items }) => setGiftInventory(items)).catch(() => toast.error('Failed to load gift inventory'));
   }, [id]);
+
+  const handleSaveGifts = async () => {
+    if (!order) return;
+    setSavingGifts(true);
+    try {
+      const giftItems = Object.entries(giftQuantities).filter(([, quantity]) => quantity > 0).map(([giftItemId, quantity]) => ({ giftItemId, quantity }));
+      const { order: updated } = await adminService.updateOrderGiftItems(order._id, giftItems);
+      setOrder(updated);
+      setGiftQuantities(Object.fromEntries((updated.giftItems || []).map((item) => [item.giftItem, item.quantity])));
+      setGiftInventory((await adminService.getGiftItems(true)).items);
+      toast.success('Gift items updated');
+    } catch (error: unknown) {
+      toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Could not update gift items');
+    } finally { setSavingGifts(false); }
+  };
 
   const handleUpdateStatus = async () => {
     if (!id || !order) return;
@@ -362,6 +382,11 @@ export default function AdminOrderDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-white p-4 sm:p-6">
+            <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold text-foreground">Gift Items</h2><p className="mt-1 text-xs text-muted-foreground">Included free with this order</p></div></div>
+            {['pending', 'confirmed', 'processing'].includes(order.status) ? <div className="space-y-3">{giftInventory.length === 0 ? <p className="rounded-xl bg-surface p-4 text-sm text-muted-foreground">No active gift inventory is available.</p> : giftInventory.map((gift) => { const assigned = giftQuantities[gift._id] || 0; return <div key={gift._id} className="flex items-center gap-3 rounded-xl border border-border p-3"><div className="min-w-0 flex-1"><p className="font-medium">{gift.name}</p><p className="text-xs text-muted-foreground">{gift.sku} · {gift.stock} available{assigned ? ` + ${assigned} assigned` : ''}</p></div><input type="number" min="0" max={gift.stock + assigned} value={assigned} onChange={(event) => setGiftQuantities((current) => ({ ...current, [gift._id]: Math.max(0, Number(event.target.value) || 0) }))} className="input-field w-24 py-2 text-center" aria-label={`Quantity of ${gift.name}`} /></div>; })}<button type="button" onClick={handleSaveGifts} disabled={savingGifts} className="btn-primary btn-sm">{savingGifts ? 'Saving…' : 'Save Gift Items'}</button></div> : (order.giftItems || []).length ? <div className="space-y-2">{order.giftItems!.map((gift) => <div key={gift.giftItem} className="flex justify-between rounded-lg bg-surface px-3 py-2 text-sm"><span>{gift.name} <span className="text-muted-foreground">({gift.sku})</span></span><span className="font-semibold">× {gift.quantity}</span></div>)}</div> : <p className="text-sm text-muted-foreground">No gift items assigned.</p>}
           </div>
 
           {/* Return Details Card — visible when status is return-related */}

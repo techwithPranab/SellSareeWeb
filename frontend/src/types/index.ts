@@ -250,6 +250,13 @@ export interface OrderItem {
   subtotal: number;
 }
 
+export interface OrderGiftItem {
+  giftItem: string;
+  name: string;
+  sku: string;
+  quantity: number;
+}
+
 export interface ShippingAddress {
   fullName: string;
   phone: string;
@@ -285,6 +292,7 @@ export interface Order {
   orderNumber: string;
   user: User | string;
   items: OrderItem[];
+  giftItems?: OrderGiftItem[];
   shippingAddress: ShippingAddress;
   paymentInfo: PaymentInfo;
   trackingInfo?: TrackingInfo;

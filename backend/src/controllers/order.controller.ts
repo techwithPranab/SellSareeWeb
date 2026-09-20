@@ -8,6 +8,8 @@ import Order from '../models/Order';
 import User from '../models/User';
 import { cloudinary, getCloudinaryPaymentFolder } from '../config/cloudinary';
 import { generateOrderNumber } from '../utils/generateToken';
+import GiftItem from '../models/GiftItem';
+import { Types } from 'mongoose';
 
 // ========================= PUBLIC =========================
 
@@ -191,6 +193,54 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
 
   const order = await orderService.updateOrderStatus(req.params.id, status, trackingInfo);
   return ApiResponse.success(res, 'Order status updated', { order });
+});
+
+export const updateOrderGiftItems = asyncHandler(async (req: Request, res: Response) => {
+  const requested = req.body.giftItems;
+  if (!Array.isArray(requested)) return ApiResponse.badRequest(res, 'Gift items must be an array');
+  if (requested.some((item) => !Types.ObjectId.isValid(String(item.giftItemId)) || !Number.isSafeInteger(item.quantity) || item.quantity < 1)) {
+    return ApiResponse.badRequest(res, 'Each gift item must have a valid ID and positive whole-number quantity');
+  }
+  const ids = requested.map((item) => String(item.giftItemId));
+  if (new Set(ids).size !== ids.length) return ApiResponse.badRequest(res, 'Each gift item can only appear once');
+
+  const order = await Order.findById(req.params.id).select('+giftItems.unitCost');
+  if (!order) return ApiResponse.notFound(res, 'Order not found');
+  if (![OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PROCESSING].includes(order.status)) {
+    return ApiResponse.badRequest(res, 'Gifts can only be changed before an order is shipped');
+  }
+
+  const gifts = await GiftItem.find({ _id: { $in: ids }, isActive: true });
+  if (gifts.length !== ids.length) return ApiResponse.badRequest(res, 'One or more gift items are unavailable');
+  const giftMap = new Map(gifts.map((gift) => [gift._id.toString(), gift]));
+  const oldQuantities = new Map((order.giftItems || []).map((item) => [item.giftItem.toString(), item.quantity]));
+  const newQuantities = new Map(requested.map((item) => [String(item.giftItemId), item.quantity as number]));
+  const allIds = new Set([...oldQuantities.keys(), ...newQuantities.keys()]);
+  const applied: Array<{ id: string; delta: number }> = [];
+
+  try {
+    for (const id of allIds) {
+      const delta = (newQuantities.get(id) || 0) - (oldQuantities.get(id) || 0);
+      if (delta > 0) {
+        const reserved = await GiftItem.findOneAndUpdate({ _id: id, stock: { $gte: delta }, isActive: true }, { $inc: { stock: -delta } });
+        if (!reserved) throw new Error(`Insufficient stock for ${giftMap.get(id)?.name || 'gift item'}`);
+      } else if (delta < 0) {
+        await GiftItem.findByIdAndUpdate(id, { $inc: { stock: -delta } });
+      }
+      if (delta) applied.push({ id, delta });
+    }
+
+    order.giftItems = requested.map((item) => {
+      const gift = giftMap.get(String(item.giftItemId))!;
+      return { giftItem: gift._id, name: gift.name, sku: gift.sku, quantity: item.quantity, unitCost: gift.unitCost };
+    }) as typeof order.giftItems;
+    await order.save();
+  } catch (error) {
+    await Promise.all(applied.map(({ id, delta }) => GiftItem.findByIdAndUpdate(id, { $inc: { stock: delta } })));
+    return ApiResponse.badRequest(res, error instanceof Error ? error.message : 'Could not update gift items');
+  }
+
+  return ApiResponse.success(res, 'Order gift items updated', { order });
 });
 
 export const getOrderDashboardStats = asyncHandler(async (_req: Request, res: Response) => {

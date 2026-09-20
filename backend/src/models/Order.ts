@@ -20,6 +20,14 @@ const OrderItemSchema = new Schema(
   { _id: true }
 );
 
+const OrderGiftItemSchema = new Schema({
+  giftItem: { type: Schema.Types.ObjectId, ref: 'GiftItem', required: true },
+  name: { type: String, required: true },
+  sku: { type: String, required: true },
+  quantity: { type: Number, required: true, min: 1 },
+  unitCost: { type: Number, required: true, min: 0, select: false },
+}, { _id: false });
+
 const ShippingInfoSchema = new Schema(
   {
     fullName: { type: String, required: true },
@@ -75,6 +83,11 @@ const hideInternalOrderCosts = (_doc: unknown, ret: Record<string, unknown>) => 
       if (item && typeof item === 'object') delete (item as Record<string, unknown>).unitBuyPrice;
     });
   }
+  if (Array.isArray(ret.giftItems)) {
+    ret.giftItems.forEach((item) => {
+      if (item && typeof item === 'object') delete (item as Record<string, unknown>).unitCost;
+    });
+  }
   return ret;
 };
 
@@ -90,6 +103,7 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
     },
     items: { type: [OrderItemSchema], required: true },
+    giftItems: { type: [OrderGiftItemSchema], default: [] },
     shippingAddress: { type: ShippingInfoSchema, required: true },
     paymentInfo: { type: PaymentInfoSchema, required: true },
     trackingInfo: { type: TrackingInfoSchema },

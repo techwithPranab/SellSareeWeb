@@ -17,6 +17,7 @@ import {
   createOrderForCustomer,
   submitManualPaymentProof,
   confirmManualPayment,
+  updateOrderGiftItems,
 } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -51,6 +52,7 @@ router.get('/', getAllOrders);
 router.get('/admin/stats', getOrderDashboardStats);
 router.get('/admin/:id', getAdminOrderById);
 router.put('/:id/status', updateOrderStatus);
+router.put('/:id/gift-items', updateOrderGiftItems);
 router.post('/:id/refund', initiateRefund);
 
 export default router;

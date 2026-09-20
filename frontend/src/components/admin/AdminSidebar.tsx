@@ -21,6 +21,7 @@ import {
   ReceiptIndianRupee,
   TrendingUp,
   Mail,
+  Gift,
 } from 'lucide-react';
 import { cn, asRoute } from '@/utils/helpers';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/products', label: 'Products', icon: ShoppingBag },
+  { href: '/admin/gift-items', label: 'Gift Inventory', icon: Gift },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
   { href: '/admin/orders', label: 'Orders', icon: Package },
   { href: '/admin/customers', label: 'Customers', icon: Users },
