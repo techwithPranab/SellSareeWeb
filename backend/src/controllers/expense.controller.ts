@@ -280,6 +280,21 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     },
     { $sort: { _id: 1 as const } },
   ];
+  const profitabilityOrderMatch = (start: Date, end: Date) => ({
+    $match: {
+      status: { $ne: OrderStatus.CANCELLED },
+      $or: [
+        { 'paymentInfo.status': PaymentStatus.COMPLETED },
+        { status: OrderStatus.PENDING },
+      ],
+      $expr: {
+        $and: [
+          { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, start] },
+          { $lte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, end] },
+        ],
+      },
+    },
+  });
 
   const lifetimeStart = new Date(0);
   const lifetimeEnd = endOfIndiaDay();
@@ -310,7 +325,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $group: { _id: null, value: { $sum: { $multiply: ['$stock', '$unitCost'] } }, units: { $sum: '$stock' }, items: { $sum: 1 } } },
     ]),
     Order.aggregate([
-      ...revenuePipeline(from, to).slice(0, 1),
+      profitabilityOrderMatch(from, to),
       { $unwind: '$items' },
       { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'costProduct' } },
       { $unwind: { path: '$costProduct', preserveNullAndEmptyArrays: true } },
@@ -319,6 +334,8 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
         orderNumber: { $first: '$orderNumber' },
         orderDate: { $first: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] } },
         customerId: { $first: '$user' },
+        status: { $first: '$status' },
+        paymentStatus: { $first: '$paymentInfo.status' },
         revenue: { $first: '$totalAmount' },
         sareeCount: { $sum: '$items.quantity' },
         buyPrice: { $sum: { $multiply: ['$items.quantity', { $ifNull: ['$items.unitBuyPrice', { $ifNull: ['$costProduct.buyPrice', 0] }] }] } },
@@ -326,12 +343,12 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       } },
       { $lookup: { from: 'users', localField: 'customerId', foreignField: '_id', as: 'customer' } },
       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-      { $project: { orderNumber: 1, orderDate: 1, revenue: 1, sareeCount: 1, buyPrice: 1, missingBuyPriceUnits: 1, customerName: { $ifNull: ['$customer.name', 'Unknown customer'] } } },
+      { $project: { orderNumber: 1, orderDate: 1, status: 1, paymentStatus: 1, revenue: 1, sareeCount: 1, buyPrice: 1, missingBuyPriceUnits: 1, customerName: { $ifNull: ['$customer.name', 'Unknown customer'] } } },
       { $sort: { orderDate: -1 } },
     ]),
     Expense.aggregate(expensePipeline(lifetimeStart, lifetimeEnd)),
     Order.aggregate([
-      ...revenuePipeline(lifetimeStart, lifetimeEnd).slice(0, 1),
+      profitabilityOrderMatch(lifetimeStart, lifetimeEnd),
       { $unwind: '$items' },
       { $group: { _id: null, units: { $sum: '$items.quantity' } } },
     ]),
@@ -358,7 +375,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
   const allocationInventoryUnits = inStockInventoryUnits + soldInventoryUnits;
   const allocationOperatingExpenses = pnlValues(0, categoryMap(lifetimeExpenses)).operatingExpenses;
   const averageOtherExpense = allocationInventoryUnits > 0 ? allocationOperatingExpenses / allocationInventoryUnits : 0;
-  const orderProfitability = orderProfitRows.map((row: { _id: Types.ObjectId; orderNumber: string; orderDate: Date; customerName: string; revenue: number; sareeCount: number; buyPrice: number; missingBuyPriceUnits: number }) => {
+  const orderProfitability = orderProfitRows.map((row: { _id: Types.ObjectId; orderNumber: string; orderDate: Date; customerName: string; status: string; paymentStatus: string; revenue: number; sareeCount: number; buyPrice: number; missingBuyPriceUnits: number }) => {
     const allocatedOtherExpense = averageOtherExpense * row.sareeCount;
     const netProfit = row.revenue - row.buyPrice - allocatedOtherExpense;
     return { ...row, _id: row._id.toString(), allocatedOtherExpense, netProfit, netMargin: row.revenue ? (netProfit / row.revenue) * 100 : 0 };

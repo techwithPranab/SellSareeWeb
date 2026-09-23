@@ -141,7 +141,7 @@ export interface ProfitLossReport {
     allocationInventoryUnits: number;
     inStockInventoryUnits: number;
     soldInventoryUnits: number;
-    orders: Array<{ _id: string; orderNumber: string; orderDate: string; customerName: string; revenue: number; sareeCount: number; buyPrice: number; allocatedOtherExpense: number; netProfit: number; netMargin: number; missingBuyPriceUnits: number }>;
+    orders: Array<{ _id: string; orderNumber: string; orderDate: string; customerName: string; status: string; paymentStatus: string; revenue: number; sareeCount: number; buyPrice: number; allocatedOtherExpense: number; netProfit: number; netMargin: number; missingBuyPriceUnits: number }>;
   };
 }
 
