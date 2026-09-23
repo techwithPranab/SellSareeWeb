@@ -136,6 +136,9 @@ function StatementRow({ label, value, strong = false, divider = false, final = f
 function EmptyState() { return <p className="py-16 text-center text-sm text-muted-foreground">No financial activity found for this period.</p>; }
 
 function OrderProfitability({ report }: { report: ProfitLossReport }) {
+  if (!report.orderProfitability) {
+    return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800"><p className="font-semibold">Order profitability data is not available yet.</p><p className="mt-1">Restart the backend server, then refresh this page so the updated Profit &amp; Loss API is loaded.</p></div>;
+  }
   const { orders, averageOtherExpense, allocationOperatingExpenses, allocationInventoryUnits, inStockInventoryUnits, soldInventoryUnits } = report.orderProfitability;
   return <div className="space-y-4">
     <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Lifetime operating expenses</p><p className="mt-1 text-xl font-bold">{formatPrice(allocationOperatingExpenses)}</p><p className="mt-1 text-xs text-muted-foreground">From beginning through today</p></div><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Lifetime inventory units</p><p className="mt-1 text-xl font-bold">{allocationInventoryUnits}</p><p className="mt-1 text-xs text-muted-foreground">{soldInventoryUnits} sold + {inStockInventoryUnits} in stock</p></div><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Average expense per saree</p><p className="mt-1 text-xl font-bold">{formatPrice(averageOtherExpense)}</p></div></div>
