@@ -280,7 +280,7 @@ export const adminService = {
   },
 
   // ── Orders ─────────────────────────────────────────────────────────────────
-  async getOrders(params?: { page?: number; limit?: number; status?: string; search?: string; paymentStatus?: string; paymentMethod?: string; from?: string; to?: string }) {
+  async getOrders(params?: { page?: number; limit?: number; status?: string; search?: string; customerId?: string; paymentStatus?: string; paymentMethod?: string; from?: string; to?: string }) {
     const response = await api.get('/orders', { params });
     return response.data as PaginatedResponse<Order>;
   },

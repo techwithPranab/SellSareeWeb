@@ -168,7 +168,7 @@ export const getAdminOrderById = asyncHandler(async (req: Request, res: Response
 });
 
 export const getAllOrders = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, sortBy, sortOrder, status, search, paymentStatus, paymentMethod, from, to } = req.query;
+  const { page, limit, sortBy, sortOrder, status, search, customerId, paymentStatus, paymentMethod, from, to } = req.query;
 
   const fromDate = from ? new Date(`${String(from)}T00:00:00+05:30`) : undefined;
   const toDate = to ? new Date(`${String(to)}T23:59:59.999+05:30`) : undefined;
@@ -180,12 +180,12 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response) => 
   if (search && String(search).trim()) {
     const escaped = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(escaped, 'i');
-    const users = await User.find({ $or: [{ name: pattern }, { email: pattern }, { phone: pattern }] }).select('_id').limit(100);
-    searchFilter = { $or: [{ orderNumber: pattern }, { user: { $in: users.map((user) => user._id) } }] };
+    searchFilter = { orderNumber: pattern };
   }
 
   const filter = {
     ...(status && { status }),
+    ...(customerId && Types.ObjectId.isValid(String(customerId)) && { user: new Types.ObjectId(String(customerId)) }),
     ...(paymentStatus && { 'paymentInfo.status': paymentStatus }),
     ...(paymentMethod && { 'paymentInfo.method': paymentMethod }),
     ...((fromDate || toDate) && { createdAt: { ...(fromDate && { $gte: fromDate }), ...(toDate && { $lte: toDate }) } }),
@@ -199,7 +199,7 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response) => 
     sortOrder: sortOrder as 'asc' | 'desc',
   });
 
-  ApiResponse.paginated(res, 'All orders retrieved', result.data, result.meta);
+  return ApiResponse.paginated(res, 'All orders retrieved', result.data, result.meta);
 });
 
 export const updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {

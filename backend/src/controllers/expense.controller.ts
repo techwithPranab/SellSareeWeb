@@ -348,7 +348,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     ]),
     Expense.aggregate(expensePipeline(lifetimeStart, lifetimeEnd)),
     Order.aggregate([
-      profitabilityOrderMatch(lifetimeStart, lifetimeEnd),
+      { $match: { status: { $ne: OrderStatus.CANCELLED }, createdAt: { $lte: lifetimeEnd } } },
       { $unwind: '$items' },
       { $group: { _id: null, units: { $sum: '$items.quantity' } } },
     ]),

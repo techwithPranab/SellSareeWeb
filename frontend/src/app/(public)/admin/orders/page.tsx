@@ -12,6 +12,8 @@ import type { Order, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
 import { Plus, Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import Select from 'react-select';
+import type { User } from '@/types';
 
 const STATUS_FILTERS: Array<{ label: string; value: string }> = [
   { label: 'All', value: '' },
@@ -30,6 +32,8 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [customers, setCustomers] = useState<User[]>([]);
+  const [customerId, setCustomerId] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [from, setFrom] = useState('');
@@ -40,7 +44,7 @@ export default function AdminOrdersPage() {
   const loadOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getOrders({ page, limit: 15, status: status || undefined, search: debouncedSearch || undefined, paymentStatus: paymentStatus || undefined, paymentMethod: paymentMethod || undefined, from: from || undefined, to: to || undefined });
+      const res = await adminService.getOrders({ page, limit: 15, status: status || undefined, search: debouncedSearch || undefined, customerId: customerId || undefined, paymentStatus: paymentStatus || undefined, paymentMethod: paymentMethod || undefined, from: from || undefined, to: to || undefined });
       setOrders(res.data ?? []);
       setPagination(res.meta?.pagination ?? null);
     } catch {
@@ -48,9 +52,16 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, from, page, paymentMethod, paymentStatus, status, to]);
+  }, [customerId, debouncedSearch, from, page, paymentMethod, paymentStatus, status, to]);
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
+  useEffect(() => {
+    adminService.getCustomers({ page: 1, limit: 100, role: 'customer' })
+      .then((response) => setCustomers(response.data ?? []))
+      .catch(() => toast.error('Could not load customers for filtering'));
+  }, []);
+
+  const customerOptions = customers.map((customer) => ({ value: customer._id, label: `${customer.name} — ${customer.phone || customer.email}` }));
 
   return (
     <div>
@@ -81,14 +92,15 @@ export default function AdminOrdersPage() {
           ))}
         </div>
         <div className="border-b border-border bg-surface/30 p-4">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <div className="relative sm:col-span-2 xl:col-span-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Order, customer, email…" className="input-field py-2 pl-9 text-sm" /></div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+            <div className="relative"><Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search order number…" className="input-field py-2 pl-9 text-sm" /></div>
+            <Select options={customerOptions} value={customerOptions.find((option) => option.value === customerId) || null} onChange={(option) => { setCustomerId(option?.value || ''); setPage(1); }} isClearable isSearchable placeholder="Search customer…" noOptionsMessage={() => 'No customers found'} instanceId="admin-order-customer-filter" className="text-sm" styles={{ control: (base) => ({ ...base, minHeight: 42, borderColor: '#e8d5c4', borderRadius: 8, boxShadow: 'none' }), menu: (base) => ({ ...base, zIndex: 30 }) }} />
             <select value={paymentStatus} onChange={(event) => { setPaymentStatus(event.target.value); setPage(1); }} className="input-field py-2 text-sm" aria-label="Payment status"><option value="">All payment statuses</option><option value="pending">Payment pending</option><option value="processing">Payment processing</option><option value="completed">Paid</option><option value="failed">Payment failed</option><option value="refunded">Refunded</option><option value="partially_refunded">Partially refunded</option></select>
             <select value={paymentMethod} onChange={(event) => { setPaymentMethod(event.target.value); setPage(1); }} className="input-field py-2 text-sm" aria-label="Payment method"><option value="">All payment methods</option><option value="upi">UPI</option><option value="razorpay">Razorpay</option><option value="wallet">Wallet</option></select>
             <div><label className="sr-only" htmlFor="order-from">From date</label><input id="order-from" type="date" value={from} max={to || undefined} onChange={(event) => { setFrom(event.target.value); setPage(1); }} className="input-field py-2 text-sm" title="From date" /></div>
             <div><label className="sr-only" htmlFor="order-to">To date</label><input id="order-to" type="date" value={to} min={from || undefined} onChange={(event) => { setTo(event.target.value); setPage(1); }} className="input-field py-2 text-sm" title="To date" /></div>
           </div>
-          {(search || paymentStatus || paymentMethod || from || to) && <button type="button" onClick={() => { setSearch(''); setPaymentStatus(''); setPaymentMethod(''); setFrom(''); setTo(''); setPage(1); }} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"><X className="h-3.5 w-3.5" />Clear additional filters</button>}
+          {(search || customerId || paymentStatus || paymentMethod || from || to) && <button type="button" onClick={() => { setSearch(''); setCustomerId(''); setPaymentStatus(''); setPaymentMethod(''); setFrom(''); setTo(''); setPage(1); }} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"><X className="h-3.5 w-3.5" />Clear additional filters</button>}
         </div>
 
         {loading ? (
