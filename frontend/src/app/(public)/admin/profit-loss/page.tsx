@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, Calculator, FileDown, RefreshCw, Scale, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Calculator, Clock3, FileDown, RefreshCw, Scale, TrendingDown, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -65,11 +65,12 @@ export default function ProfitLossPage() {
       {current && previous && <>
         <div className="flex w-fit rounded-xl border border-border bg-white p-1 text-sm font-medium"><button type="button" onClick={() => setView('summary')} className={`rounded-lg px-4 py-2 ${view === 'summary' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-surface'}`}>Business Summary</button><button type="button" onClick={() => setView('orders')} className={`rounded-lg px-4 py-2 ${view === 'orders' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-surface'}`}>Order Profitability</button></div>
         {view === 'summary' ? <>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           <MetricCard label="Revenue" value={current.revenue} previous={previous.revenue} icon={TrendingUp} />
           <MetricCard label="Gross Profit" value={current.grossProfit} previous={previous.grossProfit} icon={Scale} margin={current.grossMargin} />
           <MetricCard label="EBITDA" value={current.ebitda} previous={previous.ebitda} icon={Calculator} margin={current.ebitdaMargin} />
           <MetricCard label={current.netProfit >= 0 ? 'Net Profit' : 'Net Loss'} value={current.netProfit} previous={previous.netProfit} icon={current.netProfit >= 0 ? TrendingUp : TrendingDown} margin={current.netMargin} highlight />
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-amber-800">Unrealized Revenue</p><Clock3 className="h-4 w-4 text-amber-700" /></div><p className="mt-2 text-2xl font-bold text-amber-900">{formatPrice(report!.unrealizedRevenue?.amount || 0)}</p><p className="mt-2 text-xs text-amber-700">Pending across {report!.unrealizedRevenue?.orders || 0} orders · lifetime</p></div>
           <div className="rounded-2xl border border-border bg-white p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">Inventory Value</p><Scale className="h-4 w-4" /></div><p className="mt-2 text-2xl font-bold">{formatPrice(report!.inventory.value)}</p><div className="mt-2 space-y-1 text-xs text-muted-foreground"><p>Sarees: {report!.inventory.units} units · {formatPrice(report!.inventory.sareeValue)}</p><p>Gifts: {report!.inventory.giftUnits} units · {formatPrice(report!.inventory.giftValue)}</p></div></div>
         </div>
 
@@ -94,7 +95,7 @@ export default function ProfitLossPage() {
           <section className="rounded-2xl border border-border bg-white p-5 xl:col-span-2">
             <h2 className="font-semibold">Income Statement</h2>
             <p className="mb-4 mt-1 text-xs text-muted-foreground">For the selected period</p>
-            <Statement metrics={current} expensesByCategory={report!.expensesByCategory} />
+            <Statement metrics={current} expensesByCategory={report!.expensesByCategory} unrealizedRevenue={report!.unrealizedRevenue?.amount || 0} />
           </section>
         </div>
 
@@ -122,11 +123,11 @@ function MetricCard({ label, value, previous, icon: Icon, margin, highlight = fa
   return <div className={`rounded-2xl border p-5 ${highlight ? value >= 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' : 'border-border bg-white'}`}><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">{label}</p><Icon className="h-4 w-4" /></div><p className={`mt-2 text-2xl font-bold ${value < 0 ? 'text-red-600' : ''}`}>{formatPrice(value)}</p><div className="mt-2 flex flex-wrap items-center gap-2 text-xs">{margin !== undefined && <span className="rounded-full bg-white/70 px-2 py-0.5 font-medium">{margin.toFixed(1)}% margin</span>}{change !== null && <span className={`inline-flex items-center ${positive ? 'text-green-700' : 'text-red-600'}`}>{positive ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(change).toFixed(1)}% vs previous period</span>}</div></div>;
 }
 
-function Statement({ metrics, expensesByCategory }: { metrics: ProfitLossMetrics; expensesByCategory: ProfitLossReport['expensesByCategory'] }) {
+function Statement({ metrics, expensesByCategory, unrealizedRevenue }: { metrics: ProfitLossMetrics; expensesByCategory: ProfitLossReport['expensesByCategory']; unrealizedRevenue: number }) {
   const nonOperatingCategories = new Set(['Inventory', 'Interest', 'Taxes', 'Depreciation & Amortization']);
   const operatingExpenses = expensesByCategory.filter((item) => !nonOperatingCategories.has(item._id));
 
-  return <div className="text-sm"><StatementRow label="Revenue" value={metrics.revenue} strong /><StatementRow label="Cost of sold products" value={-metrics.costOfGoodsSold} /><StatementRow label="Gross profit" value={metrics.grossProfit} strong divider /><StatementRow label="Operating expenses" value={-metrics.operatingExpenses} strong />{operatingExpenses.length > 0 && <div className="mb-2 rounded-lg bg-surface px-3 py-1">{operatingExpenses.map((item) => <div key={item._id} className="flex items-center justify-between gap-4 border-b border-border/60 py-2 text-xs last:border-0"><span className="text-muted-foreground">{item._id} <span className="opacity-70">({item.count})</span></span><span className="font-medium text-red-600">−{formatPrice(item.amount)}</span></div>)}</div>}<StatementRow label="EBITDA" value={metrics.ebitda} strong divider /><StatementRow label="Depreciation & amortization" value={-metrics.depreciationAndAmortization} /><StatementRow label="EBIT" value={metrics.ebit} strong divider /><StatementRow label="Interest" value={-metrics.interest} /><StatementRow label="Profit before tax" value={metrics.profitBeforeTax} strong divider /><StatementRow label="Taxes" value={-metrics.taxes} /><StatementRow label="Net profit / loss" value={metrics.netProfit} strong final /></div>;
+  return <div className="text-sm"><StatementRow label="Realized revenue" value={metrics.revenue} strong /><div className="flex items-center justify-between gap-4 rounded-lg bg-amber-50 px-3 py-2.5 text-amber-800"><span><span className="font-medium">Unrealized revenue</span><span className="block text-[10px]">Not included in profit calculations</span></span><span className="font-semibold">{formatPrice(unrealizedRevenue)}</span></div><StatementRow label="Cost of sold products" value={-metrics.costOfGoodsSold} /><StatementRow label="Gross profit" value={metrics.grossProfit} strong divider /><StatementRow label="Operating expenses" value={-metrics.operatingExpenses} strong />{operatingExpenses.length > 0 && <div className="mb-2 rounded-lg bg-surface px-3 py-1">{operatingExpenses.map((item) => <div key={item._id} className="flex items-center justify-between gap-4 border-b border-border/60 py-2 text-xs last:border-0"><span className="text-muted-foreground">{item._id} <span className="opacity-70">({item.count})</span></span><span className="font-medium text-red-600">−{formatPrice(item.amount)}</span></div>)}</div>}<StatementRow label="EBITDA" value={metrics.ebitda} strong divider /><StatementRow label="Depreciation & amortization" value={-metrics.depreciationAndAmortization} /><StatementRow label="EBIT" value={metrics.ebit} strong divider /><StatementRow label="Interest" value={-metrics.interest} /><StatementRow label="Profit before tax" value={metrics.profitBeforeTax} strong divider /><StatementRow label="Taxes" value={-metrics.taxes} /><StatementRow label="Net profit / loss" value={metrics.netProfit} strong final /></div>;
 }
 
 function StatementRow({ label, value, strong = false, divider = false, final = false }: { label: string; value: number; strong?: boolean; divider?: boolean; final?: boolean }) {

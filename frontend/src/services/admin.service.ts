@@ -134,6 +134,7 @@ export interface ProfitLossReport {
   previous: ProfitLossMetrics;
   trend: Array<ProfitLossMetrics & { month: string }>;
   expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
+  unrealizedRevenue: { amount: number; orders: number };
   inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number; sareeValue: number; giftValue: number; giftUnits: number; giftItems: number };
   orderProfitability: {
     averageOtherExpense: number;
