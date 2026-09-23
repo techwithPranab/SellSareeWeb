@@ -137,7 +137,10 @@ export interface ProfitLossReport {
   inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number; sareeValue: number; giftValue: number; giftUnits: number; giftItems: number };
   orderProfitability: {
     averageOtherExpense: number;
+    allocationOperatingExpenses: number;
     allocationInventoryUnits: number;
+    inStockInventoryUnits: number;
+    soldInventoryUnits: number;
     orders: Array<{ _id: string; orderNumber: string; orderDate: string; customerName: string; revenue: number; sareeCount: number; buyPrice: number; allocatedOtherExpense: number; netProfit: number; netMargin: number; missingBuyPriceUnits: number }>;
   };
 }

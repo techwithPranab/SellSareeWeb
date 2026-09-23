@@ -281,7 +281,9 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     { $sort: { _id: 1 as const } },
   ];
 
-  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory, orderProfitRows] = await Promise.all([
+  const lifetimeStart = new Date(0);
+  const lifetimeEnd = endOfIndiaDay();
+  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory, orderProfitRows, lifetimeExpenses, lifetimeSold] = await Promise.all([
     Order.aggregate(revenuePipeline(from, to)),
     Expense.aggregate(expensePipeline(from, to)),
     Order.aggregate(soldCostPipeline(from, to)),
@@ -327,6 +329,12 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $project: { orderNumber: 1, orderDate: 1, revenue: 1, sareeCount: 1, buyPrice: 1, missingBuyPriceUnits: 1, customerName: { $ifNull: ['$customer.name', 'Unknown customer'] } } },
       { $sort: { orderDate: -1 } },
     ]),
+    Expense.aggregate(expensePipeline(lifetimeStart, lifetimeEnd)),
+    Order.aggregate([
+      ...revenuePipeline(lifetimeStart, lifetimeEnd).slice(0, 1),
+      { $unwind: '$items' },
+      { $group: { _id: null, units: { $sum: '$items.quantity' } } },
+    ]),
   ]);
 
   const categoryMap = (rows: Array<{ _id: string; amount: number }>) => Object.fromEntries(rows.map((row) => [row._id, row.amount]));
@@ -345,8 +353,11 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     months.set(row._id, entry);
   });
   const trend = [...months.values()].sort((a, b) => a.month.localeCompare(b.month)).map((entry) => ({ month: entry.month, ...pnlValues(entry.revenue, entry.categories, entry.costOfGoodsSold) }));
-  const inventoryUnits = inventory[0]?.units || 0;
-  const averageOtherExpense = inventoryUnits > 0 ? current.operatingExpenses / inventoryUnits : 0;
+  const inStockInventoryUnits = inventory[0]?.units || 0;
+  const soldInventoryUnits = lifetimeSold[0]?.units || 0;
+  const allocationInventoryUnits = inStockInventoryUnits + soldInventoryUnits;
+  const allocationOperatingExpenses = pnlValues(0, categoryMap(lifetimeExpenses)).operatingExpenses;
+  const averageOtherExpense = allocationInventoryUnits > 0 ? allocationOperatingExpenses / allocationInventoryUnits : 0;
   const orderProfitability = orderProfitRows.map((row: { _id: Types.ObjectId; orderNumber: string; orderDate: Date; customerName: string; revenue: number; sareeCount: number; buyPrice: number; missingBuyPriceUnits: number }) => {
     const allocatedOtherExpense = averageOtherExpense * row.sareeCount;
     const netProfit = row.revenue - row.buyPrice - allocatedOtherExpense;
@@ -361,7 +372,10 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     expensesByCategory: expenses,
     orderProfitability: {
       averageOtherExpense,
-      allocationInventoryUnits: inventoryUnits,
+      allocationOperatingExpenses,
+      allocationInventoryUnits,
+      inStockInventoryUnits,
+      soldInventoryUnits,
       orders: orderProfitability,
     },
     inventory: {
