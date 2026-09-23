@@ -283,16 +283,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
   const profitabilityOrderMatch = (start: Date, end: Date) => ({
     $match: {
       status: { $ne: OrderStatus.CANCELLED },
-      $or: [
-        { 'paymentInfo.status': PaymentStatus.COMPLETED },
-        { status: OrderStatus.PENDING },
-      ],
-      $expr: {
-        $and: [
-          { $gte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, start] },
-          { $lte: [{ $ifNull: ['$paymentInfo.paidAt', '$createdAt'] }, end] },
-        ],
-      },
+      createdAt: { $gte: start, $lte: end },
     },
   });
 
@@ -332,7 +323,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $group: {
         _id: '$_id',
         orderNumber: { $first: '$orderNumber' },
-        orderDate: { $first: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] } },
+        orderDate: { $first: '$createdAt' },
         customerId: { $first: '$user' },
         status: { $first: '$status' },
         paymentStatus: { $first: '$paymentInfo.status' },

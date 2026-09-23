@@ -140,7 +140,7 @@ function OrderProfitability({ report }: { report: ProfitLossReport }) {
     return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800"><p className="font-semibold">Order profitability data is not available yet.</p><p className="mt-1">Restart the backend server, then refresh this page so the updated Profit &amp; Loss API is loaded.</p></div>;
   }
   const { orders, averageOtherExpense, allocationOperatingExpenses, allocationInventoryUnits, inStockInventoryUnits, soldInventoryUnits } = report.orderProfitability;
-  const isProjected = (order: ProfitLossReport['orderProfitability']['orders'][number]) => order.status === 'pending' && order.paymentStatus !== 'completed';
+  const isProjected = (order: ProfitLossReport['orderProfitability']['orders'][number]) => order.paymentStatus !== 'completed';
   const realizedNetProfit = orders.filter((order) => !isProjected(order)).reduce((sum, order) => sum + order.netProfit, 0);
   const projectedNetProfit = orders.filter(isProjected).reduce((sum, order) => sum + order.netProfit, 0);
   const totalNetProfit = realizedNetProfit + projectedNetProfit;
