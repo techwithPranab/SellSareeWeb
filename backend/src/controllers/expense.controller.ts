@@ -281,7 +281,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     { $sort: { _id: 1 as const } },
   ];
 
-  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory] = await Promise.all([
+  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory, orderProfitRows] = await Promise.all([
     Order.aggregate(revenuePipeline(from, to)),
     Expense.aggregate(expensePipeline(from, to)),
     Order.aggregate(soldCostPipeline(from, to)),
@@ -307,6 +307,26 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $match: { stock: { $gt: 0 } } },
       { $group: { _id: null, value: { $sum: { $multiply: ['$stock', '$unitCost'] } }, units: { $sum: '$stock' }, items: { $sum: 1 } } },
     ]),
+    Order.aggregate([
+      ...revenuePipeline(from, to).slice(0, 1),
+      { $unwind: '$items' },
+      { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'costProduct' } },
+      { $unwind: { path: '$costProduct', preserveNullAndEmptyArrays: true } },
+      { $group: {
+        _id: '$_id',
+        orderNumber: { $first: '$orderNumber' },
+        orderDate: { $first: { $ifNull: ['$paymentInfo.paidAt', '$createdAt'] } },
+        customerId: { $first: '$user' },
+        revenue: { $first: '$totalAmount' },
+        sareeCount: { $sum: '$items.quantity' },
+        buyPrice: { $sum: { $multiply: ['$items.quantity', { $ifNull: ['$items.unitBuyPrice', { $ifNull: ['$costProduct.buyPrice', 0] }] }] } },
+        missingBuyPriceUnits: { $sum: { $cond: [{ $eq: [{ $ifNull: ['$items.unitBuyPrice', { $ifNull: ['$costProduct.buyPrice', null] }] }, null] }, '$items.quantity', 0] } },
+      } },
+      { $lookup: { from: 'users', localField: 'customerId', foreignField: '_id', as: 'customer' } },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+      { $project: { orderNumber: 1, orderDate: 1, revenue: 1, sareeCount: 1, buyPrice: 1, missingBuyPriceUnits: 1, customerName: { $ifNull: ['$customer.name', 'Unknown customer'] } } },
+      { $sort: { orderDate: -1 } },
+    ]),
   ]);
 
   const categoryMap = (rows: Array<{ _id: string; amount: number }>) => Object.fromEntries(rows.map((row) => [row._id, row.amount]));
@@ -325,6 +345,13 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     months.set(row._id, entry);
   });
   const trend = [...months.values()].sort((a, b) => a.month.localeCompare(b.month)).map((entry) => ({ month: entry.month, ...pnlValues(entry.revenue, entry.categories, entry.costOfGoodsSold) }));
+  const inventoryUnits = inventory[0]?.units || 0;
+  const averageOtherExpense = inventoryUnits > 0 ? current.operatingExpenses / inventoryUnits : 0;
+  const orderProfitability = orderProfitRows.map((row: { _id: Types.ObjectId; orderNumber: string; orderDate: Date; customerName: string; revenue: number; sareeCount: number; buyPrice: number; missingBuyPriceUnits: number }) => {
+    const allocatedOtherExpense = averageOtherExpense * row.sareeCount;
+    const netProfit = row.revenue - row.buyPrice - allocatedOtherExpense;
+    return { ...row, _id: row._id.toString(), allocatedOtherExpense, netProfit, netMargin: row.revenue ? (netProfit / row.revenue) * 100 : 0 };
+  });
 
   return ApiResponse.success(res, 'Profit and loss analytics retrieved', {
     period: { from, to, previousFrom, previousTo },
@@ -332,6 +359,11 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     previous: { ...previous, orderCount: previousRevenue[0]?.orders || 0, missingBuyPriceSoldUnits: previousSoldCost[0]?.missingBuyPriceUnits || 0 },
     trend,
     expensesByCategory: expenses,
+    orderProfitability: {
+      averageOtherExpense,
+      allocationInventoryUnits: inventoryUnits,
+      orders: orderProfitability,
+    },
     inventory: {
       value: (inventory[0]?.value || 0) + (giftInventory[0]?.value || 0),
       units: inventory[0]?.units || 0,

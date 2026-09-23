@@ -20,6 +20,7 @@ export default function ProfitLossPage() {
   const [report, setReport] = useState<ProfitLossReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [view, setView] = useState<'summary' | 'orders'>('summary');
 
   const loadReport = useCallback(async (background = false) => {
     background ? setRefreshing(true) : setLoading(true);
@@ -62,6 +63,8 @@ export default function ProfitLossPage() {
       </section>
 
       {current && previous && <>
+        <div className="flex w-fit rounded-xl border border-border bg-white p-1 text-sm font-medium"><button type="button" onClick={() => setView('summary')} className={`rounded-lg px-4 py-2 ${view === 'summary' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-surface'}`}>Business Summary</button><button type="button" onClick={() => setView('orders')} className={`rounded-lg px-4 py-2 ${view === 'orders' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-surface'}`}>Order Profitability</button></div>
+        {view === 'summary' ? <>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard label="Revenue" value={current.revenue} previous={previous.revenue} icon={TrendingUp} />
           <MetricCard label="Gross Profit" value={current.grossProfit} previous={previous.grossProfit} icon={Scale} margin={current.grossMargin} />
@@ -107,6 +110,7 @@ export default function ProfitLossPage() {
 
         {(report!.inventory.missingBuyPriceProducts > 0 || (current.missingBuyPriceSoldUnits || 0) > 0) && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800"><strong>Buy prices missing:</strong> {report!.inventory.missingBuyPriceProducts} stocked {report!.inventory.missingBuyPriceProducts === 1 ? 'product has' : 'products have'} no buy price, and {current.missingBuyPriceSoldUnits || 0} sold {(current.missingBuyPriceSoldUnits || 0) === 1 ? 'unit has' : 'units have'} no recorded cost. Inventory value or gross profit may be understated.</p>}
         <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-5 text-blue-800"><strong>Calculation:</strong> Cost of goods sold is the quantity sold multiplied by each product’s buy price. Inventory purchases remain outside operating expenses. EBITDA excludes interest, taxes, depreciation, and amortization. Future orders preserve the buy price at the time of sale.</p>
+        </> : <OrderProfitability report={report!} />}
       </>}
     </div>
   );
@@ -130,3 +134,13 @@ function StatementRow({ label, value, strong = false, divider = false, final = f
 }
 
 function EmptyState() { return <p className="py-16 text-center text-sm text-muted-foreground">No financial activity found for this period.</p>; }
+
+function OrderProfitability({ report }: { report: ProfitLossReport }) {
+  const { orders, averageOtherExpense, allocationInventoryUnits } = report.orderProfitability;
+  return <div className="space-y-4">
+    <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Operating expenses</p><p className="mt-1 text-xl font-bold">{formatPrice(report.current.operatingExpenses)}</p></div><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Inventory units used for allocation</p><p className="mt-1 text-xl font-bold">{allocationInventoryUnits}</p></div><div className="rounded-2xl border border-border bg-white p-4"><p className="text-xs text-muted-foreground">Average expense per saree</p><p className="mt-1 text-xl font-bold">{formatPrice(averageOtherExpense)}</p></div></div>
+    {allocationInventoryUnits === 0 && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">No in-stock sarees are available for expense allocation, so allocated overhead is currently zero.</p>}
+    <section className="overflow-hidden rounded-2xl border border-border bg-white"><div className="border-b border-border p-5"><h2 className="font-semibold">Net Profit by Order</h2><p className="mt-1 text-xs text-muted-foreground">Net profit = order revenue − sold saree buy cost − allocated operating expense</p></div>{orders.length ? <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-sm"><thead className="bg-surface text-left text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Customer</th><th className="px-4 py-3">Date</th><th className="px-4 py-3 text-right">Sarees</th><th className="px-4 py-3 text-right">Revenue</th><th className="px-4 py-3 text-right">Buy Cost</th><th className="px-4 py-3 text-right">Other Expense</th><th className="px-4 py-3 text-right">Net Profit</th><th className="px-4 py-3 text-right">Margin</th></tr></thead><tbody className="divide-y divide-border">{orders.map((order) => <tr key={order._id} className="hover:bg-surface/40"><td className="px-4 py-3 font-medium text-primary">#{order.orderNumber}</td><td className="px-4 py-3">{order.customerName}</td><td className="px-4 py-3 whitespace-nowrap">{new Date(order.orderDate).toLocaleDateString('en-IN')}</td><td className="px-4 py-3 text-right">{order.sareeCount}</td><td className="px-4 py-3 text-right font-medium">{formatPrice(order.revenue)}</td><td className="px-4 py-3 text-right">{formatPrice(order.buyPrice)}{order.missingBuyPriceUnits > 0 && <span className="ml-1 text-amber-600" title={`${order.missingBuyPriceUnits} units have no buy price`}>*</span>}</td><td className="px-4 py-3 text-right">{formatPrice(order.allocatedOtherExpense)}</td><td className={`px-4 py-3 text-right font-bold ${order.netProfit < 0 ? 'text-red-600' : 'text-green-700'}`}>{formatPrice(order.netProfit)}</td><td className={`px-4 py-3 text-right font-medium ${order.netMargin < 0 ? 'text-red-600' : ''}`}>{order.netMargin.toFixed(1)}%</td></tr>)}</tbody></table></div> : <EmptyState />}</section>
+    <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs leading-5 text-blue-800"><strong>Allocation method:</strong> Operating expenses for the selected period are divided by the current in-stock saree quantity. Each order receives that average expense multiplied by its saree quantity. Inventory purchase entries, interest, taxes, and depreciation are excluded from “other expenses.”</p>
+  </div>;
+}

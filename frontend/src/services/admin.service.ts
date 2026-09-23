@@ -135,6 +135,11 @@ export interface ProfitLossReport {
   trend: Array<ProfitLossMetrics & { month: string }>;
   expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
   inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number; sareeValue: number; giftValue: number; giftUnits: number; giftItems: number };
+  orderProfitability: {
+    averageOtherExpense: number;
+    allocationInventoryUnits: number;
+    orders: Array<{ _id: string; orderNumber: string; orderDate: string; customerName: string; revenue: number; sareeCount: number; buyPrice: number; allocatedOtherExpense: number; netProfit: number; netMargin: number; missingBuyPriceUnits: number }>;
+  };
 }
 
 export const adminService = {
