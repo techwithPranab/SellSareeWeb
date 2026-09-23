@@ -168,10 +168,28 @@ export const getAdminOrderById = asyncHandler(async (req: Request, res: Response
 });
 
 export const getAllOrders = asyncHandler(async (req: Request, res: Response) => {
-  const { page, limit, sortBy, sortOrder, status } = req.query;
+  const { page, limit, sortBy, sortOrder, status, search, paymentStatus, paymentMethod, from, to } = req.query;
+
+  const fromDate = from ? new Date(`${String(from)}T00:00:00+05:30`) : undefined;
+  const toDate = to ? new Date(`${String(to)}T23:59:59.999+05:30`) : undefined;
+  if ((fromDate && Number.isNaN(fromDate.getTime())) || (toDate && Number.isNaN(toDate.getTime()))) {
+    return ApiResponse.badRequest(res, 'Invalid order date range');
+  }
+
+  let searchFilter: Record<string, unknown> = {};
+  if (search && String(search).trim()) {
+    const escaped = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(escaped, 'i');
+    const users = await User.find({ $or: [{ name: pattern }, { email: pattern }, { phone: pattern }] }).select('_id').limit(100);
+    searchFilter = { $or: [{ orderNumber: pattern }, { user: { $in: users.map((user) => user._id) } }] };
+  }
 
   const filter = {
     ...(status && { status }),
+    ...(paymentStatus && { 'paymentInfo.status': paymentStatus }),
+    ...(paymentMethod && { 'paymentInfo.method': paymentMethod }),
+    ...((fromDate || toDate) && { createdAt: { ...(fromDate && { $gte: fromDate }), ...(toDate && { $lte: toDate }) } }),
+    ...searchFilter,
   };
 
   const result = await orderService.getAllOrders(filter, {

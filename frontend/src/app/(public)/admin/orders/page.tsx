@@ -10,7 +10,8 @@ import { formatPrice, formatDate, formatPaymentMethod, asRoute } from '@/utils/h
 import { ORDER_STATUS_CONFIG } from '@/constants';
 import type { Order, PaginationMeta } from '@/types';
 import toast from 'react-hot-toast';
-import { Plus } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const STATUS_FILTERS: Array<{ label: string; value: string }> = [
   { label: 'All', value: '' },
@@ -28,12 +29,18 @@ export default function AdminOrdersPage() {
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 400);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminService.getOrders({ page, limit: 15, status: status || undefined });
+      const res = await adminService.getOrders({ page, limit: 15, status: status || undefined, search: debouncedSearch || undefined, paymentStatus: paymentStatus || undefined, paymentMethod: paymentMethod || undefined, from: from || undefined, to: to || undefined });
       setOrders(res.data ?? []);
       setPagination(res.meta?.pagination ?? null);
     } catch {
@@ -41,7 +48,7 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, status]);
+  }, [debouncedSearch, from, page, paymentMethod, paymentStatus, status, to]);
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
@@ -72,6 +79,16 @@ export default function AdminOrdersPage() {
               {f.label}
             </button>
           ))}
+        </div>
+        <div className="border-b border-border bg-surface/30 p-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="relative sm:col-span-2 xl:col-span-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Order, customer, email…" className="input-field py-2 pl-9 text-sm" /></div>
+            <select value={paymentStatus} onChange={(event) => { setPaymentStatus(event.target.value); setPage(1); }} className="input-field py-2 text-sm" aria-label="Payment status"><option value="">All payment statuses</option><option value="pending">Payment pending</option><option value="processing">Payment processing</option><option value="completed">Paid</option><option value="failed">Payment failed</option><option value="refunded">Refunded</option><option value="partially_refunded">Partially refunded</option></select>
+            <select value={paymentMethod} onChange={(event) => { setPaymentMethod(event.target.value); setPage(1); }} className="input-field py-2 text-sm" aria-label="Payment method"><option value="">All payment methods</option><option value="upi">UPI</option><option value="razorpay">Razorpay</option><option value="wallet">Wallet</option></select>
+            <div><label className="sr-only" htmlFor="order-from">From date</label><input id="order-from" type="date" value={from} max={to || undefined} onChange={(event) => { setFrom(event.target.value); setPage(1); }} className="input-field py-2 text-sm" title="From date" /></div>
+            <div><label className="sr-only" htmlFor="order-to">To date</label><input id="order-to" type="date" value={to} min={from || undefined} onChange={(event) => { setTo(event.target.value); setPage(1); }} className="input-field py-2 text-sm" title="To date" /></div>
+          </div>
+          {(search || paymentStatus || paymentMethod || from || to) && <button type="button" onClick={() => { setSearch(''); setPaymentStatus(''); setPaymentMethod(''); setFrom(''); setTo(''); setPage(1); }} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"><X className="h-3.5 w-3.5" />Clear additional filters</button>}
         </div>
 
         {loading ? (
