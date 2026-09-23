@@ -314,6 +314,16 @@ export const adminService = {
     return response.data.data as { order: Order };
   },
 
+  async recordManualPayment(orderId: string, data: { amount: number; paidAt: string; reference?: string; note?: string }) {
+    const response = await api.post(`/orders/${orderId}/manual-payments`, data);
+    return response.data.data as { order: Order };
+  },
+
+  async markOrderUnpaid(orderId: string) {
+    const response = await api.put(`/orders/${orderId}/mark-unpaid`);
+    return response.data.data as { order: Order };
+  },
+
   async createOrderForCustomer(data: {
     customerId?: string;
     customer?: { name: string; email: string; phone: string };

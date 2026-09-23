@@ -18,6 +18,8 @@ import {
   submitManualPaymentProof,
   confirmManualPayment,
   updateOrderGiftItems,
+  recordManualPayment,
+  markOrderUnpaid,
 } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/role.middleware';
@@ -48,6 +50,8 @@ router.post('/payment/verify', verifyPayment);
 router.use(requireAdmin);
 router.post('/admin/create-for-customer', uploadPaymentScreenshot, createOrderForCustomer);
 router.put('/:id/manual-payment/confirm', confirmManualPayment);
+router.post('/:id/manual-payments', recordManualPayment);
+router.put('/:id/mark-unpaid', markOrderUnpaid);
 router.get('/', getAllOrders);
 router.get('/admin/stats', getOrderDashboardStats);
 router.get('/admin/:id', getAdminOrderById);

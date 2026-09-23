@@ -17,7 +17,7 @@ export type OrderStatus =
   | 'refund_initiated'
   | 'refunded';
 
-export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'partially_refunded';
+export type PaymentStatus = 'pending' | 'processing' | 'partially_paid' | 'completed' | 'failed' | 'refunded' | 'partially_refunded';
 
 export type PaymentMethod = 'razorpay' | 'upi' | 'wallet';
 
@@ -277,6 +277,7 @@ export interface PaymentInfo {
   failureReason?: string;
   manualTransactionId?: string;
   paymentScreenshot?: string;
+  manualPayments?: Array<{ _id?: string; amount: number; paidAt: string; reference?: string; note?: string; voidedAt?: string }>;
 }
 
 export interface TrackingInfo {

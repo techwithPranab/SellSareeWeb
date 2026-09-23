@@ -93,13 +93,53 @@ export const confirmManualPayment = asyncHandler(async (req: Request, res: Respo
     return ApiResponse.success(res, 'Payment is already confirmed', { order });
   }
 
+  const now = new Date();
+  const payments = order.paymentInfo.manualPayments || [];
+  const paid = payments.filter((payment) => !payment.voidedAt).reduce((sum, payment) => sum + payment.amount, 0);
+  if (paid < order.totalAmount) payments.push({ amount: order.totalAmount - paid, paidAt: now, reference: order.paymentInfo.manualTransactionId, note: 'Marked fully paid by admin', createdBy: new Types.ObjectId(req.user!.id) });
+  order.paymentInfo.manualPayments = payments;
   order.paymentInfo.status = PaymentStatus.COMPLETED;
-  order.paymentInfo.paidAt = new Date();
+  order.paymentInfo.paidAt = now;
   // Do not move an order backwards if fulfilment has already started.
   if (order.status === OrderStatus.PENDING) order.status = OrderStatus.CONFIRMED;
   await order.save();
   await order.populate('user', 'name email phone');
   return ApiResponse.success(res, 'Manual payment confirmed', { order });
+});
+
+export const recordManualPayment = asyncHandler(async (req: Request, res: Response) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return ApiResponse.notFound(res, 'Order not found');
+  if (order.paymentInfo.method !== PaymentMethod.UPI) return ApiResponse.badRequest(res, 'Manual payment logs are only available for UPI orders');
+  const amount = Number(req.body.amount);
+  const paidAt = req.body.paidAt ? new Date(req.body.paidAt) : new Date();
+  if (!Number.isFinite(amount) || amount <= 0) return ApiResponse.badRequest(res, 'Payment amount must be greater than zero');
+  if (Number.isNaN(paidAt.getTime())) return ApiResponse.badRequest(res, 'Payment date is invalid');
+  const payments = order.paymentInfo.manualPayments || [];
+  const alreadyPaid = payments.filter((payment) => !payment.voidedAt).reduce((sum, payment) => sum + payment.amount, 0);
+  if (alreadyPaid + amount > order.totalAmount) return ApiResponse.badRequest(res, `Payment exceeds the remaining balance of ₹${Math.max(0, order.totalAmount - alreadyPaid)}`);
+  payments.push({ amount, paidAt, reference: String(req.body.reference || '').trim(), note: String(req.body.note || '').trim(), createdBy: new Types.ObjectId(req.user!.id) });
+  order.paymentInfo.manualPayments = payments;
+  const totalPaid = alreadyPaid + amount;
+  order.paymentInfo.status = totalPaid >= order.totalAmount ? PaymentStatus.COMPLETED : PaymentStatus.PARTIALLY_PAID;
+  order.paymentInfo.paidAt = totalPaid >= order.totalAmount ? paidAt : undefined;
+  if (totalPaid >= order.totalAmount && order.status === OrderStatus.PENDING) order.status = OrderStatus.CONFIRMED;
+  await order.save();
+  await order.populate('user', 'name email phone');
+  return ApiResponse.success(res, 'Manual payment recorded', { order });
+});
+
+export const markOrderUnpaid = asyncHandler(async (req: Request, res: Response) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return ApiResponse.notFound(res, 'Order not found');
+  if (order.paymentInfo.method !== PaymentMethod.UPI) return ApiResponse.badRequest(res, 'Razorpay payments cannot be manually marked unpaid');
+  const now = new Date();
+  (order.paymentInfo.manualPayments || []).forEach((payment) => { if (!payment.voidedAt) { payment.voidedAt = now; payment.voidedBy = new Types.ObjectId(req.user!.id); } });
+  order.paymentInfo.status = PaymentStatus.PENDING;
+  order.paymentInfo.paidAt = undefined;
+  await order.save();
+  await order.populate('user', 'name email phone');
+  return ApiResponse.success(res, 'Order marked as unpaid; payment history retained', { order });
 });
 
 export const getUserOrders = asyncHandler(async (req: Request, res: Response) => {

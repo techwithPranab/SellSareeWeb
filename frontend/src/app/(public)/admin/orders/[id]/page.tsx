@@ -70,6 +70,9 @@ export default function AdminOrderDetailPage() {
   const [refundAmount, setRefundAmount] = useState<number>(0);
   const [initiatingRefund, setInitiatingRefund] = useState(false);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [savingPartialPayment, setSavingPartialPayment] = useState(false);
+  const [markingUnpaid, setMarkingUnpaid] = useState(false);
+  const [paymentDraft, setPaymentDraft] = useState({ amount: 0, paidAt: new Date().toISOString().slice(0, 10), reference: '', note: '' });
   const [giftInventory, setGiftInventory] = useState<GiftItem[]>([]);
   const [giftQuantities, setGiftQuantities] = useState<Record<string, number>>({});
   const [savingGifts, setSavingGifts] = useState(false);
@@ -174,6 +177,26 @@ export default function AdminOrderDetailPage() {
     } finally {
       setConfirmingPayment(false);
     }
+  };
+
+  const handleRecordPayment = async () => {
+    if (!order || paymentDraft.amount <= 0) return toast.error('Enter a payment amount greater than zero');
+    setSavingPartialPayment(true);
+    try {
+      const { order: updated } = await adminService.recordManualPayment(order._id, paymentDraft);
+      setOrder(updated); setNewStatus(updated.status);
+      setPaymentDraft({ amount: 0, paidAt: new Date().toISOString().slice(0, 10), reference: '', note: '' });
+      toast.success('Payment recorded');
+    } catch (error: unknown) { toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Could not record payment'); }
+    finally { setSavingPartialPayment(false); }
+  };
+
+  const handleMarkUnpaid = async () => {
+    if (!order || !confirm('Mark this order as unpaid? Active manual payment records will be voided but retained in history.')) return;
+    setMarkingUnpaid(true);
+    try { const { order: updated } = await adminService.markOrderUnpaid(order._id); setOrder(updated); toast.success('Order marked as unpaid'); }
+    catch (error: unknown) { toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Could not mark order unpaid'); }
+    finally { setMarkingUnpaid(false); }
   };
 
   const handlePrintDocument = (isInvoice = false) => {
@@ -592,6 +615,7 @@ export default function AdminOrderDetailPage() {
                   {order.paymentInfo.status === 'processing' ? 'Confirm QR Payment' : 'Mark Payment as Paid'}
                 </button>
               )}
+              {order.paymentInfo.method === 'upi' && <div className="mt-4 space-y-3 border-t border-border pt-4"><div className="flex items-center justify-between"><p className="text-sm font-semibold">Manual Payment Log</p>{order.paymentInfo.status !== 'pending' && <button type="button" onClick={handleMarkUnpaid} disabled={markingUnpaid} className="text-xs font-medium text-red-600 hover:underline">{markingUnpaid ? 'Updating…' : 'Mark Unpaid'}</button>}</div>{(order.paymentInfo.manualPayments || []).length > 0 && <div className="max-h-40 space-y-2 overflow-auto">{order.paymentInfo.manualPayments!.map((payment, index) => <div key={payment._id || index} className={`rounded-lg p-2 text-xs ${payment.voidedAt ? 'bg-gray-100 text-muted-foreground line-through' : 'bg-green-50 text-green-800'}`}><div className="flex justify-between"><span>{new Date(payment.paidAt).toLocaleDateString('en-IN')}</span><strong>{formatPrice(payment.amount)}</strong></div>{payment.reference && <p>Ref: {payment.reference}</p>}{payment.note && <p>{payment.note}</p>}{payment.voidedAt && <p className="no-underline">Voided</p>}</div>)}</div>}<div className="grid grid-cols-2 gap-2"><input type="number" min="0.01" step="0.01" value={paymentDraft.amount || ''} onChange={(e) => setPaymentDraft({ ...paymentDraft, amount: Number(e.target.value) })} placeholder="Amount" className="input-field py-2 text-sm" /><input type="date" value={paymentDraft.paidAt} onChange={(e) => setPaymentDraft({ ...paymentDraft, paidAt: e.target.value })} className="input-field py-2 text-sm" /><input value={paymentDraft.reference} onChange={(e) => setPaymentDraft({ ...paymentDraft, reference: e.target.value })} placeholder="Reference / UTR" className="input-field col-span-2 py-2 text-sm" /><input value={paymentDraft.note} onChange={(e) => setPaymentDraft({ ...paymentDraft, note: e.target.value })} placeholder="Note (optional)" className="input-field col-span-2 py-2 text-sm" /></div><button type="button" onClick={handleRecordPayment} disabled={savingPartialPayment || paymentDraft.amount <= 0} className="btn-outline btn-sm w-full">{savingPartialPayment ? 'Recording…' : 'Record Payment'}</button></div>}
               {order.loyaltyPointsEarned > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Loyalty points earned: <span className="font-semibold text-primary">{order.loyaltyPointsEarned} pts</span>

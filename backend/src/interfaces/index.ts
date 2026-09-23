@@ -182,6 +182,15 @@ export interface IPaymentInfo {
   manualTransactionId?: string;
   paymentScreenshot?: string;
   paymentScreenshotPublicId?: string;
+  manualPayments?: Array<{
+    amount: number;
+    paidAt: Date;
+    reference?: string;
+    note?: string;
+    createdBy: Types.ObjectId;
+    voidedAt?: Date;
+    voidedBy?: Types.ObjectId;
+  }>;
 }
 
 export interface ITrackingInfo {

@@ -62,6 +62,15 @@ const PaymentInfoSchema = new Schema(
     manualTransactionId: { type: String, trim: true, maxlength: 150 },
     paymentScreenshot: { type: String },
     paymentScreenshotPublicId: { type: String },
+    manualPayments: [{
+      amount: { type: Number, required: true, min: 0.01 },
+      paidAt: { type: Date, required: true },
+      reference: { type: String, trim: true, maxlength: 150 },
+      note: { type: String, trim: true, maxlength: 500 },
+      createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+      voidedAt: { type: Date },
+      voidedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    }],
   },
   { _id: false }
 );
