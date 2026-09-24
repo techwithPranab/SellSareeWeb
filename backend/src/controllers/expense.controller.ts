@@ -289,7 +289,20 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
 
   const lifetimeStart = new Date(0);
   const lifetimeEnd = endOfIndiaDay();
-  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory, orderProfitRows, lifetimeExpenses, lifetimeSold, unrealizedRevenueRows] = await Promise.all([
+  const outstandingOrderStages = [
+    { $match: { status: { $ne: OrderStatus.CANCELLED }, 'paymentInfo.status': { $nin: [PaymentStatus.COMPLETED, PaymentStatus.REFUNDED, PaymentStatus.PARTIALLY_REFUNDED] } } },
+    { $project: {
+      user: 1,
+      totalAmount: 1,
+      paidAmount: { $reduce: {
+        input: { $ifNull: ['$paymentInfo.manualPayments', []] }, initialValue: 0,
+        in: { $add: ['$$value', { $cond: [{ $eq: [{ $ifNull: ['$$this.voidedAt', null] }, null] }, '$$this.amount', 0] }] },
+      } },
+    } },
+    { $addFields: { balance: { $max: [{ $subtract: ['$totalAmount', '$paidAmount'] }, 0] } } },
+    { $match: { balance: { $gt: 0 } } },
+  ];
+  const [revenue, expenses, soldCost, previousRevenue, previousExpenses, previousSoldCost, revenueByMonth, expensesByMonth, soldCostByMonth, inventory, giftInventory, orderProfitRows, lifetimeExpenses, lifetimeSold, unrealizedRevenueRows, unrealizedByCustomer] = await Promise.all([
     Order.aggregate(revenuePipeline(from, to)),
     Expense.aggregate(expensePipeline(from, to)),
     Order.aggregate(soldCostPipeline(from, to)),
@@ -344,22 +357,16 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
       { $group: { _id: null, units: { $sum: '$items.quantity' } } },
     ]),
     Order.aggregate([
-      { $match: { status: { $ne: OrderStatus.CANCELLED }, 'paymentInfo.status': { $nin: [PaymentStatus.COMPLETED, PaymentStatus.REFUNDED, PaymentStatus.PARTIALLY_REFUNDED] } } },
-      { $project: {
-        balance: {
-          $max: [
-            { $subtract: [
-              '$totalAmount',
-              { $reduce: {
-                input: { $ifNull: ['$paymentInfo.manualPayments', []] }, initialValue: 0,
-                in: { $add: ['$$value', { $cond: [{ $eq: [{ $ifNull: ['$$this.voidedAt', null] }, null] }, '$$this.amount', 0] }] },
-              } },
-            ] },
-            0,
-          ],
-        },
-      } },
+      ...outstandingOrderStages,
       { $group: { _id: null, amount: { $sum: '$balance' }, orders: { $sum: { $cond: [{ $gt: ['$balance', 0] }, 1, 0] } } } },
+    ]),
+    Order.aggregate([
+      ...outstandingOrderStages,
+      { $group: { _id: '$user', totalOrderValue: { $sum: '$totalAmount' }, paidAmount: { $sum: '$paidAmount' }, pendingAmount: { $sum: '$balance' }, orderCount: { $sum: 1 } } },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'customer' } },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+      { $project: { customerId: '$_id', customerName: { $ifNull: ['$customer.name', 'Unknown customer'] }, email: { $ifNull: ['$customer.email', ''] }, phone: { $ifNull: ['$customer.phone', ''] }, totalOrderValue: 1, paidAmount: 1, pendingAmount: 1, orderCount: 1 } },
+      { $sort: { pendingAmount: -1 } },
     ]),
   ]);
 
@@ -397,6 +404,7 @@ export const getProfitLossAnalytics = asyncHandler(async (req: Request, res: Res
     trend,
     expensesByCategory: expenses,
     unrealizedRevenue: { amount: unrealizedRevenueRows[0]?.amount || 0, orders: unrealizedRevenueRows[0]?.orders || 0 },
+    unrealizedByCustomer,
     orderProfitability: {
       averageOtherExpense,
       allocationOperatingExpenses,

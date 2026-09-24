@@ -135,6 +135,7 @@ export interface ProfitLossReport {
   trend: Array<ProfitLossMetrics & { month: string }>;
   expensesByCategory: Array<{ _id: string; amount: number; count: number }>;
   unrealizedRevenue: { amount: number; orders: number };
+  unrealizedByCustomer: Array<{ customerId: string; customerName: string; email: string; phone: string; totalOrderValue: number; paidAmount: number; pendingAmount: number; orderCount: number }>;
   inventory: { value: number; units: number; products: number; missingBuyPriceProducts: number; sareeValue: number; giftValue: number; giftUnits: number; giftItems: number };
   orderProfitability: {
     averageOtherExpense: number;
