@@ -142,7 +142,14 @@ export default function AdminExpensesPage() {
     try {
       const { expense: updated } = await adminService.updateExpenseSettlement(expense._id, nextStatus);
       if (settlement) await loadData();
-      else setExpenses((current) => current.map((item) => item._id === updated._id ? updated : item));
+      else {
+        setExpenses((current) => current.map((item) => item._id === updated._id ? updated : item));
+        setSummary((current) => current ? {
+          ...current,
+          settledExpenses: current.settledExpenses + (nextStatus ? expense.amount : -expense.amount),
+          unsettledExpenses: current.unsettledExpenses + (nextStatus ? -expense.amount : expense.amount),
+        } : current);
+      }
       toast.success(nextStatus ? 'Expense marked as settled' : 'Expense marked as needing settlement');
     } catch {
       toast.error('Could not update settlement status');
@@ -183,7 +190,12 @@ export default function AdminExpensesPage() {
         <SummaryCard label="Current Balance" value={summary?.currentBalance ?? 0} icon={WalletCards} highlight />
         <SummaryCard label="Completed Revenue" value={summary?.totalRevenue ?? 0} icon={IndianRupee} />
         <SummaryCard label="Business Investment" value={summary?.totalInvestments ?? 0} icon={Building2} positive />
-        <SummaryCard label="Total Expenses" value={summary?.totalExpenses ?? 0} icon={ReceiptIndianRupee} />
+        <SummaryCard
+          label="Total Expenses"
+          value={summary?.totalExpenses ?? 0}
+          icon={ReceiptIndianRupee}
+          details={<><span className="text-green-700">Settled: {formatPrice(summary?.settledExpenses ?? 0)}</span><span className="text-amber-700">Unsettled: {formatPrice(summary?.unsettledExpenses ?? 0)}</span></>}
+        />
         <SummaryCard label="This Month" value={summary?.monthExpenses ?? 0} icon={CalendarDays} />
         <SummaryCard label="Today" value={summary?.todayExpenses ?? 0} icon={CalendarDays} />
       </div>
@@ -254,8 +266,8 @@ export default function AdminExpensesPage() {
   );
 }
 
-function SummaryCard({ label, value, icon: Icon, highlight = false, positive = false }: { label: string; value: number; icon: React.ElementType; highlight?: boolean; positive?: boolean }) {
-  return <div className={`rounded-2xl border p-4 ${highlight ? 'border-primary/30 bg-primary text-white' : 'border-border bg-white'}`}><div className="flex items-center justify-between"><p className={`text-xs font-medium ${highlight ? 'text-white/75' : 'text-muted-foreground'}`}>{label}</p><Icon className="h-4 w-4" /></div><p className={`mt-2 text-xl font-bold ${!highlight && value < 0 ? 'text-red-600' : positive ? 'text-green-600' : ''}`}>{formatPrice(value)}</p></div>;
+function SummaryCard({ label, value, icon: Icon, highlight = false, positive = false, details }: { label: string; value: number; icon: React.ElementType; highlight?: boolean; positive?: boolean; details?: React.ReactNode }) {
+  return <div className={`rounded-2xl border p-4 ${highlight ? 'border-primary/30 bg-primary text-white' : 'border-border bg-white'}`}><div className="flex items-center justify-between"><p className={`text-xs font-medium ${highlight ? 'text-white/75' : 'text-muted-foreground'}`}>{label}</p><Icon className="h-4 w-4" /></div><p className={`mt-2 text-xl font-bold ${!highlight && value < 0 ? 'text-red-600' : positive ? 'text-green-600' : ''}`}>{formatPrice(value)}</p>{details && <div className="mt-2 flex flex-col gap-0.5 text-[11px] font-medium">{details}</div>}</div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

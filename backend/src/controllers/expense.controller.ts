@@ -155,6 +155,8 @@ export const getExpenseSummary = asyncHandler(async (_req: Request, res: Respons
         $group: {
           _id: null,
           totalExpenses: { $sum: '$amount' },
+          settledExpenses: { $sum: { $cond: [{ $eq: ['$isSettled', true] }, '$amount', 0] } },
+          unsettledExpenses: { $sum: { $cond: [{ $eq: ['$isSettled', true] }, 0, '$amount'] } },
           todayExpenses: { $sum: { $cond: [{ $gte: ['$expenseDate', todayStart] }, '$amount', 0] } },
           monthExpenses: { $sum: { $cond: [{ $gte: ['$expenseDate', monthStart] }, '$amount', 0] } },
         },
@@ -188,6 +190,8 @@ export const getExpenseSummary = asyncHandler(async (_req: Request, res: Respons
       totalRevenue,
       totalInvestments,
       totalExpenses,
+      settledExpenses: totals[0]?.settledExpenses || 0,
+      unsettledExpenses: totals[0]?.unsettledExpenses || 0,
       currentBalance: totalRevenue + totalInvestments - totalExpenses,
       todayExpenses: totals[0]?.todayExpenses || 0,
       monthExpenses: totals[0]?.monthExpenses || 0,

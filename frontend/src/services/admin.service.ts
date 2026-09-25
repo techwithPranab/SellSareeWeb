@@ -101,6 +101,8 @@ export interface ExpenseSummary {
   totalRevenue: number;
   totalInvestments: number;
   totalExpenses: number;
+  settledExpenses: number;
+  unsettledExpenses: number;
   currentBalance: number;
   todayExpenses: number;
   monthExpenses: number;
