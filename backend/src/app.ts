@@ -33,12 +33,14 @@ configureCloudinary();
 
 const app: Application = express();
 
-// Production traffic reaches Express through the hosting provider's reverse
-// proxy. Trust only the configured number of proxy hops so rate limits use the
-// customer's IP instead of grouping every visitor under the proxy IP.
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS) || 1);
-}
+// Traffic reaches Express through the hosting provider's reverse proxy. Do not
+// gate this on NODE_ENV: some platforms run `npm start` without setting it even
+// though they still add X-Forwarded-For. Trust only the configured number of
+// hops so rate limits identify the client rather than the final proxy.
+const configuredProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
+app.set('trust proxy', Number.isInteger(configuredProxyHops) && configuredProxyHops > 0
+  ? configuredProxyHops
+  : 1);
 
 // ============================================================
 // SECURITY MIDDLEWARE
